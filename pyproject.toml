@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "snappiershot"
+version = "0.1.0"
+description = "Snapshot testing library."
+authors = ["Ben Bonenfant <bbonenfant@morsecorp.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.6.1"
+importlib-metadata = "^1.7.0"
+
+[tool.poetry.dev-dependencies]
+black = "^19.10b0"
+flake8 = "^3.8.3"
+mypy = "^0.782"
+pytest = "^6.0.1"
+pytest-cov = "^2.10.0"
+pytest-mypy = "^0.6.2"
+pre-commit = "^2.6.0"
+
+[tool.black]
+line-length = 92
+target-version = ['py36', 'py37', 'py38']
+exclude = '\.git|\.idea|\.venv|\.\*cache|\*\.egg-info'
+
+[tool.isort]
+line_length = 92
+multi_line_output = 3
+include_trailing_comma = true
+known_first_party = "snappiershot"
+
+[build-system]
+requires = ["poetry>=1.0.5"]
+build-backend = "poetry.masonry.api"

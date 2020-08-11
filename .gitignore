@@ -1,0 +1,38 @@
+*.pyc
+.venv
+
+# Packages
+*.egg
+*.egg-info
+dist
+build
+_build
+.cache
+*.so
+
+# Installer logs
+pip-log.txt
+
+# Unit test / coverage reports
+.coverage
+.tox
+nosetests.xml
+.pytest_cache
+.mypy_cache
+
+.DS_Store
+.idea/*
+.python-version
+
+/test.py
+/test_*.*
+/benchmark/*
+benchmark.py
+results.json
+profile.html
+/wheelhouse
+/docs/site/*
+setup.py
+
+# editor
+.vscode

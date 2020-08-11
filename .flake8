@@ -1,0 +1,16 @@
+[flake8]
+max-line-length = 92
+ignore =
+per-file-ignores =
+exclude =
+    .git
+    __pycache__
+    build
+    dist
+    .idea
+    .venv
+    .tox
+    .mypy_cache
+    .pytest_cache
+    .vscode
+    .github
