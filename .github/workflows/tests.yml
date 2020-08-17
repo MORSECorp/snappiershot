@@ -62,5 +62,5 @@ jobs:
     - name: Test
       run: |
         source $HOME/.poetry/env
-        poetry run pytest -q tests
+        poetry run pytest -q test
         poetry install
