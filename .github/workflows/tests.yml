@@ -23,7 +23,7 @@ jobs:
           pip install pre-commit
           pre-commit run --all-files
 
-  Test&Build:
+  Test-Build:
     needs: Linting
     runs-on: ubuntu-latest
     strategy:
