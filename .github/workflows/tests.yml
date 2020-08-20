@@ -45,7 +45,6 @@ jobs:
         curl -fsS -o get-poetry.py https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py
         python get-poetry.py --preview -y
         source $HOME/.poetry/env
-        poetry config virtualenvs.in-project true
     - name: Set up cache
       uses: actions/cache@v1
       with:
@@ -62,5 +61,4 @@ jobs:
     - name: Test
       run: |
         source $HOME/.poetry/env
-        poetry run pytest -q test
-        poetry install
+        poetry run pytest --quiet tests
