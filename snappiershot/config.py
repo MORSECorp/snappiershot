@@ -45,12 +45,12 @@ class Config:
         """ Create a Config object by parsing a pyproject.toml file.
 
         Args:
-            file: The path to the pyproject.toml file.
+            file: The path to the pyproject.toml file, as a `pathlib.Path` object.
         """
         try:
             pyproject_toml = tomlkit.parse(file.read_text())
             tool_config = pyproject_toml.get("tool", dict()).get("snappiershot", dict())
-        except TOMLKitError:
+        except (TOMLKitError, FileNotFoundError):
             tool_config = dict()
         return Config(**tool_config)
 
@@ -90,7 +90,7 @@ class Config:
         # Validate abs_tol.
         if not isinstance(self.abs_tol, float):
             raise TypeError(
-                f"Expected an float value for the float_absolute_tolerance configuration; "
+                f"Expected a float value for the float_absolute_tolerance configuration; "
                 f"Found: {self.abs_tol}"
             )
         self.abs_tol = float(self.abs_tol)  # Convert from tomlkit type.
@@ -103,7 +103,7 @@ class Config:
         # Validate rel_tol.
         if not isinstance(self.rel_tol, float):
             raise TypeError(
-                f"Expected an float value for the float_relative_tolerance configuration; "
+                f"Expected a float value for the float_relative_tolerance configuration; "
                 f"Found: {self.rel_tol}"
             )
         self.rel_tol = float(self.rel_tol)  # Convert from tomlkit type.
