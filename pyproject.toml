@@ -21,11 +21,30 @@ line-length = 92
 target-version = ['py36', 'py37', 'py38']
 exclude = '\.git|\.idea|\.venv|\.\*cache|\*\.egg-info'
 
+[tool.coverage]
+    [tool.coverage.report]
+    exclude_lines = [
+      "pragma: no cover",
+      "def __repr__",
+      "raise NotImplementedError",
+      "if __name__ == .__main__.:",
+    ]
+    omit = [
+      "*/__init__.py",
+      "*/conftest.py",
+    ]
+    fail_under = 100
+    show_missing = true
+
 [tool.isort]
 line_length = 92
 multi_line_output = 3
 include_trailing_comma = true
 known_first_party = "snappiershot"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-vv --cov=snappiershot"
 
 [build-system]
 requires = ["poetry>=1.0.5"]

@@ -8,7 +8,7 @@ repos:
     rev: 3.7.8
     hooks:
       - id: flake8
-        args: [--config, tests/.flake8]
+        args: [--config, .flake8]
 
   - repo: https://github.com/timothycrosley/isort
     rev: 4.3.21
@@ -20,7 +20,7 @@ repos:
     rev: v0.782
     hooks:
       - id: mypy
-        args: [--config-file, tests/mypy.ini]
+        args: [--config, mypy.ini]
         files: ^snappiershot/
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
