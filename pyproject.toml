@@ -10,7 +10,7 @@ importlib-metadata = "^1.7.0"
 tomlkit = "^0.7.0"
 
 [tool.poetry.dev-dependencies]
-black = "^19.10b0"
+black = "19.10b0"
 flake8 = "^3.8.3"
 mypy = "^0.782"
 pre-commit = "^2.6.0"
