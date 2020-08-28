@@ -7,9 +7,10 @@ authors = ["Ben Bonenfant <bbonenfant@morsecorp.com>"]
 [tool.poetry.dependencies]
 python = "^3.6.1"
 importlib-metadata = "^1.7.0"
+tomlkit = "^0.7.0"
 
 [tool.poetry.dev-dependencies]
-black = "^19.10b0"
+black = "19.10b0"
 flake8 = "^3.8.3"
 mypy = "^0.782"
 pre-commit = "^2.6.0"
@@ -37,7 +38,6 @@ exclude = '\.git|\.idea|\.venv|\.\*cache|\*\.egg-info'
     show_missing = true
 
 [tool.isort]
-line_length = 92
 multi_line_output = 3
 include_trailing_comma = true
 known_first_party = "snappiershot"
