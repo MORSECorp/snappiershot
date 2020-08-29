@@ -1,9 +1,11 @@
 """ Functionality relating to configuration of the Snappiershot package. """
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, Union, TypeVar
 
 import tomlkit
 from tomlkit.exceptions import TOMLKitError
+
+from .snapshot_encoder import SnapshotEncoder, JsonSnapshotEncoder
 
 PathType = Union[Path, str]
 
@@ -11,10 +13,15 @@ DEFAULT_FILE_FORMAT = "JSON"
 DEFAULT_SIG_FIG = 6
 DEFAULT_ABS_TOL = 1e-6
 DEFAULT_REL_TOL = 0.001
+DEFAULT_JSON_INDENT = 4
 
 
 class Config:
     """ The configuration object used throughout the package. """
+
+    _default_encoders = {
+        "JSON": JsonSnapshotEncoder
+    }
 
     def __init__(
         self,
@@ -22,6 +29,7 @@ class Config:
         significant_figures: int = DEFAULT_SIG_FIG,
         float_absolute_tolerance: float = DEFAULT_ABS_TOL,
         float_relative_tolerance: float = DEFAULT_REL_TOL,
+        json_indentation: int = DEFAULT_JSON_INDENT,
         **_kwargs: Dict,
     ):
         """
@@ -30,6 +38,7 @@ class Config:
             significant_figures: The number of significant figures to use by default.
             float_absolute_tolerance: The absolute tolerance used to compare floats.
             float_relative_tolerance: The relative tolerance used to compare floats.
+            json_indentation: The number of spaces to use for JSON-indentation
 
         The ``**_kwargs`` argument is used to silently accept and ignore any extraneous
           configuration key-value pairs that are parsed from the pyproject.toml file.
@@ -38,6 +47,7 @@ class Config:
         self.sig_fig = significant_figures
         self.abs_tol = float_absolute_tolerance
         self.rel_tol = float_relative_tolerance
+        self.json_indentation = json_indentation
         self._validate()
 
     @classmethod
@@ -112,6 +122,22 @@ class Config:
                 f"The float_relative_tolerance configuration must be positive; "
                 f"Found: {self.rel_tol}"
             )
+
+        # Validation json_indentation.
+        if not isinstance(self.json_indentation, int):
+            raise TypeError(
+                f"Expected an integer value for the json_indentation configuration; "
+                f"Found: {self.json_indentation}"
+            )
+        if self.json_indentation < 0:
+            raise ValueError(
+                f"The json_indentation configuration must be positive; "
+                f"Found: {self.json_indentation}"
+            )
+
+    def default_encoder(self) -> TypeVar[SnapshotEncoder]:
+        """Get default encoder associated with the snapshot file format"""
+        return self._default_encoders.get(self.file_format)
 
     def __eq__(self, other: Any) -> bool:
         """ Check equality. """
