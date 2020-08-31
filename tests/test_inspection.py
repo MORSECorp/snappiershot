@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Callable, Tuple
 
 import pytest
-from snappiershot.inspection import CallerInfo
+from snappiershot.inspection import CallerInfo, is_staticmethod
 
 FILE = Path(__file__)
 Result_Expected = Tuple[CallerInfo, CallerInfo]
@@ -66,7 +66,7 @@ class ClassTestObject:
     @staticmethod
     def staticmethod() -> Result_Expected:
         """ Static method call. """
-        expected = CallerInfo(FILE, "staticmethod", {})
+        expected = CallerInfo(FILE, "ClassTestObject.staticmethod", {})
         return get_caller_info(), expected
 
     class NestedClass:
@@ -76,6 +76,12 @@ class ClassTestObject:
         def method(self) -> Result_Expected:
             """ Method call within nested class definition. """
             expected = CallerInfo(FILE, "ClassTestObject.NestedClass.method", {})
+            return get_caller_info(), expected
+
+        @staticmethod
+        def staticmethod() -> Result_Expected:
+            """ Static method call. """
+            expected = CallerInfo(FILE, "ClassTestObject.NestedClass.staticmethod", {})
             return get_caller_info(), expected
 
 
@@ -92,13 +98,44 @@ class ClassTestObject:
         ClassTestObject.classmethod,
         ClassTestObject.staticmethod,
         ClassTestObject.NestedClass().method,
+        ClassTestObject.NestedClass.staticmethod,
     ],
 )
 def test_caller_function_inspection(function: Callable[..., Result_Expected]):
+    """ Tests that the CallerInfo.from_call_stack method can correctly extract
+    information about the caller function.
+
+    Args:
+        function: A pre-baked function that calls the CallerInfo.from_call_stack
+          method and returns a tuple of the result of that call and the expected
+          CallerInfo object. These can then be asserted against each other.
+    """
     # Arrange
 
     # Act
     result, expected = function()
+
+    # Assert
+    assert result == expected
+
+
+@pytest.mark.parametrize(
+    "cls, method, expected",
+    [
+        (ClassTestObject, "method", False),
+        (ClassTestObject, "classmethod", False),
+        (ClassTestObject, "staticmethod", True),
+        (ClassTestObject.NestedClass, "method", False),
+        (ClassTestObject.NestedClass, "staticmethod", True),
+        (ClassTestObject, "does-not-exist", False),
+    ],
+)
+def test_is_staticmethod(cls: object, method: str, expected: bool):
+    """ Tests that the is_staticmethod function correctly identifies staticmethod. """
+    # Arrange
+
+    # Act
+    result = is_staticmethod(cls, method)
 
     # Assert
     assert result == expected

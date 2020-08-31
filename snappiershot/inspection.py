@@ -1,7 +1,8 @@
 """ Inspection into caller functions. """
 import inspect
 from pathlib import Path
-from typing import Any, Dict, NamedTuple
+from types import FunctionType
+from typing import Any, Dict, Iterator, NamedTuple
 
 
 class CallerInfo(NamedTuple):
@@ -22,10 +23,6 @@ class CallerInfo(NamedTuple):
     def from_call_stack(cls, frame_index: int = 2) -> "CallerInfo":
         """ Collect the CallerInfo from the call stack.
 
-        Unfortunately, there currently is no known (stable) way to get the fully
-          qualified function name of a static method. If the calling function is a
-          static method, the unqualified function name is returned.
-
         Args:
             frame_index: The index of the frame of the caller function.
               This defaults to 2 as, in the case for this package, it's expected
@@ -41,7 +38,9 @@ class CallerInfo(NamedTuple):
         """
         frame, file, _, function, *_ = inspect.stack()[frame_index]
         try:
-            arg_info = inspect.getargvalues(frame)
+            caller_arg_info = inspect.getargvalues(frame)
+            caller_globals = frame.f_globals
+            caller_code = frame.f_code
         finally:
             # Explicit cleanup as a safety precaution. Suggested by the inspect module docs:
             # https://docs.python.org/3/library/inspect.html#the-interpreter-stack
@@ -61,13 +60,57 @@ class CallerInfo(NamedTuple):
                 "These types of calls are not supported. "
             )
 
-        caller_locals = arg_info.locals
-        args = {name: caller_locals[name] for name in arg_info.args}
+        caller_locals = caller_arg_info.locals
+        args = {name: caller_locals[name] for name in caller_arg_info.args}
 
         # Remove any self or cls variables, but use them to set the fully qualified function name.
         if "self" in args:
             function = f"{args.pop('self').__class__.__qualname__}.{function}"
         elif "cls" in args:
             function = f"{args.pop('cls').__qualname__}.{function}"
+        else:
+            if function not in caller_globals:
+                module = inspect.getmodulename(file)
+                for func in recursive_find_staticmethod(caller_globals, function, module):
+                    print(func.__qualname__)
+                    if func.__code__ == caller_code:
+                        function = func.__qualname__
 
         return CallerInfo(Path(file), function, args)
+
+
+def recursive_find_staticmethod(
+    haystack: Dict[str, object], function: str, module_name: str
+) -> Iterator[FunctionType]:
+    """ Recursively attempt to sort through the haystack looking classes with
+    staticmethods with the specified function name, and yields these functions.
+
+    Args:
+        haystack: The output of a ``vars`` call on a class or module.
+        function: The name of the function to be yielded.
+        module_name: The name of the module containing the staticmethod.
+
+    Yields:
+        Staticmethods with the specified function name.
+    """
+
+    def is_class_within_module(obj: object) -> bool:
+        """ Predicate that filters for classes contained within ``module_name``. """
+        return inspect.isclass(obj) and obj.__module__.endswith(module_name)
+
+    for cls in filter(is_class_within_module, haystack.values()):
+        if is_staticmethod(cls, function):
+            yield getattr(cls, function)
+        yield from recursive_find_staticmethod(vars(cls), function, module_name)
+
+
+def is_staticmethod(cls: object, method: str) -> bool:
+    """ Determines if the method of the class is a staticmethod.
+
+    Args:
+        cls: The class to test for the staticmethod.
+        method: The name of the method to be checked. This method does not need
+          to exist; if it does not exist, this function returns False.
+    """
+    bound_method = vars(cls).get(method, False)
+    return bound_method and isinstance(bound_method, staticmethod)
