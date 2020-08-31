@@ -32,6 +32,10 @@ class CallerInfo(NamedTuple):
               that the caller function calls a method on the Snapshot object, which
               in turn calls this function.
 
+        Raises:
+            FileNotFoundError: If the caller function was defined within the Python REPL.
+            NameError: If the call came from a python module/file and not a function.
+
         Returns:
             CallerInfo
         """
@@ -42,6 +46,20 @@ class CallerInfo(NamedTuple):
             # Explicit cleanup as a safety precaution. Suggested by the inspect module docs:
             # https://docs.python.org/3/library/inspect.html#the-interpreter-stack
             del frame
+
+        # Filter edge cases.
+        if file == "<input>":  # pragma: no cover
+            # If the caller function was defined within the REPL.
+            raise FileNotFoundError(
+                "The caller function was detected to exist in the Python REPL. "
+                "These types of functions are not supported. "
+            )
+        if function == "<module>":  # pragma: no cover
+            # If the call is from a python file/module, not a function.
+            raise NameError(
+                "The caller was detected to be a module, not a function. "
+                "These types of calls are not supported. "
+            )
 
         caller_locals = arg_info.locals
         args = {name: caller_locals[name] for name in arg_info.args}
