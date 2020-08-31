@@ -1,11 +1,11 @@
 """ Functionality relating to configuration of the Snappiershot package. """
 from pathlib import Path
-from typing import Any, Dict, Optional, Union, TypeVar
+from typing import Any, Dict, Optional, Union
 
 import tomlkit
 from tomlkit.exceptions import TOMLKitError
 
-from .snapshot_encoder import SnapshotEncoder, JsonSnapshotEncoder
+from .snapshot_encoder import JsonSnapshotEncoder
 
 PathType = Union[Path, str]
 
@@ -134,10 +134,6 @@ class Config:
                 f"The json_indentation configuration must be positive; "
                 f"Found: {self.json_indentation}"
             )
-
-    def default_encoder(self) -> TypeVar[SnapshotEncoder]:
-        """Get default encoder associated with the snapshot file format"""
-        return self._default_encoders.get(self.file_format)
 
     def __eq__(self, other: Any) -> bool:
         """ Check equality. """
