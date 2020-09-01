@@ -58,15 +58,42 @@ class ClassTestObject:
         return get_caller_info(), expected
 
     @classmethod
-    def classmethod(cls) -> Result_Expected:
+    def classmethod_(cls) -> Result_Expected:
         """ Class method call. """
-        expected = CallerInfo(FILE, "ClassTestObject.classmethod", {})
+        expected = CallerInfo(FILE, "ClassTestObject.classmethod_", {})
         return get_caller_info(), expected
 
     @staticmethod
-    def staticmethod() -> Result_Expected:
+    def staticmethod_() -> Result_Expected:
         """ Static method call. """
-        expected = CallerInfo(FILE, "ClassTestObject.staticmethod", {})
+        expected = CallerInfo(FILE, "ClassTestObject.staticmethod_", {})
+        return get_caller_info(), expected
+
+    # noinspection PyMethodMayBeStatic, PyMethodParameters
+    def method_no_self_arg(notself) -> Result_Expected:
+        """ Method call, but the "self" argument is mis-named. """
+        expected = CallerInfo(FILE, "ClassTestObject.method_no_self_arg", {})
+        return get_caller_info(), expected
+
+    # noinspection PyMethodParameters
+    @classmethod
+    def classmethod_no_self_arg(notcls) -> Result_Expected:
+        """ Class method call, but the "self" argument is mis-named. """
+        expected = CallerInfo(FILE, "ClassTestObject.classmethod_no_self_arg", {})
+        return get_caller_info(), expected
+
+    @staticmethod
+    def staticmethod_self_arg(self=None) -> Result_Expected:
+        """ Static method call, but the first argument is "self". """
+        expected = CallerInfo(
+            FILE, "ClassTestObject.staticmethod_self_arg", dict(self=None)
+        )
+        return get_caller_info(), expected
+
+    @staticmethod
+    def staticmethod_cls_arg(cls=None) -> Result_Expected:
+        """ Static method call, but the first argument is "cls". """
+        expected = CallerInfo(FILE, "ClassTestObject.staticmethod_cls_arg", dict(cls=None))
         return get_caller_info(), expected
 
     class NestedClass:
@@ -95,8 +122,12 @@ class ClassTestObject:
         single_function_with_args,
         nested_function,
         ClassTestObject().method,
-        ClassTestObject.classmethod,
-        ClassTestObject.staticmethod,
+        ClassTestObject.classmethod_,
+        ClassTestObject.staticmethod_,
+        ClassTestObject().method_no_self_arg,
+        ClassTestObject.classmethod_no_self_arg,
+        ClassTestObject.staticmethod_self_arg,
+        ClassTestObject.staticmethod_cls_arg,
         ClassTestObject.NestedClass().method,
         ClassTestObject.NestedClass.staticmethod,
     ],
@@ -123,8 +154,10 @@ def test_caller_function_inspection(function: Callable[..., Result_Expected]):
     "cls, method, expected",
     [
         (ClassTestObject, "method", False),
-        (ClassTestObject, "classmethod", False),
-        (ClassTestObject, "staticmethod", True),
+        (ClassTestObject, "classmethod_", False),
+        (ClassTestObject, "staticmethod_", True),
+        (ClassTestObject, "staticmethod_self_arg", True),
+        (ClassTestObject, "staticmethod_cls_arg", True),
         (ClassTestObject.NestedClass, "method", False),
         (ClassTestObject.NestedClass, "staticmethod", True),
         (ClassTestObject, "does-not-exist", False),

@@ -1,7 +1,7 @@
 """ Inspection into caller functions. """
 import inspect
 from pathlib import Path
-from types import FunctionType
+from types import CodeType, FunctionType
 from typing import Any, Dict, Iterator, NamedTuple
 
 
@@ -52,35 +52,46 @@ class CallerInfo(NamedTuple):
             raise FileNotFoundError(
                 "The caller function was detected to exist in the Python REPL. "
                 "These types of functions are not supported. "
-            )
+            ) from NotImplementedError
         if function == "<module>":  # pragma: no cover
             # If the call is from a python file/module, not a function.
             raise NameError(
                 "The caller was detected to be a module, not a function. "
                 "These types of calls are not supported. "
-            )
+            ) from NotImplementedError
 
         caller_locals = caller_arg_info.locals
         args = {name: caller_locals[name] for name in caller_arg_info.args}
 
-        # Remove any self or cls variables, but use them to set the fully qualified function name.
-        if "self" in args:
-            function = f"{args.pop('self').__class__.__qualname__}.{function}"
-        elif "cls" in args:
-            function = f"{args.pop('cls').__qualname__}.{function}"
+        # Get the first argument to the function, if it exists.
+        first_arg = None
+        if caller_arg_info.args:
+            first_arg = args[caller_arg_info.args[0]]
+
+        # Filter any "self" or "cls" variables, which might be named something else.
+        is_cls_or_self = has_caller_method(first_arg, function, caller_code)
+        if inspect.isclass(first_arg) and is_cls_or_self:
+            # If the first argument is "cls" (the function is a classmethod).
+            args.pop(caller_arg_info.args[0])
+            function = f"{first_arg.__qualname__}.{function}"
+        elif is_cls_or_self:
+            # If the first argument is "self" (the function is a regular method of a class).
+            args.pop(caller_arg_info.args[0])
+            function = f"{first_arg.__class__.__qualname__}.{function}"
         else:
             if function not in caller_globals:
-                module = inspect.getmodulename(file)
-                for func in recursive_find_staticmethod(caller_globals, function, module):
-                    print(func.__qualname__)
+                # If this function does not have a "self" or "cls" argument and is not in the
+                #   globals of the module, then the function is a staticmethod and must be
+                #   specially handled to get the fully-qualified function name.
+                for func in recursive_yield_staticmethods(caller_globals, function, file):
                     if func.__code__ == caller_code:
                         function = func.__qualname__
 
         return CallerInfo(Path(file), function, args)
 
 
-def recursive_find_staticmethod(
-    haystack: Dict[str, object], function: str, module_name: str
+def recursive_yield_staticmethods(
+    haystack: Dict[str, Any], function: str, file: str
 ) -> Iterator[FunctionType]:
     """ Recursively attempt to sort through the haystack looking classes with
     staticmethods with the specified function name, and yields these functions.
@@ -88,20 +99,39 @@ def recursive_find_staticmethod(
     Args:
         haystack: The output of a ``vars`` call on a class or module.
         function: The name of the function to be yielded.
-        module_name: The name of the module containing the staticmethod.
+        file: The file containing the staticmethod.
 
     Yields:
         Staticmethods with the specified function name.
     """
+    reduced_haystack = (
+        obj
+        for obj in haystack.values()
+        if inspect.isclass(obj)
+        # Filter builtins to guard against TypeErrors when calling inspect.getfile on builtins.
+        and not inspect.isbuiltin(obj) and inspect.getfile(obj) == file
+    )
 
-    def is_class_within_module(obj: object) -> bool:
-        """ Predicate that filters for classes contained within ``module_name``. """
-        return inspect.isclass(obj) and obj.__module__.endswith(module_name)
-
-    for cls in filter(is_class_within_module, haystack.values()):
+    for cls in reduced_haystack:
         if is_staticmethod(cls, function):
             yield getattr(cls, function)
-        yield from recursive_find_staticmethod(vars(cls), function, module_name)
+        yield from recursive_yield_staticmethods(vars(cls), function, file)
+
+
+def has_caller_method(cls: object, function_name: str, function_code: CodeType) -> bool:
+    """ Determines the function with specified function name and code is a
+    method of the specified class.
+
+    Args:
+        cls: The class to test. (Can be unsubstantiated)
+        function_name: The name of the function.
+        function_code: The compiled code of the function.
+          This is the value of the ``__code__`` attribute for a function.
+    """
+    if hasattr(cls, function_name):
+        method = getattr(cls, function_name)
+        return inspect.ismethod(method) and method.__code__ == function_code
+    return False
 
 
 def is_staticmethod(cls: object, method: str) -> bool:
