@@ -82,6 +82,7 @@ class ClassTestObject:
         expected = CallerInfo(FILE, "ClassTestObject.classmethod_no_self_arg", {})
         return get_caller_info(), expected
 
+    # noinspection PyUnusedLocal
     @staticmethod
     def staticmethod_self_arg(self=None) -> Result_Expected:
         """ Static method call, but the first argument is "self". """
@@ -90,6 +91,7 @@ class ClassTestObject:
         )
         return get_caller_info(), expected
 
+    # noinspection PyUnusedLocal
     @staticmethod
     def staticmethod_cls_arg(cls=None) -> Result_Expected:
         """ Static method call, but the first argument is "cls". """
@@ -148,6 +150,22 @@ def test_caller_function_inspection(function: Callable[..., Result_Expected]):
 
     # Assert
     assert result == expected
+
+
+def test_caller_function_inspection_inner_function_error():
+    """ Tests that the CallerInfo.from_call_stack method raises an error if
+    it cannot determine the caller function due to that function being defined
+    within another functions scope.
+    """
+    # Arrange
+
+    def inner():
+        """ Inner function definition. """
+        CallerInfo.from_call_stack(1)
+
+    # Act & Assert
+    with pytest.raises(RuntimeError):
+        inner()
 
 
 @pytest.mark.parametrize(

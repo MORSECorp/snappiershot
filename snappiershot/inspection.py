@@ -32,6 +32,7 @@ class CallerInfo(NamedTuple):
         Raises:
             FileNotFoundError: If the caller function was defined within the Python REPL.
             NameError: If the call came from a python module/file and not a function.
+            RuntimeError: If the caller function could not be determined.
 
         Returns:
             CallerInfo
@@ -71,11 +72,11 @@ class CallerInfo(NamedTuple):
         # Filter any "self" or "cls" variables, which might be named something else.
         is_cls_or_self = has_caller_method(first_arg, function, caller_code)
         if inspect.isclass(first_arg) and is_cls_or_self:
-            # If the first argument is "cls" (the function is a classmethod).
+            # If the function is a classmethod.
             args.pop(caller_arg_info.args[0])
             function = f"{first_arg.__qualname__}.{function}"
         elif is_cls_or_self:
-            # If the first argument is "self" (the function is a regular method of a class).
+            # If the function is a regular method of a class.
             args.pop(caller_arg_info.args[0])
             function = f"{first_arg.__class__.__qualname__}.{function}"
         else:
@@ -86,6 +87,13 @@ class CallerInfo(NamedTuple):
                 for func in recursive_yield_staticmethods(caller_globals, function, file):
                     if func.__code__ == caller_code:
                         function = func.__qualname__
+                        break
+                else:
+                    raise RuntimeError(
+                        "The caller function could not be determined. "
+                        "This might be due to the caller function being an inner function "
+                        "which are currently not supported. "
+                    ) from NotImplementedError
 
         return CallerInfo(Path(file), function, args)
 
@@ -118,29 +126,29 @@ def recursive_yield_staticmethods(
         yield from recursive_yield_staticmethods(vars(cls), function, file)
 
 
-def has_caller_method(cls: object, function_name: str, function_code: CodeType) -> bool:
+def has_caller_method(kls: object, function_name: str, function_code: CodeType) -> bool:
     """ Determines the function with specified function name and code is a
     method of the specified class.
 
     Args:
-        cls: The class to test. (Can be unsubstantiated)
+        kls: The class to test. (Can be unsubstantiated)
         function_name: The name of the function.
         function_code: The compiled code of the function.
           This is the value of the ``__code__`` attribute for a function.
     """
-    if hasattr(cls, function_name):
-        method = getattr(cls, function_name)
+    if hasattr(kls, function_name):
+        method = getattr(kls, function_name)
         return inspect.ismethod(method) and method.__code__ == function_code
     return False
 
 
-def is_staticmethod(cls: object, method: str) -> bool:
+def is_staticmethod(kls: object, method: str) -> bool:
     """ Determines if the method of the class is a staticmethod.
 
     Args:
-        cls: The class to test for the staticmethod.
+        kls: The class to test for the staticmethod.
         method: The name of the method to be checked. This method does not need
           to exist; if it does not exist, this function returns False.
     """
-    bound_method = vars(cls).get(method, False)
+    bound_method = vars(kls).get(method, False)
     return bound_method and isinstance(bound_method, staticmethod)
