@@ -7,4 +7,5 @@ assignees: bbonenfant
 
 ---
 
-Is something something unclear in the documentation or just plain not documented? Ask us about it!
+**Is something something unclear in the documentation or just plain not documented?**
+Ask us about it!
