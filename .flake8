@@ -1,8 +1,8 @@
 [flake8]
 max-line-length = 92
 ignore =
-  # Ignore line length errors, since the black package is in charge of this.
-  E501
+  # Ignore line length and spacing errors, since the black package is in charge of this.
+  E501, W503
 per-file-ignores =
 exclude =
     .git
