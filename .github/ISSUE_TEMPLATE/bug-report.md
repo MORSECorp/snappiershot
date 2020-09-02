@@ -21,7 +21,7 @@ If applicable, add screenshots to help explain your problem.
 
 **Versions:**
  - Python version:
- - Snappiershot version:  
+ - Snappiershot version:
 
 **Additional context**
 Add any other context about the problem here.
