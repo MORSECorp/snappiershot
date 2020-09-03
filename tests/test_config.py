@@ -8,6 +8,7 @@ from snappiershot.config import (
     DEFAULT_FILE_FORMAT,
     DEFAULT_REL_TOL,
     DEFAULT_SIG_FIG,
+    DEFAULT_JSON_INDENT,
     Config,
     find_pyproject_toml,
 )
@@ -17,6 +18,7 @@ DEFAULT_CONFIG_KWARGS = dict(
     significant_figures=DEFAULT_SIG_FIG,
     float_absolute_tolerance=DEFAULT_ABS_TOL,
     float_relative_tolerace=DEFAULT_REL_TOL,
+    json_indentation=DEFAULT_JSON_INDENT
 )
 
 
@@ -71,6 +73,7 @@ def test_find_pyproject_toml(parent_index: int, expected: bool, pyproject_direct
         (["[tool.snappiershot]", "significant_figures = 2"], {**DEFAULT_CONFIG_KWARGS, "significant_figures": 2}),
         (["[tool.snappiershot]", "float_absolute_tolerance = 1E-4"], {**DEFAULT_CONFIG_KWARGS, "float_absolute_tolerance": 1e-4}),
         (["[tool.snappiershot]", "float_relative_tolerance = 0.1"], {**DEFAULT_CONFIG_KWARGS, "float_relative_tolerance": 0.1}),
+        (["[tool.snappiershot]", "json_indentation = 3"], {**DEFAULT_CONFIG_KWARGS, "json_indentation": 3}),
     ]
 )
 # fmt: on
@@ -99,6 +102,8 @@ def test_from_pyproject(contents: List[str], config_kwargs: Dict, pyproject_dire
         ({**DEFAULT_CONFIG_KWARGS, "float_absolute_tolerance": -1e6}, ValueError),
         ({**DEFAULT_CONFIG_KWARGS, "float_relative_tolerance": 2}, TypeError),
         ({**DEFAULT_CONFIG_KWARGS, "float_relative_tolerance": -1e6}, ValueError),
+        ({**DEFAULT_CONFIG_KWARGS, "json_indentation": -1}, ValueError),
+        ({**DEFAULT_CONFIG_KWARGS, "json_indentation": 1.5}, TypeError),
     ]
 )
 def test_config_validate(config_kwargs: Dict, expected_error: Type[Exception]):

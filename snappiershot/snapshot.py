@@ -1,11 +1,70 @@
 """
-Snapshot object
+Snapshot object, metadata and related functionality
 """
 from typing import Any
 
-from .snapshot_metadata import SnapshotMetadata
 from .config import Config
-from . import exceptions as custom_errors
+from .inspection import CallerInfo
+
+
+class SnapshotMetadata:
+    """Metadata associated with a single snapshot"""
+
+    def __init__(
+            self,
+            caller_info: CallerInfo,
+            update_on_next_run: bool,
+            test_runner_provided_name: str = "",
+            user_provided_name: str = ""
+    ):
+        """
+
+        Args:
+            caller_info: information about the calling test function
+            update_on_next_run: if True, update snapshot value on next run
+            test_runner_provided_name: string name of snapshot provided automatically by the test runner
+            user_provided_name: user-provided name of the snapshot
+        """
+        self.caller_info = caller_info
+        self.update_on_next_run = update_on_next_run
+        self.user_provided_name = user_provided_name
+        self.test_runner_provided_name = test_runner_provided_name
+        self._validate()
+
+    def _validate(self) -> None:
+        """ Validates the snapshot metadata
+
+        Raises:
+            ValueError: If a configuration has an invalid value.
+            TypeError: If a configuration has an invalid type.
+        """
+        # Validate caller_info
+        if not isinstance(self.caller_info, CallerInfo):
+            raise TypeError(
+                f"Expected a CallerInfo object for the update_on_next_run metadata field; "
+                f"Found: {self.caller_info} of type {type(self.caller_info)}"
+            )
+
+        # Validate update_on_next_run
+        if not isinstance(self.update_on_next_run, bool):
+            raise TypeError(
+                f"Expected a boolean value for the update_on_next_run metadata field; "
+                f"Found: {self.update_on_next_run} of type {type(self.update_on_next_run)}"
+            )
+
+        # Validate user_provided_name
+        if not isinstance(self.user_provided_name, str):
+            raise TypeError(
+                f"Expected a string value for the update_on_next_run metadata field; "
+                f"Found: {self.user_provided_name} of type {type(self.user_provided_name)}"
+            )
+
+        # Validate test_runner_provided_name
+        if not isinstance(self.test_runner_provided_name, str):
+            raise TypeError(
+                f"Expected a string value for the update_on_next_run metadata field; "
+                f"Found: {self.test_runner_provided_name} of type {type(self.test_runner_provided_name)}"
+            )
 
 
 class Snapshot:
@@ -20,7 +79,7 @@ class Snapshot:
         self.metadata: SnapshotMetadata = SnapshotMetadata()  # TODO: Gather metadata via inspection of test context
         self.value: Any = None
 
-    def assert_match(self, value: Any, approximate: bool) -> bool:
+    def assert_match(self, value: Any, approximate: bool = True) -> bool:
         """ Assert that the given value matches the snapshot on file
 
         Args:
@@ -50,78 +109,3 @@ class Snapshot:
 
         TODO: Implement
         """
-
-
-class SnapshotModule:
-    """Collect and organize all snapshots associated with a single test module"""
-
-    def __init__(self):
-        """Initialize new collection of snapshots"""
-        self.snapshots = dict()
-
-    def add_snapshot(self, snapshot: Snapshot) -> None:
-        """Add the given snapshot to the stored snapshots
-
-        Snapshots are stored as a hierarchical dictionary organized by module, class, method
-            function iteration, and assert statement
-
-        Args:
-            snapshot: snapshot object to add to the store
-        """
-
-        # By test module
-        test_module = snapshot.metadata.test_module
-        if test_module not in self.snapshots:
-            self.snapshots[test_module] = dict()
-
-        # By test class
-        module_dict = self.snapshots[test_module]
-        test_class = snapshot.metadata.test_class
-        if test_class not in module_dict:
-            module_dict[test_class] = dict()
-
-        # By test method
-        class_dict = module_dict[test_class]
-        test_method = snapshot.metadata.test_method
-        if test_method not in class_dict:
-            class_dict[test_method] = dict()
-
-        # By test arguments (method call)
-        method_dict = class_dict[test_method]
-        test_args = snapshot.metadata.test_arguments
-        if test_args not in method_dict:
-            method_dict[test_args] = dict()
-
-        # By assert index - Store snapshot
-        function_call_dict = method_dict[test_args]
-        assert_index = snapshot.metadata.assert_index
-        function_call_dict[assert_index] = snapshot
-
-    def get_snapshot(self, metadata: SnapshotMetadata) -> Snapshot:
-        """Look up and return snapshot based on given metadata
-
-        Args:
-            metadata: snapshot metadata
-
-        Returns:
-            Stored snapshot associated with the given metadata
-
-        Raises:
-            SnapshotNotFoundError is requested snapshot is not available
-        """
-        try:
-            return self.snapshots[
-                metadata.test_module
-            ][
-                metadata.test_class
-            ][
-                metadata.test_method
-            ][
-                metadata.test_arguments
-            ][
-                metadata.assert_index
-            ]
-
-        except AttributeError:
-            raise custom_errors.SnapshotNotFoundError
-

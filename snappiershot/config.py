@@ -5,8 +5,6 @@ from typing import Any, Dict, Optional, Union
 import tomlkit
 from tomlkit.exceptions import TOMLKitError
 
-from .snapshot_encoder import JsonSnapshotEncoder
-
 PathType = Union[Path, str]
 
 DEFAULT_FILE_FORMAT = "JSON"
@@ -18,10 +16,6 @@ DEFAULT_JSON_INDENT = 4
 
 class Config:
     """ The configuration object used throughout the package. """
-
-    _default_encoders = {
-        "JSON": JsonSnapshotEncoder
-    }
 
     def __init__(
         self,
