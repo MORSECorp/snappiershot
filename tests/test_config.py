@@ -6,9 +6,9 @@ import pytest
 from snappiershot.config import (
     DEFAULT_ABS_TOL,
     DEFAULT_FILE_FORMAT,
+    DEFAULT_JSON_INDENT,
     DEFAULT_REL_TOL,
     DEFAULT_SIG_FIG,
-    DEFAULT_JSON_INDENT,
     Config,
     find_pyproject_toml,
 )
@@ -18,7 +18,7 @@ DEFAULT_CONFIG_KWARGS = dict(
     significant_figures=DEFAULT_SIG_FIG,
     float_absolute_tolerance=DEFAULT_ABS_TOL,
     float_relative_tolerace=DEFAULT_REL_TOL,
-    json_indentation=DEFAULT_JSON_INDENT
+    json_indentation=DEFAULT_JSON_INDENT,
 )
 
 

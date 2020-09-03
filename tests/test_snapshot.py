@@ -1,25 +1,24 @@
 """ Tests for snappiershot/snapshot.py """
-import pytest
-from pytest_mock import MockerFixture
 from pathlib import Path
 from typing import Dict, Type
 
+import pytest
+from pytest_mock import MockerFixture
+from snappiershot.config import Config
 from snappiershot.inspection import CallerInfo
 from snappiershot.snapshot import Snapshot, SnapshotMetadata
-from snappiershot.config import Config
-
 
 FAKE_CALLER_INFO = CallerInfo(
-        file=Path("fake/file/path"),
-        function="fake_fully_qualified_function_name",
-        args={"foo": 1, "bar": "two"}
-    )
+    file=Path("fake/file/path"),
+    function="fake_fully_qualified_function_name",
+    args={"foo": 1, "bar": "two"},
+)
 
 DEFAULT_METADATA_KWARGS = dict(
     caller_info=FAKE_CALLER_INFO,
     update_on_next_run=False,
     test_runner_provided_name="",
-    user_provided_name=""
+    user_provided_name="",
 )
 
 
@@ -30,7 +29,7 @@ DEFAULT_METADATA_KWARGS = dict(
         ({**DEFAULT_METADATA_KWARGS, "update_on_next_run": "foo"}, TypeError),
         ({**DEFAULT_METADATA_KWARGS, "test_runner_provided_name": 1.23}, TypeError),
         ({**DEFAULT_METADATA_KWARGS, "user_provided_name": 1.23}, TypeError),
-    ]
+    ],
 )
 def test_metadata_validate(metadata_kwargs: Dict, expected_error: Type[Exception]):
     """ Checks that validation of the metadata values occurs as expected. """
@@ -46,12 +45,9 @@ def test_snapshot_assert(mocker: MockerFixture) -> None:
     # Arrange
     MockSnapshotMetadata = mocker.patch("snappiershot.snapshot.SnapshotMetadata")
     MockSnapshotMetadata.return_value = SnapshotMetadata(
-        caller_info=FAKE_CALLER_INFO,
-        update_on_next_run=False
+        caller_info=FAKE_CALLER_INFO, update_on_next_run=False
     )
-    snapshot = Snapshot(
-        configuration=Config()
-    )
+    snapshot = Snapshot(configuration=Config())
     snapshot.value = {"balloons": "are awesome"}
     value = {"balloons": "are awesome"}
 
@@ -67,12 +63,9 @@ def test_snapshot_assert_failure(mocker: MockerFixture) -> None:
     # Arrange
     MockSnapshotMetadata = mocker.patch("snappiershot.snapshot.SnapshotMetadata")
     MockSnapshotMetadata.return_value = SnapshotMetadata(
-        caller_info=FAKE_CALLER_INFO,
-        update_on_next_run=False
+        caller_info=FAKE_CALLER_INFO, update_on_next_run=False
     )
-    snapshot = Snapshot(
-        configuration=Config()
-    )
+    snapshot = Snapshot(configuration=Config())
     snapshot.value = {"balloons": "are awesome"}
     value = {"balloons": "are not awesome"}
 
@@ -86,8 +79,7 @@ def test_snapshot_update(mocker: MockerFixture) -> None:
     # Arrange
     MockSnapshotMetadata = mocker.patch("snappiershot.snapshot.SnapshotMetadata")
     MockSnapshotMetadata.return_value = SnapshotMetadata(
-        caller_info=FAKE_CALLER_INFO,
-        update_on_next_run=True
+        caller_info=FAKE_CALLER_INFO, update_on_next_run=True
     )
     snapshot = Snapshot(configuration=Config())
     snapshot.value = {"balloons": "are awesome"}
