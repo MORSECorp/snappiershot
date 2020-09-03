@@ -11,11 +11,11 @@ class SnapshotMetadata:
     """Metadata associated with a single snapshot"""
 
     def __init__(
-            self,
-            caller_info: CallerInfo,
-            update_on_next_run: bool,
-            test_runner_provided_name: str = "",
-            user_provided_name: str = ""
+        self,
+        caller_info: CallerInfo,
+        update_on_next_run: bool,
+        test_runner_provided_name: str = "",
+        user_provided_name: str = "",
     ):
         """
 
@@ -76,7 +76,7 @@ class Snapshot:
             configuration: Snappiershot configuration
         """
         self.configuration = configuration
-        self.metadata: SnapshotMetadata = SnapshotMetadata()  # TODO: Gather metadata via inspection of test context
+        self.metadata: SnapshotMetadata = None  # type: ignore  # TODO: Gather metadata via inspection of test context
         self.value: Any = None
 
     def assert_match(self, value: Any, approximate: bool = True) -> bool:
