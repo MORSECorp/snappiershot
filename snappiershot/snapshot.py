@@ -1,8 +1,9 @@
 """
 Snapshot object, metadata and related functionality
 """
-from typing import Any
+from typing import Any, Optional
 
+from .config import Config
 from .inspection import CallerInfo
 
 
@@ -53,14 +54,14 @@ class SnapshotMetadata:
         # Validate user_provided_name
         if not isinstance(self.user_provided_name, str):
             raise TypeError(
-                f"Expected a string value for the update_on_next_run metadata field; "
+                f"Expected a string value for the user_provided_name metadata field; "
                 f"Found: {self.user_provided_name} of type {type(self.user_provided_name)}"
             )
 
         # Validate test_runner_provided_name
         if not isinstance(self.test_runner_provided_name, str):
             raise TypeError(
-                f"Expected a string value for the update_on_next_run metadata field; "
+                f"Expected a string value for the test_runner_provided_name metadata field; "
                 f"Found: {self.test_runner_provided_name} of type {type(self.test_runner_provided_name)}"
             )
 
@@ -68,35 +69,17 @@ class SnapshotMetadata:
 class Snapshot:
     """Snapshot of a single assert value"""
 
-    def __init__(self) -> None:
+    def __init__(self, configuration: Optional[Config] = None) -> None:
         """ Initialize snapshot associated with a particular assert """
-        self.metadata: SnapshotMetadata = self._get_metadata()
-        self.value: Any = self._get_value()
+        self.configuration = configuration if configuration is not None else Config()
 
-    @staticmethod
-    def _get_metadata() -> SnapshotMetadata:
-        """Gather metadata via inspection of current context
-
-        TODO: Implement
-        """
-        return SnapshotMetadata(
-            caller_info=CallerInfo.from_call_stack(), update_on_next_run=False
-        )
-
-    @staticmethod
-    def _get_value() -> Any:
-        """ Gather stored snapshot value
-
-        TODO: Implement
-        """
-        return None
-
-    def assert_match(self, value: Any, exact: bool = False) -> bool:
+    def assert_match(self, value: Any, exact: bool = False, update: bool = False) -> bool:
         """ Assert that the given value matches the snapshot on file
 
         Args:
             value: new value to compare to snapshot
             exact: if True, enforce exact equality for floating point numbers, otherwise assert approximate equality
+            update: if True, overwrite snapshot with given value (assertion will always pass in this case)
 
         Returns:
             True if value matches the snapshot
@@ -112,20 +95,50 @@ class Snapshot:
             >>> snapshot.assert_match(result)
 
         """
-        if self.metadata.update_on_next_run:
+        # Gather current snapshot metadata and value
+        metadata = self._get_metadata()
+        stored_value = self._get_value()
+
+        # Encode the user-supplied value
+        encoded_value = self._encode_value(value)
+
+        # Update or assert the encoded snapshot value
+        if metadata.update_on_next_run or update:
             # TODO: Implement snapshot overwriting
-            self._update_snapshot(value=value)
+            # TODO: Impelement warning if "update" is on
+            self._update_snapshot(new_value=encoded_value)
             return True
 
-        if self.value == value:
+        if stored_value == encoded_value:
             # TODO: Implement approximate vs exact equality
             return True
 
         # TODO customize assertion error
         raise AssertionError
 
-    def _update_snapshot(self, value: Any) -> None:
-        """Update the snapshot with the new value
+    @staticmethod
+    def _get_metadata() -> SnapshotMetadata:
+        """Gather metadata via inspection of current context
+
+        TODO: Implement
+        """
+
+    @staticmethod
+    def _get_value() -> Any:
+        """ Gather stored snapshot value
+
+        TODO: Implement
+        """
+
+    @staticmethod
+    def _encode_value(value: Any) -> Any:
+        """Encode the given object for snapshotting
+        TODO: Implement
+        """
+        return value
+
+    def _update_snapshot(self, new_value: Any) -> None:
+        """Update the snapshot with the new encoded value
 
         TODO: Implement
         """

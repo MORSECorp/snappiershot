@@ -8,9 +8,9 @@ except ImportError:
     #  < 3.8
     import importlib_metadata as metadata  # type: ignore
 
-from .config import Config  # noqa: F401; ignore unused import
-from .inspection import CallerInfo  # noqa: F401; ignore unused import
-from .snapshot import Snapshot, SnapshotMetadata  # noqa: F401; ignore unused import
+from .config import Config
+from .inspection import CallerInfo
+from .snapshot import Snapshot, SnapshotMetadata
 
 __version__ = ""
 try:

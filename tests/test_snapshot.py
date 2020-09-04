@@ -38,15 +38,19 @@ def test_metadata_validate(metadata_kwargs: Dict, expected_error: Type[Exception
         SnapshotMetadata(**metadata_kwargs)
 
 
-def test_snapshot_assert() -> None:
+def test_snapshot_assert(mocker: MockerFixture) -> None:
     """ Checks that snapshot assert works as expected """
     # Arrange
+    # Snapshot object under test
     snapshot = Snapshot()
-    snapshot.metadata = SnapshotMetadata(
-        caller_info=FAKE_CALLER_INFO, update_on_next_run=False
-    )
-    snapshot.value = {"balloons": "are awesome"}
+
+    # Mock snapshot metadata for testing
+    test_metadata = SnapshotMetadata(caller_info=FAKE_CALLER_INFO, update_on_next_run=False)
+    mocker.patch.object(snapshot, "_get_metadata", return_value=test_metadata)
+
+    # Mock stored snapshot value
     value = {"balloons": "are awesome"}
+    mocker.patch.object(snapshot, "_get_value", return_value=value)
 
     # Act
     result = snapshot.assert_match(value=value)
@@ -55,30 +59,42 @@ def test_snapshot_assert() -> None:
     assert result
 
 
-def test_snapshot_assert_failure() -> None:
+def test_snapshot_assert_failure(mocker: MockerFixture) -> None:
     """ Checks that snapshot assert works as expected with mis-matched values"""
     # Arrange
+    # Snapshot object under test
     snapshot = Snapshot()
-    snapshot.metadata = SnapshotMetadata(
-        caller_info=FAKE_CALLER_INFO, update_on_next_run=False
-    )
-    snapshot.value = {"balloons": "are awesome"}
-    value = {"balloons": "are not awesome"}
+
+    # Mock snapshot metadata for testing
+    test_metadata = SnapshotMetadata(caller_info=FAKE_CALLER_INFO, update_on_next_run=False)
+    mocker.patch.object(snapshot, "_get_metadata", return_value=test_metadata)
+
+    # Mock stored snapshot value
+    value = {"balloons": "are awesome"}
+    mocker.patch.object(snapshot, "_get_value", return_value=value)
+
+    bad_value = {"balloons": "are not awesome"}
 
     # Act / Assert
     with pytest.raises(AssertionError):
-        snapshot.assert_match(value=value)
+        snapshot.assert_match(value=bad_value)
 
 
 def test_snapshot_update(mocker: MockerFixture) -> None:
     """ Checks that snapshot assert with update flag ON works as expected """
     # Arrange
+    # Snapshot object under test
     snapshot = Snapshot()
-    snapshot.metadata = SnapshotMetadata(
-        caller_info=FAKE_CALLER_INFO, update_on_next_run=True
-    )
-    snapshot.value = {"balloons": "are awesome"}
+
+    # Mock snapshot metadata for testing
+    test_metadata = SnapshotMetadata(caller_info=FAKE_CALLER_INFO, update_on_next_run=True)
+    mocker.patch.object(snapshot, "_get_metadata", return_value=test_metadata)
+
+    # Mock stored snapshot value
     value = {"balloons": "are awesome"}
+    mocker.patch.object(snapshot, "_get_value", return_value=value)
+
+    # Mock update snapshot functionality
     mock_udpate_snapshot = mocker.patch.object(snapshot, "_update_snapshot")
 
     # Act
