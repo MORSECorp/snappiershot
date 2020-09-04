@@ -40,14 +40,13 @@ def test_metadata_validate(metadata_kwargs: Dict, expected_error: Type[Exception
         SnapshotMetadata(**metadata_kwargs)
 
 
-def test_snapshot_assert(mocker: MockerFixture) -> None:
+def test_snapshot_assert() -> None:
     """ Checks that snapshot assert works as expected """
     # Arrange
-    MockSnapshotMetadata = mocker.patch("snappiershot.snapshot.SnapshotMetadata")
-    MockSnapshotMetadata.return_value = SnapshotMetadata(
+    snapshot = Snapshot(configuration=Config())
+    snapshot.metadata = SnapshotMetadata(
         caller_info=FAKE_CALLER_INFO, update_on_next_run=False
     )
-    snapshot = Snapshot(configuration=Config())
     snapshot.value = {"balloons": "are awesome"}
     value = {"balloons": "are awesome"}
 
@@ -58,14 +57,13 @@ def test_snapshot_assert(mocker: MockerFixture) -> None:
     assert result
 
 
-def test_snapshot_assert_failure(mocker: MockerFixture) -> None:
+def test_snapshot_assert_failure() -> None:
     """ Checks that snapshot assert works as expected with mis-matched values"""
     # Arrange
-    MockSnapshotMetadata = mocker.patch("snappiershot.snapshot.SnapshotMetadata")
-    MockSnapshotMetadata.return_value = SnapshotMetadata(
+    snapshot = Snapshot(configuration=Config())
+    snapshot.metadata = SnapshotMetadata(
         caller_info=FAKE_CALLER_INFO, update_on_next_run=False
     )
-    snapshot = Snapshot(configuration=Config())
     snapshot.value = {"balloons": "are awesome"}
     value = {"balloons": "are not awesome"}
 
@@ -77,11 +75,10 @@ def test_snapshot_assert_failure(mocker: MockerFixture) -> None:
 def test_snapshot_update(mocker: MockerFixture) -> None:
     """ Checks that snapshot assert with update flag ON works as expected """
     # Arrange
-    MockSnapshotMetadata = mocker.patch("snappiershot.snapshot.SnapshotMetadata")
-    MockSnapshotMetadata.return_value = SnapshotMetadata(
+    snapshot = Snapshot(configuration=Config())
+    snapshot.metadata = SnapshotMetadata(
         caller_info=FAKE_CALLER_INFO, update_on_next_run=True
     )
-    snapshot = Snapshot(configuration=Config())
     snapshot.value = {"balloons": "are awesome"}
     value = {"balloons": "are awesome"}
     mock_udpate_snapshot = mocker.patch.object(snapshot, "_update_snapshot")
