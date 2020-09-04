@@ -3,7 +3,6 @@ Snapshot object, metadata and related functionality
 """
 from typing import Any
 
-from .config import Config
 from .inspection import CallerInfo
 
 
@@ -35,13 +34,12 @@ class SnapshotMetadata:
         """ Validates the snapshot metadata
 
         Raises:
-            ValueError: If a configuration has an invalid value.
-            TypeError: If a configuration has an invalid type.
+            TypeError: If a metadata field has an invalid type.
         """
         # Validate caller_info
         if not isinstance(self.caller_info, CallerInfo):
             raise TypeError(
-                f"Expected a CallerInfo object for the update_on_next_run metadata field; "
+                f"Expected a CallerInfo object for the caller_info metadata field; "
                 f"Found: {self.caller_info} of type {type(self.caller_info)}"
             )
 
@@ -70,35 +68,57 @@ class SnapshotMetadata:
 class Snapshot:
     """Snapshot of a single assert value"""
 
-    def __init__(self, configuration: Config):
-        """Initialize snapshot associated with a particular assert
-        Args:
-            configuration: Snappiershot configuration
-        """
-        self.configuration = configuration
-        self.metadata: SnapshotMetadata = None  # type: ignore  # TODO: Gather metadata via inspection of test context
-        self.value: Any = None
+    def __init__(self) -> None:
+        """ Initialize snapshot associated with a particular assert """
+        self.metadata: SnapshotMetadata = self._get_metadata()
+        self.value: Any = self._get_value()
 
-    def assert_match(self, value: Any, approximate: bool = True) -> bool:
+    @staticmethod
+    def _get_metadata() -> SnapshotMetadata:
+        """Gather metadata via inspection of current context
+
+        TODO: Implement
+        """
+        return SnapshotMetadata(
+            caller_info=CallerInfo.from_call_stack(), update_on_next_run=False
+        )
+
+    @staticmethod
+    def _get_value() -> Any:
+        """ Gather stored snapshot value
+
+        TODO: Implement
+        """
+        return None
+
+    def assert_match(self, value: Any, exact: bool = False) -> bool:
         """ Assert that the given value matches the snapshot on file
 
         Args:
             value: new value to compare to snapshot
-            approximate: if True, assert approximate equality
+            exact: if True, enforce exact equality for floating point numbers, otherwise assert approximate equality
 
         Returns:
             True if value matches the snapshot
 
         Raises:
             AssertionError
+
+        Example:
+            >>> snapshot = Snapshot()
+            >>> x = 1
+            >>> y = 2
+            >>> result = x + y
+            >>> snapshot.assert_match(result)
+
         """
         if self.metadata.update_on_next_run:
-            # TODO: implement snapshot overwriting
+            # TODO: Implement snapshot overwriting
             self._update_snapshot(value=value)
             return True
 
         if self.value == value:
-            # TODO: Implement approximate equality
+            # TODO: Implement approximate vs exact equality
             return True
 
         # TODO customize assertion error

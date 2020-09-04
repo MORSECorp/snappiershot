@@ -4,9 +4,7 @@ from typing import Dict, Type
 
 import pytest
 from pytest_mock import MockerFixture
-from snappiershot.config import Config
-from snappiershot.inspection import CallerInfo
-from snappiershot.snapshot import Snapshot, SnapshotMetadata
+from snappiershot import CallerInfo, Snapshot, SnapshotMetadata
 
 FAKE_CALLER_INFO = CallerInfo(
     file=Path("fake/file/path"),
@@ -43,7 +41,7 @@ def test_metadata_validate(metadata_kwargs: Dict, expected_error: Type[Exception
 def test_snapshot_assert() -> None:
     """ Checks that snapshot assert works as expected """
     # Arrange
-    snapshot = Snapshot(configuration=Config())
+    snapshot = Snapshot()
     snapshot.metadata = SnapshotMetadata(
         caller_info=FAKE_CALLER_INFO, update_on_next_run=False
     )
@@ -51,7 +49,7 @@ def test_snapshot_assert() -> None:
     value = {"balloons": "are awesome"}
 
     # Act
-    result = snapshot.assert_match(value=value, approximate=False)
+    result = snapshot.assert_match(value=value)
 
     # Assert
     assert result
@@ -60,7 +58,7 @@ def test_snapshot_assert() -> None:
 def test_snapshot_assert_failure() -> None:
     """ Checks that snapshot assert works as expected with mis-matched values"""
     # Arrange
-    snapshot = Snapshot(configuration=Config())
+    snapshot = Snapshot()
     snapshot.metadata = SnapshotMetadata(
         caller_info=FAKE_CALLER_INFO, update_on_next_run=False
     )
@@ -69,13 +67,13 @@ def test_snapshot_assert_failure() -> None:
 
     # Act / Assert
     with pytest.raises(AssertionError):
-        snapshot.assert_match(value=value, approximate=False)
+        snapshot.assert_match(value=value)
 
 
 def test_snapshot_update(mocker: MockerFixture) -> None:
     """ Checks that snapshot assert with update flag ON works as expected """
     # Arrange
-    snapshot = Snapshot(configuration=Config())
+    snapshot = Snapshot()
     snapshot.metadata = SnapshotMetadata(
         caller_info=FAKE_CALLER_INFO, update_on_next_run=True
     )
@@ -84,7 +82,7 @@ def test_snapshot_update(mocker: MockerFixture) -> None:
     mock_udpate_snapshot = mocker.patch.object(snapshot, "_update_snapshot")
 
     # Act
-    result = snapshot.assert_match(value=value, approximate=False)
+    result = snapshot.assert_match(value=value)
 
     # Assert
     assert result
