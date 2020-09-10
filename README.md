@@ -17,3 +17,26 @@ significant_figures = 6
 float_absolute_tolerance = 1e-6
 float_relative_tolerance = 0.001
 ```
+
+
+## Usage
+
+### Example usage in a test
+```python
+from snappiershot import Snapshot
+
+def test_something():
+    """ Test that something works as expected"""
+    # Arrange
+    snapshot = Snapshot()
+    x = 1
+    y = 2
+
+    # Act
+    result = x + y
+
+    # Assert
+    snapshot.assert_match(result)
+
+test_something()
+```
