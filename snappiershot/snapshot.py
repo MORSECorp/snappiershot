@@ -4,6 +4,7 @@ Snapshot object, metadata and related functionality
 from typing import Any, Optional
 
 from .config import Config
+from .encoders import encode_value
 from .inspection import CallerInfo
 
 
@@ -100,12 +101,12 @@ class Snapshot:
         stored_value = self._get_value()
 
         # Encode the user-supplied value
-        encoded_value = self._encode_value(value)
+        encoded_value = encode_value(value)
 
         # Update or assert the encoded snapshot value
         if metadata.update_on_next_run or update:
             # TODO: Implement snapshot overwriting
-            # TODO: Impelement warning if "update" is on
+            # TODO: Implement warning if "update" is on
             self._update_snapshot(new_value=encoded_value)
             return True
 
@@ -129,13 +130,6 @@ class Snapshot:
 
         TODO: Implement
         """
-
-    @staticmethod
-    def _encode_value(value: Any) -> Any:
-        """Encode the given object for snapshotting
-        TODO: Implement
-        """
-        return value
 
     def _update_snapshot(self, new_value: Any) -> None:
         """Update the snapshot with the new encoded value

@@ -51,6 +51,7 @@ def test_snapshot_assert(mocker: MockerFixture) -> None:
     # Mock stored snapshot value
     value = {"balloons": "are awesome"}
     mocker.patch.object(snapshot, "_get_value", return_value=value)
+    mocker.patch("snappiershot.snapshot.encode_value", return_value=value)
 
     # Act
     result = snapshot.assert_match(value=value)
@@ -95,11 +96,11 @@ def test_snapshot_update(mocker: MockerFixture) -> None:
     mocker.patch.object(snapshot, "_get_value", return_value=value)
 
     # Mock update snapshot functionality
-    mock_udpate_snapshot = mocker.patch.object(snapshot, "_update_snapshot")
+    mock_update_snapshot = mocker.patch.object(snapshot, "_update_snapshot")
 
     # Act
     result = snapshot.assert_match(value=value)
 
     # Assert
     assert result
-    assert mock_udpate_snapshot.call_count == 1
+    assert mock_update_snapshot.call_count == 1
