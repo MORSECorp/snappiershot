@@ -4,7 +4,7 @@ ignore =
   # Ignore line length and spacing errors, since the black package is in charge of this.
   E501, W503
 per-file-ignores =
-    # imported but unused
+    # W391: empty file, F401: imported but unused
     __init__.py: W391, F401
 exclude =
     .git

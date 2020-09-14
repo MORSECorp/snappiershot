@@ -3,6 +3,13 @@ import json
 from numbers import Number
 from typing import Any, Dict, Union
 
+# Key identifying encoding of custom numeric types.
+NUMERIC_KEY = "__snappiershot_numeric__"
+NUMERIC_VALUE_KEY = "value"
+
+# The name identifying the numeric type encoding for complex types.
+COMPLEX_TYPE = "complex"
+
 
 class JsonSerializer(json.JSONEncoder):
     """ Custom JSON serializer.
@@ -17,8 +24,9 @@ class JsonSerializer(json.JSONEncoder):
     def default(self, value: Any) -> Any:
         """ Encode a value into a serializable object.
 
-        This method only gets called when the value is not-naturally serializable.
+        This method only gets called when the value is not naturally-serializable.
           (Naturally serializable objects are booleans, floats, strings, etc.)
+          See: https://docs.python.org/3/library/json.html#py-to-json-table
 
         Any custom encoders must return a dictionary. This will allow them to
           be deserialized by the `snappiershot.serializers.json.JsonDeserializer`
@@ -30,7 +38,7 @@ class JsonSerializer(json.JSONEncoder):
         if isinstance(value, Number):
             return self.encode_numeric(value)
         raise NotImplementedError(  # pragma: no cover
-            f"Encoding for this object is not yet implemented: {value}"
+            f"Encoding for this object is not yet implemented: {value} ({type(value)})"
         )
 
     @staticmethod
@@ -38,7 +46,14 @@ class JsonSerializer(json.JSONEncoder):
         """ Encoding for numeric types.
 
         This will do nothing to naturally serializable types (bool, int, float)
-          but will perform custom serialization for non-supported types (complex).
+          but will perform custom encoding for non-supported types (complex).
+        The custom encoding follows the template:
+            {
+              NUMERIC_KEY: <type-as-a-string>,
+              NUMERIC_VALUE_KEY: <value>
+            }
+        The values for the NUMERIC_KEY and NUMERIC_VALUE_KEY constants can be found
+          at the top of this file.
 
         Raises:
             NotImplementedError - If encoding is not implement for the given numeric type.
@@ -47,9 +62,9 @@ class JsonSerializer(json.JSONEncoder):
             # These types are by default supported by the JSONEncoder base class.
             return value
         if isinstance(value, complex):
-            return dict(numeric="complex", value=[value.real, value.imag])
+            return {NUMERIC_KEY: COMPLEX_TYPE, NUMERIC_VALUE_KEY: [value.real, value.imag]}
         raise NotImplementedError(
-            f"No encoding implemented for the following numeric type: {value}"
+            f"No encoding implemented for the following numeric type: {value} ({type(value)})"
         )
 
 
@@ -76,7 +91,7 @@ class JsonDeserializer(json.JSONDecoder):
         Custom decoding is done here, for the custom encodings that occurred within
           the `snappiershot.serializers.json.JsonSerializer.default` method.
         """
-        if "numeric" in dct:
+        if (NUMERIC_KEY in dct) and (NUMERIC_VALUE_KEY in dct):
             return self.decode_numeric(dct)
         return dct
 
@@ -86,16 +101,18 @@ class JsonDeserializer(json.JSONDecoder):
 
         This encoded numeric type object must be of the form:
             {
-              "numeric": <type-as-a-string>,
-              "value": <value>
+              NUMERIC_KEY: <type-as-a-string>,
+              NUMERIC_VALUE_KEY: <value>
             }
+        The values for the NUMERIC_KEY and NUMERIC_VALUE_KEY constants can be found
+          at the top of this file.
 
         Raises:
             NotImplementedError - If decoding is not implement for the given numeric type.
         """
-        type_ = dct.get("numeric")
-        if type_ == "complex":
-            real, imag = dct["value"]
+        type_ = dct.get(NUMERIC_KEY)
+        if type_ == COMPLEX_TYPE:
+            real, imag = dct[NUMERIC_VALUE_KEY]
             return complex(real, imag)
         raise NotImplementedError(
             f"Deserialization for the following numerical type not implemented: {dct}"
