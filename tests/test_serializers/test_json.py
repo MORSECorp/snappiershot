@@ -4,7 +4,13 @@ from decimal import Decimal
 from math import inf, isnan, nan
 
 import pytest
-from snappiershot.serializers.json import JsonDeserializer, JsonSerializer
+from snappiershot.serializers.json import (
+    COMPLEX_TYPE,
+    NUMERIC_KEY,
+    NUMERIC_VALUE_KEY,
+    JsonDeserializer,
+    JsonSerializer,
+)
 
 
 @pytest.mark.parametrize(
@@ -14,7 +20,7 @@ from snappiershot.serializers.json import JsonDeserializer, JsonSerializer
         (3.14, 3.14),
         (inf, inf),
         (nan, nan),
-        (3 + 4j, {"numeric": "complex", "value": [3, 4]}),
+        (3 + 4j, {NUMERIC_KEY: COMPLEX_TYPE, NUMERIC_VALUE_KEY: [3, 4]}),
     ],
 )
 def test_encode_numeric(value, expected):
@@ -39,7 +45,7 @@ def test_encode_numeric_error():
 
 
 @pytest.mark.parametrize(
-    "value, expected", [({"numeric": "complex", "value": [3, 4]}, 3 + 4j)]
+    "value, expected", [({NUMERIC_KEY: COMPLEX_TYPE, NUMERIC_VALUE_KEY: [3, 4]}, 3 + 4j)]
 )
 def test_decode_numeric(value, expected):
     """ Test that the JsonDeserializer.decode_numeric decodes values as expected. """
