@@ -28,7 +28,6 @@ from snappiershot import Snapshot
 def test_something():
     """ Test that something works as expected"""
     # Arrange
-    snapshot = Snapshot()
     x = 1
     y = 2
 
@@ -36,7 +35,8 @@ def test_something():
     result = x + y
 
     # Assert
-    snapshot.assert_match(result)
+    with Snapshot() as snapshot
+        snapshot.assert_match(result)
 
 test_something()
 ```
