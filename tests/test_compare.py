@@ -2,7 +2,7 @@
 from math import nan
 
 import pytest
-from snappiershot.compare import SnapshotCompare
+from snappiershot.compare import ObjectComparison
 from snappiershot.config import Config
 
 # ===== Fixtures ===========================================
@@ -23,25 +23,6 @@ def _config() -> Config:
 @pytest.mark.parametrize(
     "value, expected, is_equal",
     [
-        ([1, 2, 3], [1, 2, 3], True),
-        ([1, 2, 3], [1, 2, 3, 4], False),
-        ([1, 2, 4], [1, 2, 3], False),
-    ],
-)
-def test_compare_collections(value, expected, config, is_equal):
-    """ Test that collections are compared as expected. """
-    # Arrange
-
-    # Act
-    comparison = SnapshotCompare(value, expected, config)
-
-    # Assert
-    assert bool(comparison) == is_equal
-
-
-@pytest.mark.parametrize(
-    "value, expected, is_equal",
-    [
         (dict(a=1, b=2), dict(a=1, b=2), True),
         (dict(a=1, c=3), dict(a=1, b=2), False),
         (dict(a=1, b=3), dict(a=1, b=2), False),
@@ -52,16 +33,36 @@ def test_compare_dictionaries(value, expected, config, is_equal):
     # Arrange
 
     # Act
-    comparison = SnapshotCompare(value, expected, config)
+    comparison = ObjectComparison(value, expected, config)
 
     # Assert
-    assert bool(comparison) == is_equal
+    assert comparison.equal == is_equal
+
+
+@pytest.mark.parametrize(
+    "value, expected, is_equal",
+    [
+        ([1, 2, 3], [1, 2, 3], True),
+        ([1, 2, 3], [1, 2, 3, 4], False),
+        ([1, 2, 4], [1, 2, 3], False),
+    ],
+)
+def test_compare_sequences(value, expected, config, is_equal):
+    """ Test that sequences are compared as expected. """
+    # Arrange
+
+    # Act
+    comparison = ObjectComparison(value, expected, config)
+
+    # Assert
+    assert comparison.equal == is_equal
 
 
 @pytest.mark.parametrize(
     "value, expected, is_equal",
     [
         ({1, 2, 3}, {1, 2, 3}, True),
+        ({2, 3, 1}, {1, 2, 3}, True),
         ({1, 2, 3}, {1, 2, 3, 4}, False),
         ({1, 2, 4}, {1, 2, 3}, False),
     ],
@@ -71,10 +72,10 @@ def test_compare_sets(value, expected, config, is_equal):
     # Arrange
 
     # Act
-    comparison = SnapshotCompare(value, expected, config)
+    comparison = ObjectComparison(value, expected, config)
 
     # Assert
-    assert bool(comparison) == is_equal
+    assert comparison.equal == is_equal
 
 
 @pytest.mark.parametrize(
@@ -94,10 +95,10 @@ def test_compare_floats(value, expected, config, exact, is_equal):
     # Arrange
 
     # Act
-    comparison = SnapshotCompare(value, expected, config, exact)
+    comparison = ObjectComparison(value, expected, config, exact)
 
     # Assert
-    assert bool(comparison) == is_equal
+    assert comparison.equal == is_equal
 
 
 def test_compare_types(config):
@@ -107,10 +108,10 @@ def test_compare_types(config):
     expected = 3.14
 
     # Act
-    comparison = SnapshotCompare(value, expected, config)
+    comparison = ObjectComparison(value, expected, config)
 
     # Assert
-    assert not bool(comparison)
+    assert not comparison.equal
 
 
 # ===== Integration Tests ==================================
@@ -131,7 +132,7 @@ def test_compare(config):
     value["dict"] = value.copy()
 
     # Act
-    comparison = SnapshotCompare(value, value, config)
+    comparison = ObjectComparison(value, value, config)
 
     # Assert
-    assert bool(comparison)
+    assert comparison.equal

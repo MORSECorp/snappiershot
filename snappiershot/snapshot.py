@@ -3,7 +3,7 @@ Snapshot object, metadata and related functionality
 """
 from typing import Any, Optional
 
-from .compare import SnapshotCompare
+from .compare import ObjectComparison
 from .config import Config
 from .inspection import CallerInfo
 
@@ -110,8 +110,15 @@ class Snapshot:
             self._update_snapshot(new_value=encoded_value)
             return True
 
-        comparison = SnapshotCompare(encoded_value, stored_value, self.configuration, exact)
-        if not comparison:
+        ObjectComparison("a", 3.14, self.configuration)
+
+        comparison = ObjectComparison(
+            value=encoded_value,
+            expected=stored_value,
+            config=self.configuration,
+            exact=exact,
+        )
+        if not comparison.equal:
             # TODO customize assertion error
             raise AssertionError
         return True

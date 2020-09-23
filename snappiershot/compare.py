@@ -1,12 +1,12 @@
 """ Comparison of snapshots. """
 from math import isclose, isnan
 from operator import itemgetter
-from typing import Any, Callable, Collection, Dict, Iterable, List, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Sequence, Set, Tuple
 
 from .config import Config
 
 
-class SnapshotCompare:
+class ObjectComparison:
     """ Class for comparing two objects and logging differences between them. """
 
     def __init__(self, value: Any, expected: Any, config: Config, exact: bool = False):
@@ -15,18 +15,23 @@ class SnapshotCompare:
             value: The object to be checked.
             expected: The object to be compared against.
             config: Configurations used for performing the comparison.
-            exact: Whether to **not** perform almost-equals comparison of floating point numbers.
+            exact: If false, perform almost-equals comparison of floating point numbers.
         """
         self.value = value
         self.expected = expected
         self.config = config
         self.exact = exact
-        self.differences = _SnapshotDifferences()
+        self.differences = _Differences()
         self._compare(self.value, self.expected, operations=[])
 
     def __bool__(self) -> bool:
         """ Returns True if no differences were detected. """
         return not bool(self.differences.items)
+
+    @property
+    def equal(self) -> bool:
+        """ Returns True if no differences were detected. """
+        return bool(self)
 
     def _compare(self, value: Any, expected: Any, *, operations: List[Callable]) -> None:
         """ Perform a recursive, almost-equals comparison between value and expected.
@@ -51,8 +56,8 @@ class SnapshotCompare:
             return self._compare_sets(value, expected, operations=operations)
 
         # Recurse all other (ordered & sized) iterable types (but not strings).
-        if isinstance(value, Collection) and not isinstance(value, str):
-            return self._compare_collections(value, expected, operations=operations)
+        if isinstance(value, Sequence) and not isinstance(value, str):
+            return self._compare_sequences(value, expected, operations=operations)
 
         if isinstance(value, float) and not self.exact:
             return self._compare_floats(value, expected, operations=operations)
@@ -60,35 +65,6 @@ class SnapshotCompare:
         # Default to exact comparison for all other types.
         if value != expected:
             return self.differences.add(operations, f"{value} != {expected}")
-
-    def _compare_collections(
-        self, value: Any, expected: Any, *, operations: List[Callable] = None
-    ) -> None:
-        """ Perform a recursive, almost-equals comparison between value and expected.
-
-        This is a helper function for when both value and expected are collections
-          (ordered iterables).
-
-        Args:
-            value: The object to be checked.
-            expected: The object to be compared against.
-            operations: **Internally used for recursion**
-              Tracks the operations that need to be applied to self.value and self.expected
-                to obtain value and expected, respectively. Used for logging differences.
-        """
-        if len(value) != len(expected):
-            message = (
-                f"Collections do not have the same size: "
-                f"{len(value)} != {len(expected)}"
-            )
-            return self.differences.add(operations, message)
-
-        for index in range(len(value)):
-            self._compare(
-                value=value[index],
-                expected=expected[index],
-                operations=(operations + [itemgetter(index)]),
-            )
 
     def _compare_dicts(
         self, value: Dict, expected: Dict, *, operations: List[Callable] = None
@@ -118,7 +94,7 @@ class SnapshotCompare:
             )
 
     def _compare_floats(
-        self, value: Any, expected: Any, *, operations: List[Callable] = None
+        self, value: float, expected: float, *, operations: List[Callable] = None
     ) -> None:
         """ Perform an almost-equals comparison between value and expected.
 
@@ -147,8 +123,36 @@ class SnapshotCompare:
             )
             return self.differences.add(operations, message)
 
+    def _compare_sequences(
+        self, value: Sequence, expected: Sequence, *, operations: List[Callable] = None
+    ) -> None:
+        """ Perform a recursive, almost-equals comparison between value and expected.
+
+        This is a helper function for when both value and expected are sequences
+          (ordered, indexable iterables).
+
+        Args:
+            value: The object to be checked.
+            expected: The object to be compared against.
+            operations: **Internally used for recursion**
+              Tracks the operations that need to be applied to self.value and self.expected
+                to obtain value and expected, respectively. Used for logging differences.
+        """
+        if len(value) != len(expected):
+            message = (
+                f"Sequences do not have the same size: " f"{len(value)} != {len(expected)}"
+            )
+            return self.differences.add(operations, message)
+
+        for index in range(len(value)):
+            self._compare(
+                value=value[index],
+                expected=expected[index],
+                operations=(operations + [itemgetter(index)]),
+            )
+
     def _compare_sets(
-        self, value: Any, expected: Any, *, operations: List[Callable] = None
+        self, value: Set, expected: Set, *, operations: List[Callable] = None
     ) -> None:
         """ Perform an exact-equals comparison between value and expected.
 
@@ -171,8 +175,27 @@ class SnapshotCompare:
             return self.differences.add(operations, reason)
 
 
-class _SnapshotDifferences:
-    """ Helper object for logging comparisons for the SnapshotCompare class. """
+class _Differences:
+    """ Helper object for logging comparisons for the ObjectComparison class.
+
+    Example:
+        >>> value = dict(name="test", list=[(1, 2, 4)])
+        >>> expected = dict(name="test", list=[(1, 2, 3)])
+        >>>
+        >>> # The following is a valid _Differences object that ObjectComparison
+        >>> #  would produced for "value" and "expected".
+        >>> from operator import itemgetter
+        >>> diff = _Differences()
+        >>> operations = [itemgetter("list"), itemgetter(0), itemgetter(2)]
+        >>> diff.add(operations, "Tuple value does not match. ")
+        >>>
+        >>> # The following is how to locate difference using the operations.
+        >>> value_diff, expected_diff = value, expected
+        >>> for func in operations:
+        >>>     value_diff, expected_diff = func(value_diff), func(expected_diff)
+        >>> assert value_diff == 4
+        >>> assert expected_diff == 3
+    """
 
     def __init__(self) -> None:
         self.items: Dict[Tuple[Callable, ...], str] = dict()
