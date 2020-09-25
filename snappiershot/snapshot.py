@@ -3,6 +3,7 @@ Snapshot object, metadata and related functionality
 """
 from typing import Any, Optional
 
+from .compare import ObjectComparison
 from .config import Config
 from .inspection import CallerInfo
 
@@ -109,12 +110,18 @@ class Snapshot:
             self._update_snapshot(new_value=encoded_value)
             return True
 
-        if stored_value == encoded_value:
-            # TODO: Implement approximate vs exact equality
-            return True
+        ObjectComparison("a", 3.14, self.configuration)
 
-        # TODO customize assertion error
-        raise AssertionError
+        comparison = ObjectComparison(
+            value=encoded_value,
+            expected=stored_value,
+            config=self.configuration,
+            exact=exact,
+        )
+        if not comparison.equal:
+            # TODO customize assertion error
+            raise AssertionError
+        return True
 
     @staticmethod
     def _get_metadata() -> SnapshotMetadata:
