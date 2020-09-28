@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
+from .compare import ObjectComparison
 from .config import Config
 from .inspection import CallerInfo
 from .serializers import JsonDeserializer, JsonSerializer
@@ -133,13 +134,16 @@ class Snapshot:
             self._snapshot_file.record_snapshot(encoded_value, current_index)
             return True
 
-        # Assert the snapshot value.
-        if stored_value == encoded_value:
-            # TODO: Implement approximate vs exact equality
-            return True
-
-        # TODO customize assertion error
-        raise AssertionError
+        comparison = ObjectComparison(
+            value=encoded_value,
+            expected=stored_value,
+            config=self.configuration,
+            exact=exact,
+        )
+        if not comparison.equal:
+            # TODO customize assertion error
+            raise AssertionError
+        return True
 
     def __enter__(self) -> "Snapshot":  # pragma: no cover  TODO: Cover
         """ Enter the context of a Snapshot session. """
