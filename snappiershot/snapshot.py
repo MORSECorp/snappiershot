@@ -8,8 +8,12 @@ from typing import Any, Dict, List, Optional, Union
 from .compare import ObjectComparison
 from .config import Config
 from .inspection import CallerInfo
-from .serializers import JsonDeserializer, JsonSerializer
-from .serializers.utils import get_snapshot_file
+from .serializers import JsonSerializer
+from .serializers.utils import (
+    SnapshotKeys,
+    get_snapshot_file,
+    parse_snapshot_file,
+)
 
 _NO_SNAPSHOT = object()
 
@@ -91,6 +95,7 @@ class Snapshot:
         """ Initialize snapshot associated with a particular assert """
         self.configuration = configuration if configuration is not None else Config()
         self._snapshot_index = 0
+        self._within_context = False
 
         # These are loaded on first call to the assert_math method.
         self._metadata: Optional[SnapshotMetadata] = None
@@ -117,6 +122,9 @@ class Snapshot:
             >>> with Snapshot() as snapshot:
             >>>     snapshot.assert_match(result)
         """
+        if not self._within_context:  # pragma: no cover  TODO: Cover
+            raise RuntimeError("assert_match must be used within the Snapshot context. ")
+
         self._metadata = self._get_metadata(update_on_next_run=update)
         self._snapshot_file = self._load_snapshot_file(metadata=self._metadata)
 
@@ -147,12 +155,14 @@ class Snapshot:
 
     def __enter__(self) -> "Snapshot":  # pragma: no cover  TODO: Cover
         """ Enter the context of a Snapshot session. """
+        self._within_context = True
         return self
 
     def __exit__(self, *args: Any, **kwargs: Any) -> None:  # pragma: no cover  TODO: Cover
         """ Exits the context of the Snapshot session. """
         if self._snapshot_file is not None:
             self._snapshot_file.write()
+        self._within_context = False
 
     @staticmethod
     def _encode_value(value: Any) -> Any:
@@ -164,7 +174,7 @@ class Snapshot:
     def _get_metadata(
         self, update_on_next_run: bool
     ) -> SnapshotMetadata:  # pragma: no cover  TODO: Cover
-        """ Gather metadata via inspection of current context.
+        """ Gather metadata via inspection of current context of the test function.
 
         A SnapshotMetadata object is created only if self._metadata is not already set.
         However, the "update_on_next_run" attribute is set every time.
@@ -175,6 +185,12 @@ class Snapshot:
         if isinstance(self._metadata, SnapshotMetadata):
             self._metadata.update_on_next_run = update_on_next_run
             return self._metadata
+
+        # frame_index is set to 3 here to access the function scope of the test function
+        #  test_function                                   <- frame_index=3
+        #    | - Snapshot.assert_match                     <- frame_index=2
+        #          | - Snapshot._get_metadata              <- frame_index=1
+        #                | - CallerInfo.from_call_stack    <- frame_index=0
         caller_info = CallerInfo.from_call_stack(frame_index=3)
         return SnapshotMetadata(
             caller_info=caller_info, update_on_next_run=update_on_next_run
@@ -197,6 +213,13 @@ class Snapshot:
 
 class _SnapshotFile:
     """ Reads and Writes a snapshot file.
+
+    This class performs the following actions at initialization:
+        1. Locates the snapshot file associated with the test function
+            that called Snapshot.assert_match.
+        2. Parses the snapshot file (validates the format described below).
+        3. Finds the snapshot within the parsed file that match the
+            input SnapshotMetadata object.
 
     Format:
         {
@@ -243,7 +266,7 @@ class _SnapshotFile:
     def __init__(self, config: Config, metadata: SnapshotMetadata):
         """
         Args:
-            config: The snappiershot configurations.
+            config: The snappiershot configuration.
             metadata: The SnapshotMetadata used for identifying snapshots.
         """
         self.config = config
@@ -263,7 +286,8 @@ class _SnapshotFile:
     def get_snapshot(self, index: int = 0) -> Union[Dict, object]:
         """ Return a snapshot from the snapshot file.
 
-        This snapshot will correspond to the test function.
+        This snapshot will correspond to the test function, with the index
+          corresponding to the nth assertion made by the test function.
         If no snapshot exists for the specified index, returns _NO_SNAPSHOT
           (not None since "None" is a valid snapshot value).
 
@@ -305,7 +329,7 @@ class _SnapshotFile:
                 )
         else:  # pragma: no cover
             raise ValueError(
-                f"Snapshot file format not supported: {self._snapshot_file.suffix}"
+                f"Unsupported snapshot file format: {self._snapshot_file.suffix}"
             )
 
     @property
@@ -328,18 +352,22 @@ class _SnapshotFile:
         Args:
             file_contents: The contents of the snappiershot file.
         """
+        # Checks to see if the section exists within the snapshot file for the test function.
+        #   If not, then one is created.
+        function_name = metadata.caller_info.function
+        if function_name not in file_contents[SnapshotKeys.tests]:
+            file_contents[SnapshotKeys.tests][function_name] = []
+        function_snapshots = file_contents[SnapshotKeys.tests][function_name]
 
-        if metadata.caller_info.function not in file_contents["tests"]:
-            file_contents["tests"][metadata.caller_info.function] = []
-        function_snapshots = file_contents["tests"][metadata.caller_info.function]
-
+        # Tries to locate the sub-section of the snapshot file with matching metadata section.
         for function_snapshot in function_snapshots:
-            metadata_dict = function_snapshot["metadata"]
+            metadata_dict = function_snapshot[SnapshotKeys.metadata]
             if metadata.matches(metadata_dict):
-                metadata.update_on_next_run |= metadata_dict["update_on_next_run"]
-                metadata_dict["update_on_next_run"] = False
-                return function_snapshot["snapshots"]
+                metadata.update_on_next_run |= metadata_dict[SnapshotKeys.update]
+                metadata_dict[SnapshotKeys.update] = False
+                return function_snapshot[SnapshotKeys.snapshots]
 
+        # If no sub-section exists, create it.
         function_snapshots.append(
             dict(
                 metadata=dict(
@@ -351,7 +379,7 @@ class _SnapshotFile:
                 snapshots=[],
             )
         )
-        return function_snapshots[-1]["snapshots"]
+        return function_snapshots[-1][SnapshotKeys.snapshots]
 
     @staticmethod
     def _get_snapshot_file(test_file: Path, file_format: str) -> Path:
@@ -366,7 +394,7 @@ class _SnapshotFile:
         """
         if file_format == "JSON":
             return get_snapshot_file(test_file=test_file, suffix=".json")
-        raise ValueError(f"Snapshot file format not supported: {file_format}")
+        raise ValueError(f"Unsupported snapshot file format: {file_format}")
 
     def _parse_snapshot_file(self, snapshot_file: Path) -> Dict:
         """ Parses the snapshot file.
@@ -379,15 +407,4 @@ class _SnapshotFile:
         """
         if not snapshot_file.exists():
             return self._empty_file_contents
-        if snapshot_file.suffix == ".json":
-            with snapshot_file.open() as json_file:
-                file_contents = json.load(json_file, cls=JsonDeserializer)
-        else:  # pragma: no cover  (unreachable)
-            raise ValueError(f"Snapshot file format not supported: {snapshot_file.suffix}")
-
-        if not (("snappiershot_version" in file_contents) and ("tests" in file_contents)):
-            raise ValueError(
-                f"Invalid snapshot file detected: {snapshot_file} \n"
-                f"Expected contents: {self._empty_file_contents}"
-            )
-        return file_contents
+        return parse_snapshot_file(snapshot_file)

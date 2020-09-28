@@ -58,6 +58,7 @@ def _snapshot(config: Config, metadata: SnapshotMetadata) -> Snapshot:
     snapshot = Snapshot()
     snapshot._metadata = metadata
     snapshot._snapshot_file = _SnapshotFile(config=config, metadata=metadata)
+    snapshot._within_context = True
     return snapshot
 
 
@@ -202,26 +203,6 @@ class TestSnapshotFile:
 
         # Assert
         assert result == expected
-
-    @staticmethod
-    @pytest.mark.parametrize(
-        "contents", ["{}", '{"snappiershot_version": "X.X.X"}', '{"tests": {}}']
-    )
-    def test_parse_snapshot_file_error(
-        contents: str, config: Config, metadata: SnapshotMetadata, snapshot_file: Path
-    ):
-        """ Test that if the deserialized file does not have the valid format,
-        then an error is raised.
-
-        The default format should be:
-          {"snappiershot_version": "X.X.X", "tests": {...}}
-        """
-        # Arrange
-        snapshot_file.write_text(contents)
-
-        # Act & Assert
-        with pytest.raises(ValueError):
-            _SnapshotFile(config, metadata)
 
     _metadata_dict = dict(
         user_provided_name="",
