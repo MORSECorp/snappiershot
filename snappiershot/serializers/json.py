@@ -122,19 +122,15 @@ class JsonSerializer(json.JSONEncoder):
         Raises:
             NotImplementedError - If encoding is not implement for the given numeric type.
         """
-        if isinstance(value, datetime.date):
-            # Encode as ISO 86001 format string
-            return {
-                DATETIME_KEY: DatetimeType.DATE.value,
-                DATETIME_VALUE_KEY: value.strftime(DatetimeFormatString.DATE.value),
-            }
 
-        if isinstance(value, datetime.time):
-            # Encode as ISO 86001 format string
-            return {
-                DATETIME_KEY: DatetimeType.TIME.value,
-                DATETIME_VALUE_KEY: value.strftime(DatetimeFormatString.TIME.value),
-            }
+        # Note: the "datetime.datetime" check must be before the "datetime.date" check
+        # because datetime.datetime objects are *also* instances of datetime.date (but not of datetime.time). E.g.:
+        #   >> isinstance(datetime.datetime.now(), datetime.date)
+        #   True
+        #   >> isinstance(datetime.datetime.now(), datetime.time)
+        #   False
+        #   >> isinstance(datetime.datetime.now(), datetime.datetime)
+        #   True
 
         if isinstance(value, datetime.datetime):
             if value.tzinfo is not None:
@@ -154,6 +150,20 @@ class JsonSerializer(json.JSONEncoder):
                         DatetimeFormatString.DATETIME_WITHOUT_TZ.value
                     ),
                 }
+
+        if isinstance(value, datetime.date):
+            # Encode as ISO 86001 format string
+            return {
+                DATETIME_KEY: DatetimeType.DATE.value,
+                DATETIME_VALUE_KEY: value.strftime(DatetimeFormatString.DATE.value),
+            }
+
+        if isinstance(value, datetime.time):
+            # Encode as ISO 86001 format string
+            return {
+                DATETIME_KEY: DatetimeType.TIME.value,
+                DATETIME_VALUE_KEY: value.strftime(DatetimeFormatString.TIME.value),
+            }
 
         if isinstance(value, datetime.timedelta):
             # Encode as total seconds, float
@@ -258,7 +268,7 @@ class JsonDeserializer(json.JSONDecoder):
                 value, DatetimeFormatString.DATETIME_WITH_TZ.value
             )
 
-        if type_ == DatetimeType.DATETIME_WITHOUT_TZ.value and len(value) == 26:
+        if type_ == DatetimeType.DATETIME_WITHOUT_TZ.value:
             # Value is ISO formatted datetime string *without* timezone information
             return datetime.datetime.strptime(
                 value, DatetimeFormatString.DATETIME_WITHOUT_TZ.value
@@ -266,7 +276,7 @@ class JsonDeserializer(json.JSONDecoder):
 
         if type_ == DatetimeType.TIMEDELTA.value:
             # Value is total seconds, float
-            return datetime.timedelta(value)
+            return datetime.timedelta(seconds=value)
 
         raise NotImplementedError(
             f"Deserialization for the following datetime type not implemented: {dct}"

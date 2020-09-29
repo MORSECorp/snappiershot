@@ -1,4 +1,5 @@
 """ Tests for snappiershot/serializers/json.py """
+import datetime
 import json
 from decimal import Decimal
 from math import inf, isnan, nan
@@ -6,11 +7,43 @@ from math import inf, isnan, nan
 import pytest
 from snappiershot.serializers.json import (
     COMPLEX_TYPE,
+    DATETIME_KEY,
+    DATETIME_VALUE_KEY,
     NUMERIC_KEY,
     NUMERIC_VALUE_KEY,
+    DatetimeType,
     JsonDeserializer,
     JsonSerializer,
 )
+
+DATETIME_ENCODING_TEST_CASES = [
+    (
+        datetime.datetime(2020, 8, 9, 10, 11, 12, 13),
+        {
+            DATETIME_KEY: DatetimeType.DATETIME_WITHOUT_TZ.value,
+            DATETIME_VALUE_KEY: "2020-08-09T10:11:12.000013",
+        },
+    ),
+    (
+        datetime.datetime(2020, 8, 9, 10, 11, 12, 13, tzinfo=datetime.timezone.utc),
+        {
+            DATETIME_KEY: DatetimeType.DATETIME_WITH_TZ.value,
+            DATETIME_VALUE_KEY: "2020-08-09T10:11:12.000013+0000",
+        },
+    ),
+    (
+        datetime.date(2020, 8, 9),
+        {DATETIME_KEY: DatetimeType.DATE.value, DATETIME_VALUE_KEY: "2020-08-09"},
+    ),
+    (
+        datetime.time(10, 11, 12, 13),
+        {DATETIME_KEY: DatetimeType.TIME.value, DATETIME_VALUE_KEY: "10:11:12.000013"},
+    ),
+    (
+        datetime.timedelta(seconds=12, microseconds=13),
+        {DATETIME_KEY: DatetimeType.TIMEDELTA.value, DATETIME_VALUE_KEY: 12.000013},
+    ),
+]
 
 
 @pytest.mark.parametrize(
@@ -68,6 +101,50 @@ def test_decode_numeric_error():
         JsonDeserializer.decode_numeric(value)
 
 
+@pytest.mark.parametrize("value, expected", DATETIME_ENCODING_TEST_CASES)
+def test_encode_datetime(value, expected):
+    """ Test that the JsonSerializer.encode_datetime encodes values as expected. """
+    # Arrange
+
+    # Act
+    result = JsonSerializer.encode_datetime(value)
+
+    # Assert
+    assert result == expected
+
+
+def test_encode_datetime_error():
+    """ Test that the JsonSerializer.encode_datetime raises an error if no encoding is defined. """
+    # Arrange
+    value = "not a datetime"
+
+    # Act & Assert
+    with pytest.raises(NotImplementedError):
+        JsonSerializer.encode_datetime(value)
+
+
+@pytest.mark.parametrize("expected, value", DATETIME_ENCODING_TEST_CASES)
+def test_decode_datetime(value, expected):
+    """ Test that the JsonDeserializer.decode_numeric decodes values as expected. """
+    # Arrange
+
+    # Act
+    result = JsonDeserializer.decode_datetime(value)
+
+    # Assert
+    assert result == expected
+
+
+def test_decode_datetime_error():
+    """ Test that the JsonDeserializer.decode_numeric raises an error if no decoding is defined. """
+    # Arrange
+    value = {"foo": "bar"}
+
+    # Act & Assert
+    with pytest.raises(NotImplementedError):
+        JsonDeserializer.decode_datetime(value)
+
+
 def test_round_trip():
     """ Test that a serialized and then deserialized dictionary is unchanged. """
     # Arrange
@@ -79,6 +156,12 @@ def test_round_trip():
         "inf": inf,
         "complex": 3 + 4j,
         "string": "string",
+        "date": datetime.date(2020, 8, 9),
+        "time": datetime.time(10, 11, 12, 13),
+        "datetime_with_tz": datetime.datetime(
+            2020, 8, 9, 10, 11, 12, 13, tzinfo=datetime.timezone.utc
+        ),
+        "datetime_without_tz": datetime.datetime(2020, 8, 9, 10, 11, 12, 13),
     }
 
     # Act
