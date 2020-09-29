@@ -167,7 +167,7 @@ class JsonSerializer(json.JSONEncoder):
             }
 
         if isinstance(value, datetime.timedelta):
-            # Encode as total seconds, float
+            # Encode as total seconds, float (fractional part encodes microseconds)
             return {
                 DATETIME_KEY: DatetimeType.TIMEDELTA.value,
                 DATETIME_VALUE_KEY: value.total_seconds(),

@@ -162,6 +162,7 @@ def test_round_trip():
             2020, 8, 9, 10, 11, 12, 13, tzinfo=datetime.timezone.utc
         ),
         "datetime_without_tz": datetime.datetime(2020, 8, 9, 10, 11, 12, 13),
+        "timedelta": datetime.timedelta(seconds=12, microseconds=13),
     }
 
     # Act
