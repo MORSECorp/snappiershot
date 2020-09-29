@@ -106,12 +106,13 @@ class JsonSerializer(json.JSONEncoder):
             }
 
         The different datetime types/values are encoded as:
-            Type                Value encoded as
-            ----                ----------------
-            datetime.date       ISO 8601 string
-            datetime.time       ISO 8601 string
-            datetime.datetime   ISO 8601 string
-            datetime.timedelta  total seconds, float
+            Type                            Value encoded as
+            ----                            ----------------
+            datetime.date                   ISO 8601 string
+            datetime.time                   ISO 8601 string
+            datetime.datetime (w/ TZ info)  ISO 8601 string with TZ info
+            datetime.datetime (w/o TZ info) ISO 8601 string without TZ info
+            datetime.timedelta              total seconds, float
 
         Args:
             value: datetime value to be encoded
@@ -244,7 +245,7 @@ class JsonDeserializer(json.JSONDecoder):
           at the top of this file.
 
         Args:
-            dct:
+            dct: dictionary to decode
 
         Returns:
             decoded datetime object, either a datetime.date, datetime.time, datetime.datetime, or datetime.timedelta
