@@ -1,11 +1,16 @@
 """ Serializer (and Deserializer) class for the JSON format. """
 import json
 from numbers import Number
+from collections.abc import Sequence
 from typing import Any, Dict, Union
 
 # Key identifying encoding of custom numeric types.
 NUMERIC_KEY = "__snappiershot_numeric__"
 NUMERIC_VALUE_KEY = "value"
+
+# Key identifying encoding of sequence types.
+SEQUENCE_KEY = "__snappiershot_sequence__"
+SEQUENCE_VALUE_KEY = "values"
 
 # The name identifying the numeric type encoding for complex types.
 COMPLEX_TYPE = "complex"
@@ -37,6 +42,8 @@ class JsonSerializer(json.JSONEncoder):
         """
         if isinstance(value, Number):
             return self.encode_numeric(value)
+        elif isinstance(value, Sequence):
+            return self.encode_sequence(value)
         raise NotImplementedError(  # pragma: no cover
             f"Encoding for this object is not yet implemented: {value} ({type(value)})"
         )
@@ -60,14 +67,37 @@ class JsonSerializer(json.JSONEncoder):
         """
         if isinstance(value, (bool, int, float)):
             # These types are by default supported by the JSONEncoder base class.
-            return value
+            return {}
         if isinstance(value, complex):
             return {NUMERIC_KEY: COMPLEX_TYPE, NUMERIC_VALUE_KEY: [value.real, value.imag]}
         raise NotImplementedError(
             f"No encoding implemented for the following numeric type: {value} ({type(value)})"
         )
 
+    @staticmethod
+    def encode_sequence(value: Sequence) -> Union[Number, Dict[str, Any]]:
+        """ Encoding for sequence types.
 
+        This will recursively encode sequence data types, including lists, sets, and tuples.
+        The custom encoding follows the template:
+            {
+              NUMERIC_KEY: <type-as-a-string>,
+              NUMERIC_VALUE_KEY: <value>
+            }
+        The values for the NUMERIC_KEY and NUMERIC_VALUE_KEY constants can be found
+          at the top of this file.
+
+        Raises:
+            NotImplementedError - If encoding is not implement for the given numeric type.
+        """
+        if isinstance(value, (list, set, tuple, range)):
+            # These types are by default supported by the JSONEncoder base class.
+            return {SEQUENCE_KEY: type(value), SEQUENCE_VALUE_KEY: }
+        if isinstance(value, complex):
+            return {NUMERIC_KEY: COMPLEX_TYPE, NUMERIC_VALUE_KEY: [value.real, value.imag]}
+        raise NotImplementedError(
+            f"No encoding implemented for the following sequence type: {value} ({type(value)})"
+        )
 class JsonDeserializer(json.JSONDecoder):
     """ Custom JSON deserializer.
 
