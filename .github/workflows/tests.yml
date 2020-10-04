@@ -61,4 +61,4 @@ jobs:
     - name: Test
       run: |
         source $HOME/.poetry/env
-        poetry run pytest --quiet
+        poetry run ./run_tests.sh

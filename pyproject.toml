@@ -3,11 +3,15 @@ name = "snappiershot"
 version = "0.1.0"
 description = "Snapshot testing library."
 authors = ["Ben Bonenfant <bbonenfant@morsecorp.com>"]
+classifiers = [
+    "Framework :: Pytest",
+]
 
 [tool.poetry.dependencies]
 python = "^3.6.1"
 importlib-metadata = "^1.7.0"
 tomlkit = "^0.7.0"
+coverage = "^5.3"
 
 [tool.poetry.dev-dependencies]
 black = "19.10b0"
@@ -15,8 +19,10 @@ flake8 = "^3.8.3"
 mypy = "^0.782"
 pre-commit = "^2.6.0"
 pytest = "^6.0.1"
-pytest-cov = "^2.10.0"
 pytest_mock = "^3.3.1"
+
+[tool.poetry.plugins.pytest11]
+snappiershot = "snappiershot.plugins.pytest"
 
 [tool.black]
 line-length = 92
@@ -45,7 +51,9 @@ known_first_party = "snappiershot"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-vv --cov=snappiershot"
+norecursedirs = "pytester_example_dir"
+pytester_example_dir = "tests/test_plugins/pytester_example_dir"
+addopts = "-vv -p pytester"
 
 [build-system]
 requires = ["poetry>=1.0.5"]

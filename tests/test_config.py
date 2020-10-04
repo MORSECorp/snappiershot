@@ -6,18 +6,18 @@ import pytest
 from snappiershot.config import (
     DEFAULT_ABS_TOL,
     DEFAULT_FILE_FORMAT,
+    DEFAULT_FULL_DIFF,
     DEFAULT_JSON_INDENT,
     DEFAULT_REL_TOL,
-    DEFAULT_SIG_FIG,
     Config,
     find_pyproject_toml,
 )
 
 DEFAULT_CONFIG_KWARGS = dict(
     file_format=DEFAULT_FILE_FORMAT,
-    significant_figures=DEFAULT_SIG_FIG,
     float_absolute_tolerance=DEFAULT_ABS_TOL,
     float_relative_tolerace=DEFAULT_REL_TOL,
+    full_diff=DEFAULT_FULL_DIFF,
     json_indentation=DEFAULT_JSON_INDENT,
 )
 
@@ -70,7 +70,6 @@ def test_find_pyproject_toml(parent_index: int, expected: bool, pyproject_direct
         (["[tool.snappiershot]"], DEFAULT_CONFIG_KWARGS),
         (["[tool.snappiershot]", "bad line"], DEFAULT_CONFIG_KWARGS),
         (["[tool.snappiershot]", "ignored_config = true"], DEFAULT_CONFIG_KWARGS),
-        (["[tool.snappiershot]", "significant_figures = 2"], {**DEFAULT_CONFIG_KWARGS, "significant_figures": 2}),
         (["[tool.snappiershot]", "float_absolute_tolerance = 1E-4"], {**DEFAULT_CONFIG_KWARGS, "float_absolute_tolerance": 1e-4}),
         (["[tool.snappiershot]", "float_relative_tolerance = 0.1"], {**DEFAULT_CONFIG_KWARGS, "float_relative_tolerance": 0.1}),
         (["[tool.snappiershot]", "json_indentation = 3"], {**DEFAULT_CONFIG_KWARGS, "json_indentation": 3}),
@@ -96,12 +95,11 @@ def test_from_pyproject(contents: List[str], config_kwargs: Dict, pyproject_dire
     [
         ({**DEFAULT_CONFIG_KWARGS, "file_format": None}, TypeError),
         ({**DEFAULT_CONFIG_KWARGS, "file_format": "csv"}, ValueError),
-        ({**DEFAULT_CONFIG_KWARGS, "significant_figures": 3.14}, TypeError),
-        ({**DEFAULT_CONFIG_KWARGS, "significant_figures": -1}, ValueError),
         ({**DEFAULT_CONFIG_KWARGS, "float_absolute_tolerance": 2}, TypeError),
         ({**DEFAULT_CONFIG_KWARGS, "float_absolute_tolerance": -1e6}, ValueError),
         ({**DEFAULT_CONFIG_KWARGS, "float_relative_tolerance": 2}, TypeError),
         ({**DEFAULT_CONFIG_KWARGS, "float_relative_tolerance": -1e6}, ValueError),
+        ({**DEFAULT_CONFIG_KWARGS, "full_diff": None}, TypeError),
         ({**DEFAULT_CONFIG_KWARGS, "json_indentation": -1}, ValueError),
         ({**DEFAULT_CONFIG_KWARGS, "json_indentation": 1.5}, TypeError),
     ]
