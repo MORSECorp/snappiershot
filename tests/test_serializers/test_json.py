@@ -11,6 +11,8 @@ from snappiershot.serializers.json import (
     DATETIME_VALUE_KEY,
     NUMERIC_KEY,
     NUMERIC_VALUE_KEY,
+    SEQUENCE_KEY,
+    SEQUENCE_VALUE_KEY,
     DatetimeType,
     JsonDeserializer,
     JsonSerializer,
@@ -44,6 +46,57 @@ DATETIME_ENCODING_TEST_CASES = [
         {DATETIME_KEY: DatetimeType.TIMEDELTA.value, DATETIME_VALUE_KEY: 12.000013},
     ),
 ]
+
+SEQUENCE_ENCODING_TEST_CASES = [
+    ({1, 2, 3}, {SEQUENCE_KEY: "set", SEQUENCE_VALUE_KEY: [1, 2, 3],},),
+    ([1, 2, 3], {SEQUENCE_KEY: "list", SEQUENCE_VALUE_KEY: [1, 2, 3],},),
+    ([1], {SEQUENCE_KEY: "list", SEQUENCE_VALUE_KEY: [1],},),
+    ((1, 2, 3), {SEQUENCE_KEY: "tuple", SEQUENCE_VALUE_KEY: [1, 2, 3],},),
+    (
+        [1, 2, [3], {4, 5}],
+        {
+            SEQUENCE_KEY: "list",
+            SEQUENCE_VALUE_KEY: [
+                1,
+                2,
+                {SEQUENCE_KEY: "list", SEQUENCE_VALUE_KEY: [3]},
+                {SEQUENCE_KEY: "set", SEQUENCE_VALUE_KEY: [4, 5],},
+            ],
+        },
+    ),
+    (
+        [1, 2, (3, 4)],
+        {
+            SEQUENCE_KEY: "list",
+            SEQUENCE_VALUE_KEY: [
+                1,
+                2,
+                {SEQUENCE_KEY: "tuple", SEQUENCE_VALUE_KEY: [3, 4],},
+            ],
+        },
+    ),
+    (
+        (1, 2, {3, 4}),
+        {
+            SEQUENCE_KEY: "tuple",
+            SEQUENCE_VALUE_KEY: [1, 2, {SEQUENCE_KEY: "set", SEQUENCE_VALUE_KEY: [3, 4],}],
+        },
+    ),
+    (
+        (1, 2, [3], {4, 5}),
+        {
+            SEQUENCE_KEY: "tuple",
+            SEQUENCE_VALUE_KEY: [
+                1,
+                2,
+                {SEQUENCE_KEY: "list", SEQUENCE_VALUE_KEY: [3]},
+                {SEQUENCE_KEY: "set", SEQUENCE_VALUE_KEY: [4, 5],},
+            ],
+        },
+    ),
+]
+
+SEQUENCE_ENCODING_ERROR_TEST_CASES = [[1, 2, "not a sequence"]]
 
 
 @pytest.mark.parametrize(
@@ -125,7 +178,7 @@ def test_encode_datetime_error():
 
 @pytest.mark.parametrize("expected, value", DATETIME_ENCODING_TEST_CASES)
 def test_decode_datetime(value, expected):
-    """ Test that the JsonDeserializer.decode_numeric decodes values as expected. """
+    """ Test that the JsonDeserializer.decode_datetime decodes values as expected. """
     # Arrange
 
     # Act
@@ -136,7 +189,52 @@ def test_decode_datetime(value, expected):
 
 
 def test_decode_datetime_error():
-    """ Test that the JsonDeserializer.decode_numeric raises an error if no decoding is defined. """
+    """ Test that the JsonDeserializer.decode_datetime raises an error if no decoding is defined. """
+    # Arrange
+    value = {"foo": "bar"}
+
+    # Act & Assert
+    with pytest.raises(NotImplementedError):
+        JsonDeserializer.decode_datetime(value)
+
+
+@pytest.mark.parametrize("value", SEQUENCE_ENCODING_ERROR_TEST_CASES)
+def test_encode_sequence_error(value):
+    """ Test that the JsonSerializer.encode_sequence raises an error if no encoding is defined. """
+    # Arrange
+    value = "not a sequence"
+
+    # Act & Assert
+    with pytest.raises(NotImplementedError):
+        JsonSerializer.encode_sequence(value)
+
+
+@pytest.mark.parametrize("value, expected", SEQUENCE_ENCODING_TEST_CASES)
+def test_encode_sequence(value, expected):
+    """ Test that the JsonSerializer.encode_sequence encodes values as expected. """
+    # Arrange
+
+    # Act
+    result = JsonSerializer.encode_sequence(value)
+
+    # Assert
+    assert result == expected
+
+
+@pytest.mark.parametrize("expected, value", SEQUENCE_ENCODING_TEST_CASES)
+def test_decode_sequence(value, expected):
+    """ Test that the JsonDeserializer.decode_sequence decodes sequences as expected. """
+    # Arrange
+
+    # Act
+    result = JsonDeserializer.decode_sequence(value)
+
+    # Assert
+    assert result == expected
+
+
+def test_decode_sequence_error():
+    """ Test that the JsonDeserializer.decode_sequence raises an error if no decoding is defined. """
     # Arrange
     value = {"foo": "bar"}
 

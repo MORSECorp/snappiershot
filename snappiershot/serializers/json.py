@@ -3,19 +3,27 @@ import datetime
 import json
 from enum import Enum
 from numbers import Number
-from collections.abc import Sequence
 from typing import Any, Dict, Union
+from copy import deepcopy
 
 # Key identifying encoding of custom numeric types.
 NUMERIC_KEY = "__snappiershot_numeric__"
 NUMERIC_VALUE_KEY = "value"
 
+# The name identifying the numeric type encoding for complex types.
+COMPLEX_TYPE = "complex"
+
 # Key identifying encoding of sequence types.
 SEQUENCE_KEY = "__snappiershot_sequence__"
 SEQUENCE_VALUE_KEY = "values"
+SEQUENCE_TYPES = (set, list, tuple)
 
-# The name identifying the numeric type encoding for complex types.
-COMPLEX_TYPE = "complex"
+
+class SequenceType(Enum):
+    SET = "set"
+    LIST = "list"
+    TUPLE = "tuple"
+
 
 # Keys and values identifying encoding of datetime objects
 DATETIME_KEY = "__snappiershot_datetime__"
@@ -64,7 +72,8 @@ class JsonSerializer(json.JSONEncoder):
         """
         if isinstance(value, Number):
             return self.encode_numeric(value)
-        elif isinstance(value, Sequence):
+
+        if isinstance(value, SEQUENCE_TYPES):
             return self.encode_sequence(value)
 
         if isinstance(value, DATETIME_TYPES):
@@ -185,29 +194,47 @@ class JsonSerializer(json.JSONEncoder):
         )
 
     @staticmethod
-    def encode_sequence(value: Sequence) -> Union[Number, Dict[str, Any]]:
+    def encode_sequence(value: Any) -> Union[Number, Dict[str, Any]]:
         """ Encoding for sequence types.
 
         This will recursively encode sequence data types, including lists, sets, and tuples.
         The custom encoding follows the template:
             {
-              NUMERIC_KEY: <type-as-a-string>,
-              NUMERIC_VALUE_KEY: <value>
+              SEQUENCE_KEY: <type-as-a-string>,
+              SEQUENCE_VALUE_KEY: [<value>]
             }
-        The values for the NUMERIC_KEY and NUMERIC_VALUE_KEY constants can be found
+        The values for the SEQUENCE_KEY and SEQUENCE_VALUE_KEY constants can be found
           at the top of this file.
 
         Raises:
             NotImplementedError - If encoding is not implement for the given numeric type.
         """
-        if isinstance(value, (list, set, tuple, range)):
+        if isinstance(value, list):
+            serializer = JsonSerializer()
             # These types are by default supported by the JSONEncoder base class.
-            return {SEQUENCE_KEY: type(value), SEQUENCE_VALUE_KEY: }
-        if isinstance(value, complex):
-            return {NUMERIC_KEY: COMPLEX_TYPE, NUMERIC_VALUE_KEY: [value.real, value.imag]}
+            return {
+                SEQUENCE_KEY: SequenceType.LIST.value,
+                SEQUENCE_VALUE_KEY: [serializer.default(ele) for ele in list(value)],
+            }
+        if isinstance(value, set):
+            serializer = JsonSerializer()
+            # These types are by default supported by the JSONEncoder base class.
+            return {
+                SEQUENCE_KEY: SequenceType.SET.value,
+                SEQUENCE_VALUE_KEY: [serializer.default(ele) for ele in list(value)],
+            }
+        if isinstance(value, tuple):
+            serializer = JsonSerializer()
+            # These types are by default supported by the JSONEncoder base class.
+            return {
+                SEQUENCE_KEY: SequenceType.TUPLE.value,
+                SEQUENCE_VALUE_KEY: [serializer.default(ele) for ele in list(value)],
+            }
         raise NotImplementedError(
             f"No encoding implemented for the following sequence type: {value} ({type(value)})"
         )
+
+
 class JsonDeserializer(json.JSONDecoder):
     """ Custom JSON deserializer.
 
@@ -236,6 +263,9 @@ class JsonDeserializer(json.JSONDecoder):
 
         if set(dct.keys()) == {DATETIME_KEY, DATETIME_VALUE_KEY}:
             return self.decode_datetime(dct)
+
+        if set(dct.keys()) == {SEQUENCE_KEY, SEQUENCE_VALUE_KEY}:
+            return self.decode_sequence(dct)
 
         return dct
 
@@ -312,3 +342,65 @@ class JsonDeserializer(json.JSONDecoder):
         raise NotImplementedError(
             f"Deserialization for the following datetime type not implemented: {dct}"
         )
+
+    # @staticmethod
+    # def traverse_dict(dct) -> Any:
+
+    @staticmethod
+    def decode_sequence(dct: Dict[str, Any]) -> Any:
+        """ Decode an encoded sequence type
+
+        This encoded numeric type object must be of the form:
+            {
+              SEQUENCE_KEY: <type-as-a-string>,
+              SEQUENCE_VALUE_KEY: [<values>]
+            }
+        The values for the SEQUENCE_KEY and SEQUENCE_VALUE_KEY constants can be found
+          at the top of this file.
+
+        Args:
+            dct: dictionary to decode
+
+        Returns:
+            decoded sequence object, either a set, list, or tuple
+
+        Raises:
+            NotImplementedError - If decoding is not implement for the given numeric type.
+        """
+
+        ds = JsonDeserializer()
+        seq = []
+        type_ = dct.get(SEQUENCE_KEY)
+        value = dct.get(SEQUENCE_VALUE_KEY)
+
+        if type_ not in [e.value for e in SequenceType]:
+            raise NotImplementedError(
+                f"Deserialization for the following sequence type not implemented: {dct}"
+            )
+
+        if type_ == SequenceType.LIST.value:
+            tmp_seq = list()
+            for e in value:
+                if isinstance(e, dict) and SEQUENCE_KEY in e and SEQUENCE_VALUE_KEY in e:
+                    tmp_seq.append(ds.decode_sequence(e))
+                else:
+                    tmp_seq.append(e)
+            return seq + tmp_seq
+
+        if type_ == SequenceType.SET.value:
+            tmp_seq = list()
+            for e in value:
+                if isinstance(e, dict) and SEQUENCE_KEY in e and SEQUENCE_VALUE_KEY in e:
+                    tmp_seq.append(ds.decode_sequence(e))
+                else:
+                    tmp_seq.append(e)
+            return set(seq + tmp_seq)
+
+        if type_ == SequenceType.TUPLE.value:
+            tmp_seq = list()
+            for e in value:
+                if isinstance(e, dict) and SEQUENCE_KEY in e and SEQUENCE_VALUE_KEY in e:
+                    tmp_seq.append(ds.decode_sequence(e))
+                else:
+                    tmp_seq.append(e)
+            return tuple(seq + tmp_seq)
