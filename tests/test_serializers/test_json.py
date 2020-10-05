@@ -48,10 +48,10 @@ DATETIME_ENCODING_TEST_CASES = [
 ]
 
 SEQUENCE_ENCODING_TEST_CASES = [
-    ({1, 2, 3}, {SEQUENCE_KEY: "set", SEQUENCE_VALUE_KEY: [1, 2, 3],},),
-    ([1, 2, 3], {SEQUENCE_KEY: "list", SEQUENCE_VALUE_KEY: [1, 2, 3],},),
-    ([1], {SEQUENCE_KEY: "list", SEQUENCE_VALUE_KEY: [1],},),
-    ((1, 2, 3), {SEQUENCE_KEY: "tuple", SEQUENCE_VALUE_KEY: [1, 2, 3],},),
+    ({1, 2, 3}, {SEQUENCE_KEY: "set", SEQUENCE_VALUE_KEY: [1, 2, 3], },),
+    ([1, 2, 3], {SEQUENCE_KEY: "list", SEQUENCE_VALUE_KEY: [1, 2, 3], },),
+    ([1], {SEQUENCE_KEY: "list", SEQUENCE_VALUE_KEY: [1], },),
+    ((1, 2, 3), {SEQUENCE_KEY: "tuple", SEQUENCE_VALUE_KEY: [1, 2, 3], },),
     (
         [1, 2, [3], {4, 5}],
         {
@@ -60,7 +60,7 @@ SEQUENCE_ENCODING_TEST_CASES = [
                 1,
                 2,
                 {SEQUENCE_KEY: "list", SEQUENCE_VALUE_KEY: [3]},
-                {SEQUENCE_KEY: "set", SEQUENCE_VALUE_KEY: [4, 5],},
+                {SEQUENCE_KEY: "set", SEQUENCE_VALUE_KEY: [4, 5], },
             ],
         },
     ),
@@ -71,7 +71,7 @@ SEQUENCE_ENCODING_TEST_CASES = [
             SEQUENCE_VALUE_KEY: [
                 1,
                 2,
-                {SEQUENCE_KEY: "tuple", SEQUENCE_VALUE_KEY: [3, 4],},
+                {SEQUENCE_KEY: "tuple", SEQUENCE_VALUE_KEY: [3, 4], },
             ],
         },
     ),
@@ -79,7 +79,7 @@ SEQUENCE_ENCODING_TEST_CASES = [
         (1, 2, {3, 4}),
         {
             SEQUENCE_KEY: "tuple",
-            SEQUENCE_VALUE_KEY: [1, 2, {SEQUENCE_KEY: "set", SEQUENCE_VALUE_KEY: [3, 4],}],
+            SEQUENCE_VALUE_KEY: [1, 2, {SEQUENCE_KEY: "set", SEQUENCE_VALUE_KEY: [3, 4], }],
         },
     ),
     (
@@ -90,7 +90,7 @@ SEQUENCE_ENCODING_TEST_CASES = [
                 1,
                 2,
                 {SEQUENCE_KEY: "list", SEQUENCE_VALUE_KEY: [3]},
-                {SEQUENCE_KEY: "set", SEQUENCE_VALUE_KEY: [4, 5],},
+                {SEQUENCE_KEY: "set", SEQUENCE_VALUE_KEY: [4, 5], },
             ],
         },
     ),

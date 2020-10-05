@@ -4,7 +4,6 @@ import json
 from enum import Enum
 from numbers import Number
 from typing import Any, Dict, Union
-from copy import deepcopy
 
 # Key identifying encoding of custom numeric types.
 NUMERIC_KEY = "__snappiershot_numeric__"
