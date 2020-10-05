@@ -343,9 +343,6 @@ class JsonDeserializer(json.JSONDecoder):
             f"Deserialization for the following datetime type not implemented: {dct}"
         )
 
-    # @staticmethod
-    # def traverse_dict(dct) -> Any:
-
     @staticmethod
     def decode_sequence(dct: Dict[str, Any]) -> Any:
         """ Decode an encoded sequence type
