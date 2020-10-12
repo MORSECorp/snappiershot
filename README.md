@@ -13,15 +13,33 @@ Within the pyproject.toml file, all snappiershot configuration can be found unde
 ```toml
 [tool.snappiershot]
 file_format = "json"
-significant_figures = 6
 float_absolute_tolerance = 1e-6
 float_relative_tolerance = 0.001
+full_diff = false
+json_indentation = 4
 ```
 
 
 ## Usage
 
 ### Example usage in a test
+
+### Pytest
+```python
+def test_something(snapshot):
+    """ Test that something works as expected"""
+    # Arrange
+    x = 1
+    y = 2
+
+    # Act
+    result = x + y
+
+    # Assert
+    snapshot.assert_match(result)
+```
+
+#### No Test Runner
 ```python
 from snappiershot import Snapshot
 

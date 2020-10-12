@@ -1,0 +1,43 @@
+{
+    "snappiershot_version": "0.1.0",
+    "tests": {
+        "test_function_new": [
+            {
+                "metadata": {
+                    "arguments": {},
+                    "test_runner_provided_name": "",
+                    "update_on_next_run": false,
+                    "user_provided_name": ""
+                },
+                "snapshots": [
+                    {
+                        "__snappiershot_numeric__": "complex",
+                        "value": [
+                            3.0,
+                            4.0
+                        ]
+                    }
+                ]
+            }
+        ],
+        "test_function_passed": [
+            {
+                "metadata": {
+                    "arguments": {},
+                    "test_runner_provided_name": "",
+                    "update_on_next_run": false,
+                    "user_provided_name": ""
+                },
+                "snapshots": [
+                    {
+                        "__snappiershot_numeric__": "complex",
+                        "value": [
+                            3.0,
+                            4.0
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

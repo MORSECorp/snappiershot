@@ -8,9 +8,9 @@ from tomlkit.exceptions import TOMLKitError
 PathType = Union[Path, str]
 
 DEFAULT_FILE_FORMAT = "JSON"
-DEFAULT_SIG_FIG = 6
 DEFAULT_ABS_TOL = 1e-6
 DEFAULT_REL_TOL = 0.001
+DEFAULT_FULL_DIFF = False
 DEFAULT_JSON_INDENT = 4
 
 
@@ -20,27 +20,27 @@ class Config:
     def __init__(
         self,
         file_format: str = DEFAULT_FILE_FORMAT,
-        significant_figures: int = DEFAULT_SIG_FIG,
         float_absolute_tolerance: float = DEFAULT_ABS_TOL,
         float_relative_tolerance: float = DEFAULT_REL_TOL,
+        full_diff: bool = DEFAULT_FULL_DIFF,
         json_indentation: int = DEFAULT_JSON_INDENT,
         **_kwargs: Dict,
     ):
         """
         Args:
             file_format: The file format type to use, current options are {JSON}.
-            significant_figures: The number of significant figures to use by default.
             float_absolute_tolerance: The absolute tolerance used to compare floats.
             float_relative_tolerance: The relative tolerance used to compare floats.
-            json_indentation: The number of spaces to use for JSON-indentation
+            full_diff: Whether to display the full diff of snapshots on failure.
+            json_indentation: The number of spaces to use for JSON-indentation.
 
         The ``**_kwargs`` argument is used to silently accept and ignore any extraneous
           configuration key-value pairs that are parsed from the pyproject.toml file.
         """
         self.file_format = file_format
-        self.sig_fig = significant_figures
         self.abs_tol = float_absolute_tolerance
         self.rel_tol = float_relative_tolerance
+        self.full_diff = full_diff
         self.json_indentation = json_indentation
         self._validate()
 
@@ -78,19 +78,6 @@ class Config:
                 f"Found: {self.file_format}"
             )
 
-        # Validate sig_fig.
-        if not isinstance(self.sig_fig, int):
-            raise TypeError(
-                f"Expected an integer value for the significant_figures configuration; "
-                f"Found: {self.sig_fig}"
-            )
-        self.sig_fig = int(self.sig_fig)  # Convert from tomlkit type.
-        if self.sig_fig <= 0:
-            raise ValueError(
-                f"The significant_figures configuration must be a positive integer; "
-                f"Found: {self.sig_fig}"
-            )
-
         # Validate abs_tol.
         if not isinstance(self.abs_tol, float):
             raise TypeError(
@@ -117,7 +104,14 @@ class Config:
                 f"Found: {self.rel_tol}"
             )
 
-        # Validation json_indentation.
+        # Validate full_diff
+        if not isinstance(self.full_diff, bool):
+            raise TypeError(
+                f"Expected an boolean value for the full_diff configuration; "
+                f"Found: {self.full_diff}"
+            )
+
+        # Validate json_indentation.
         if not isinstance(self.json_indentation, int):
             raise TypeError(
                 f"Expected an integer value for the json_indentation configuration; "
@@ -138,9 +132,10 @@ class Config:
         return (
             "Config("
             f"file_format={self.file_format}, "
-            f"sig_fig={self.sig_fig}, "
             f"abs_tol={self.abs_tol}, "
-            f"rel_tol={self.rel_tol})"
+            f"rel_tol={self.rel_tol}, "
+            f"full_diff={self.full_diff}, "
+            f"json_indentation={self.json_indentation})"
         )
 
 

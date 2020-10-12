@@ -4,9 +4,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict
 
+from ..constants import SNAPSHOT_DIRECTORY
 from .json import JsonDeserializer
-
-SNAPSHOT_DIRECTORY = ".snapshots"
 
 
 class SnapshotKeys(SimpleNamespace):

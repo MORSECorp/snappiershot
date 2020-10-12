@@ -11,6 +11,7 @@ from snappiershot.snapshot import (
     Config,
     Snapshot,
     SnapshotMetadata,
+    SnapshotStatus,
     _SnapshotFile,
 )
 
@@ -310,6 +311,30 @@ class TestSnapshotFile:
         assert result == expected
         assert not snapshot_file._changed_flag
 
+    def test_mark_failed(self, config: Config, metadata: SnapshotMetadata):
+        """ Test that the _SnapshotFile.mark_failed method functions as expected. """
+        # Arrange
+        snapshot_file = _SnapshotFile(config, metadata)
+        expected = [SnapshotStatus.FAILED]
+
+        # Act
+        snapshot_file.mark_failed(index=0)
+
+        # Assert
+        assert snapshot_file._snapshot_statuses == expected
+
+    def test_mark_passed(self, config: Config, metadata: SnapshotMetadata):
+        """ Test that the _SnapshotFile.mark_passed method functions as expected. """
+        # Arrange
+        snapshot_file = _SnapshotFile(config, metadata)
+        expected = [SnapshotStatus.PASSED]
+
+        # Act
+        snapshot_file.mark_passed(index=0)
+
+        # Assert
+        assert snapshot_file._snapshot_statuses == expected
+
     @staticmethod
     def test_record_snapshot(config: Config, metadata: SnapshotMetadata):
         """ Test that the _SnapshotFile.record_snapshot method functions as expected.
@@ -318,6 +343,7 @@ class TestSnapshotFile:
         """
         # Arrange
         snapshot_file = _SnapshotFile(config, metadata)
+        expected_statuses = [SnapshotStatus.RECORDED, SnapshotStatus.RECORDED]
 
         # Act
         snapshot_file.record_snapshot("A")
@@ -325,8 +351,9 @@ class TestSnapshotFile:
         snapshot_file.record_snapshot("C", index=0)
 
         # Assert
-        assert snapshot_file._snapshots == ["C", "A", "B"]
+        assert snapshot_file._snapshots == ["C", "B"]
         assert snapshot_file._changed_flag
+        assert snapshot_file._snapshot_statuses == expected_statuses
 
     @staticmethod
     @pytest.mark.parametrize("changed_flag, file_written", [(False, False), (True, True)])
@@ -341,9 +368,16 @@ class TestSnapshotFile:
         # Arrange
         snapshot_file_object = _SnapshotFile(config, metadata)
         snapshot_file_object._changed_flag = changed_flag
+        snapshot_file_object._snapshot_statuses = [
+            SnapshotStatus.PASSED,
+            SnapshotStatus.RECORDED,
+        ]
+        expected_statuses = [SnapshotStatus.PASSED, SnapshotStatus.WRITTEN]
 
         # Act
         snapshot_file_object.write()
 
         # Assert
         assert snapshot_file.exists() == file_written
+        if file_written:
+            assert snapshot_file_object._snapshot_statuses == expected_statuses

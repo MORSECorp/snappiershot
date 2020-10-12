@@ -1,0 +1,2 @@
+This directory is used by the "pytester" fixture from the pytest package
+to test the snappiershot pytest plugin.
