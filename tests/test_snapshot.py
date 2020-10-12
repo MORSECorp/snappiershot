@@ -318,7 +318,7 @@ class TestSnapshotFile:
         expected = [SnapshotStatus.FAILED]
 
         # Act
-        snapshot_file.mark_failed()
+        snapshot_file.mark_failed(index=0)
 
         # Assert
         assert snapshot_file._snapshot_statuses == expected
@@ -330,7 +330,7 @@ class TestSnapshotFile:
         expected = [SnapshotStatus.PASSED]
 
         # Act
-        snapshot_file.mark_passed()
+        snapshot_file.mark_passed(index=0)
 
         # Assert
         assert snapshot_file._snapshot_statuses == expected
@@ -343,7 +343,7 @@ class TestSnapshotFile:
         """
         # Arrange
         snapshot_file = _SnapshotFile(config, metadata)
-        expected_statuses = [SnapshotStatus.WRITTEN, SnapshotStatus.WRITTEN]
+        expected_statuses = [SnapshotStatus.RECORDED, SnapshotStatus.RECORDED]
 
         # Act
         snapshot_file.record_snapshot("A")
@@ -368,9 +368,16 @@ class TestSnapshotFile:
         # Arrange
         snapshot_file_object = _SnapshotFile(config, metadata)
         snapshot_file_object._changed_flag = changed_flag
+        snapshot_file_object._snapshot_statuses = [
+            SnapshotStatus.PASSED,
+            SnapshotStatus.RECORDED,
+        ]
+        expected_statuses = [SnapshotStatus.PASSED, SnapshotStatus.WRITTEN]
 
         # Act
         snapshot_file_object.write()
 
         # Assert
         assert snapshot_file.exists() == file_written
+        if file_written:
+            assert snapshot_file_object._snapshot_statuses == expected_statuses

@@ -8,7 +8,7 @@ from _pytest.config import Config as PytestConfig
 from _pytest.config.argparsing import Parser as PytestParser
 from _pytest.fixtures import FixtureRequest
 
-from .tracker import Tracker
+from .tracker import SnapshotTracker
 
 PACKAGE_CONFIG_OPTION = "_snappiershot_default_config"
 PACKAGE_TRACKER_OPTION = "_snappiershot_tracker"
@@ -53,10 +53,10 @@ def pytest_configure(config: PytestConfig) -> None:
 
     # If the `pytest --help` command is run, args is None.
     if hasattr(config, "args"):
-        # Construct a Tracker object that tracks the state of each snapshot.
+        # Construct a SnapshotTracker object that tracks the state of each snapshot.
         root_dir = Path(config.rootdir).resolve()
         test_paths = (Path(path).resolve().relative_to(root_dir) for path in config.args)
-        setattr(config.option, PACKAGE_TRACKER_OPTION, Tracker(*test_paths))
+        setattr(config.option, PACKAGE_TRACKER_OPTION, SnapshotTracker(*test_paths))
 
 
 # noinspection PyShadowingNames
@@ -76,10 +76,13 @@ def _snapshot(request: FixtureRequest) -> Iterator[snappiershot.Snapshot]:
         yield snapshot
 
     if (snapshot._metadata is not None) and (snapshot._snapshot_file is not None):
-        tracker: Tracker = request.config.getoption(PACKAGE_TRACKER_OPTION)
+        tracker: SnapshotTracker = request.config.getoption(PACKAGE_TRACKER_OPTION)
         tracker.set_status(
             statuses=snapshot._snapshot_file._snapshot_statuses,
             snapshot_file=snapshot._snapshot_file._snapshot_file,
             function_name=snapshot._metadata.caller_info.function,
             metadata=snapshot._metadata,
         )
+    else:
+        # TODO: Add warning.
+        pass

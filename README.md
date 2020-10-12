@@ -23,6 +23,23 @@ json_indentation = 4
 ## Usage
 
 ### Example usage in a test
+
+### Pytest
+```python
+def test_something(snapshot):
+    """ Test that something works as expected"""
+    # Arrange
+    x = 1
+    y = 2
+
+    # Act
+    result = x + y
+
+    # Assert
+    snapshot.assert_match(result)
+```
+
+#### No Test Runner
 ```python
 from snappiershot import Snapshot
 

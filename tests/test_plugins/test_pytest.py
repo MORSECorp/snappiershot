@@ -13,7 +13,9 @@ PYTESTER_EXAMPLE_DIR = Path(__file__).parent / "pytester_example_dir"
 
 @pytest.mark.filterwarnings("ignore:.*experimental api")
 def test_tracker(testdir: Testdir):
-    """ Test that the Tracker is able to track snapshot statuses throughout a pytest run. """
+    """ Test that the SnapshotTracker is able to track snapshot statuses
+    throughout a pytest run.
+    """
     # Arrange
     #   Load the test files into the testdir used by pytest to test plugins.
     copytree(PYTESTER_EXAMPLE_DIR / SNAPSHOT_DIRECTORY, testdir.tmpdir / SNAPSHOT_DIRECTORY)
@@ -23,7 +25,7 @@ def test_tracker(testdir: Testdir):
     testdir.copy_example("test_file_2.py")
 
     # Act
-    #   Run pytest on the testdir.
+    #   Run pytest on the testdir (as quietly as possible).
     result = testdir.inline_run("-qq", "-s")
 
     # Assert

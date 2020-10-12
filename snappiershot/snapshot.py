@@ -45,12 +45,9 @@ class SnapshotMetadata:
 
     def as_dict(self) -> Dict:
         """ Returns a JSON-serializable dictionary of metadata. """
-        return dict(
-            user_provided_name=self.user_provided_name,
-            test_runner_provided_name=self.test_runner_provided_name,
-            update_on_next_run=self.update_on_next_run,
-            arguments=self.caller_info.args,
-        )
+        dct = vars(self).copy()
+        dct["arguments"] = dct.pop("caller_info").args
+        return dct
 
     def matches(self, metadata_dict: Dict) -> bool:
         """ Check if the "metadata" section of a snapshot file sufficiently matches
@@ -165,12 +162,12 @@ class Snapshot:
         self._snapshot_file.mark_passed(current_index)
         return True
 
-    def __enter__(self) -> "Snapshot":  # pragma: no cover  TODO: Cover
+    def __enter__(self) -> "Snapshot":
         """ Enter the context of a Snapshot session. """
         self._within_context = True
         return self
 
-    def __exit__(self, *args: Any, **kwargs: Any) -> None:  # pragma: no cover  TODO: Cover
+    def __exit__(self, *args: Any, **kwargs: Any) -> None:
         """ Exits the context of the Snapshot session. """
         if self._snapshot_file is not None:
             self._snapshot_file.write()
@@ -183,9 +180,7 @@ class Snapshot:
         """
         return value
 
-    def _get_metadata(
-        self, update_on_next_run: bool
-    ) -> SnapshotMetadata:  # pragma: no cover  TODO: Cover
+    def _get_metadata(self, update_on_next_run: bool) -> SnapshotMetadata:
         """ Gather metadata via inspection of current context of the test function.
 
         A SnapshotMetadata object is created only if self._metadata is not already set.
@@ -204,22 +199,12 @@ class Snapshot:
         #          | - Snapshot._get_metadata              <- frame_index=1
         #                | - CallerInfo.from_call_stack    <- frame_index=0
         caller_info = CallerInfo.from_call_stack(frame_index=3)
-
-        # Filter out the any arguments that shouldn't be used for metadata,
-        #   such as the pytest "snapshot" fixture.
-        arguments_to_remove = [
-            key for key, value in caller_info.args.items() if isinstance(value, type(self))
-        ]
-        for argument in arguments_to_remove:
-            del caller_info.args[argument]
-
+        caller_info = self._remove_special_arguments(caller_info)
         return SnapshotMetadata(
             caller_info=caller_info, update_on_next_run=update_on_next_run
         )
 
-    def _load_snapshot_file(
-        self, metadata: SnapshotMetadata
-    ) -> "_SnapshotFile":  # pragma: no cover  TODO: Cover
+    def _load_snapshot_file(self, metadata: SnapshotMetadata) -> "_SnapshotFile":
         """ Load the snapshot file into memory.
 
         The snapshot file is only loaded if self._snapshot_file is not already set.
@@ -231,6 +216,24 @@ class Snapshot:
             return self._snapshot_file
         return _SnapshotFile(config=self.configuration, metadata=metadata)
 
+    @classmethod
+    def _remove_special_arguments(cls, caller_info: CallerInfo) -> CallerInfo:
+        """ Filter out the any arguments that shouldn't be used for metadata,
+        such as the pytest "snapshot" fixture.
+
+        Args:
+            caller_info: The `snappiershot.inspection.CallerInfo` object to be filtered.
+
+        Return:
+            The filtered CallerInfo object.
+        """
+        arguments_to_remove = [
+            key for key, value in caller_info.args.items() if isinstance(value, cls)
+        ]
+        for argument in arguments_to_remove:
+            del caller_info.args[argument]
+        return caller_info
+
 
 class SnapshotStatus(IntEnum):
     """ Enumeration of snapshot statuses. """
@@ -238,6 +241,7 @@ class SnapshotStatus(IntEnum):
     UNCHECKED = auto()
     FAILED = auto()
     PASSED = auto()
+    RECORDED = auto()
     WRITTEN = auto()
 
 
@@ -315,7 +319,7 @@ class _SnapshotFile:
         # The status for the individual snapshots.
         self._snapshot_statuses = [SnapshotStatus.UNCHECKED for _ in self._snapshots]
 
-    def get_snapshot(self, index: int = 0) -> Union[Dict, object]:
+    def get_snapshot(self, index: int) -> Union[Dict, object]:
         """ Return a snapshot from the snapshot file.
 
         This snapshot will correspond to the test function, with the index
@@ -331,18 +335,18 @@ class _SnapshotFile:
         except IndexError:
             return _NO_SNAPSHOT
 
-    def mark_failed(self, index: int = 0) -> None:
+    def mark_failed(self, index: int) -> None:
         """ Set the status for the snapshot at the specified index as "FAILED". """
         self._mark_snapshot_status(index, SnapshotStatus.FAILED)
 
-    def mark_passed(self, index: int = 0) -> None:
+    def mark_passed(self, index: int) -> None:
         """ Set the status for the snapshot at the specified index as "PASSED". """
         self._mark_snapshot_status(index, SnapshotStatus.PASSED)
 
     def record_snapshot(self, value: Any, index: int = -1) -> None:
         """ Record a snapshot for the test function.
 
-        Marks the snapshot at the given index as "WRITTEN".
+        Marks the snapshot at the given index as "RECORDED".
 
         Args:
             value: The snapshot value to record.
@@ -351,10 +355,10 @@ class _SnapshotFile:
         self._changed_flag = True
         index = len(self._snapshots) if index == -1 else index
         if index >= len(self._snapshots):
-            self._snapshots.insert(index, value)
+            self._snapshots.append(value)
         else:
             self._snapshots[index] = value
-        self._mark_snapshot_status(index, SnapshotStatus.WRITTEN)
+        self._mark_snapshot_status(index, SnapshotStatus.RECORDED)
 
     def write(self) -> None:
         """ Write out the snapshots.
@@ -377,6 +381,11 @@ class _SnapshotFile:
             raise ValueError(
                 f"Unsupported snapshot file format: {self._snapshot_file.suffix}"
             )
+
+        # Change all "Recorded" statuses to "Written".
+        for index in range(len(self._snapshot_statuses)):
+            if self._snapshot_statuses[index] == SnapshotStatus.RECORDED:
+                self._snapshot_statuses[index] = SnapshotStatus.WRITTEN
 
     @property
     def _empty_file_contents(self) -> Dict:
@@ -440,7 +449,7 @@ class _SnapshotFile:
         This will handle out-of-bounds indices.
         """
         if index >= len(self._snapshot_statuses):
-            self._snapshot_statuses.insert(index, status)
+            self._snapshot_statuses.append(status)
         else:
             self._snapshot_statuses[index] = status
 

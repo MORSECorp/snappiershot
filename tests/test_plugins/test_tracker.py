@@ -1,12 +1,12 @@
 """ Tests for snappiershot/plugins/tracker.py """
 from pathlib import Path
 
-from snappiershot.plugins.tracker import Tracker
+from snappiershot.plugins.tracker import SnapshotTracker
 from snappiershot.snapshot import CallerInfo, SnapshotMetadata, SnapshotStatus
 
 
 def test_tracker_set_status():
-    """ Test that the Tracker.set_status method functions as expected. """
+    """ Test that the SnapshotTracker.set_status method functions as expected. """
     # Arrange
     statuses = [
         SnapshotStatus.UNCHECKED,
@@ -24,7 +24,7 @@ def test_tracker_set_status():
     )
 
     # Act
-    tracker = Tracker()
+    tracker = SnapshotTracker()
     tracker.set_status(
         statuses=statuses,
         snapshot_file=snapshot_file,

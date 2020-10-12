@@ -12,6 +12,7 @@ The easiest way to run tests is by running the `run_tests.sh` bash script
 ```bash
 (.venv) snappiershot$ ./run_tests.sh
 ```
-The reason for this script is because the `pytest-cov` plugin for the `pytest`
-  test runner does not play nicely with packages that are pytest plugins.
+The reason for using this script, rather than automatically running tests via
+  the `pytest` test runner, is because the `pytest-cov` plugin for `pytest`
+  does not play nicely with packages that are `pytest` plugins.
 Therefore, the `coverage` package must be interfaced with separately.
