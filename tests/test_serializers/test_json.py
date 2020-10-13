@@ -49,63 +49,8 @@ DATETIME_ENCODING_TEST_CASES = [
 
 SEQUENCE_ENCODING_TEST_CASES = [
     ({1, 2, 3}, {SEQUENCE_KEY: "set", SEQUENCE_VALUE_KEY: [1, 2, 3]}),
-    ([1, 2, 3], {SEQUENCE_KEY: "list", SEQUENCE_VALUE_KEY: [1, 2, 3]}),
-    ([1], {SEQUENCE_KEY: "list", SEQUENCE_VALUE_KEY: [1]}),
     ((1, 2, 3), {SEQUENCE_KEY: "tuple", SEQUENCE_VALUE_KEY: [1, 2, 3]}),
-    (
-        [(1, 2, 3), datetime.time(10, 11, 12, 13)],
-        {
-            SEQUENCE_KEY: "list",
-            SEQUENCE_VALUE_KEY: [
-                {SEQUENCE_KEY: "tuple", SEQUENCE_VALUE_KEY: [1, 2, 3]},
-                {
-                    DATETIME_KEY: DatetimeType.TIME.value,
-                    DATETIME_VALUE_KEY: "10:11:12.000013",
-                },
-            ],
-        },
-    ),
-    (
-        [1, 2, [3], {4, 5}],
-        {
-            SEQUENCE_KEY: "list",
-            SEQUENCE_VALUE_KEY: [
-                1,
-                2,
-                {SEQUENCE_KEY: "list", SEQUENCE_VALUE_KEY: [3]},
-                {SEQUENCE_KEY: "set", SEQUENCE_VALUE_KEY: [4, 5]},
-            ],
-        },
-    ),
-    (
-        [1, 2, (3, 4)],
-        {
-            SEQUENCE_KEY: "list",
-            SEQUENCE_VALUE_KEY: [1, 2, {SEQUENCE_KEY: "tuple", SEQUENCE_VALUE_KEY: [3, 4]}],
-        },
-    ),
-    (
-        (1, 2, {3, 4}),
-        {
-            SEQUENCE_KEY: "tuple",
-            SEQUENCE_VALUE_KEY: [1, 2, {SEQUENCE_KEY: "set", SEQUENCE_VALUE_KEY: [3, 4]}],
-        },
-    ),
-    (
-        (1, 2, [3], {4, 5}),
-        {
-            SEQUENCE_KEY: "tuple",
-            SEQUENCE_VALUE_KEY: [
-                1,
-                2,
-                {SEQUENCE_KEY: "list", SEQUENCE_VALUE_KEY: [3]},
-                {SEQUENCE_KEY: "set", SEQUENCE_VALUE_KEY: [4, 5]},
-            ],
-        },
-    ),
 ]
-
-SEQUENCE_ENCODING_ERROR_TEST_CASES = [[1, 2, "not a sequence"]]
 
 
 @pytest.mark.parametrize(
@@ -207,10 +152,10 @@ def test_decode_datetime_error():
         JsonDeserializer.decode_datetime(value)
 
 
-@pytest.mark.parametrize("value", SEQUENCE_ENCODING_ERROR_TEST_CASES)
-def test_encode_sequence_error(value):
+def test_encode_sequence_error():
     """ Test that the JsonSerializer.encode_sequence raises an error if no encoding is defined. """
     # Arrange
+    value = b"banana"
 
     # Act & Assert
     with pytest.raises(NotImplementedError):
@@ -218,7 +163,9 @@ def test_encode_sequence_error(value):
         js.encode_sequence(value)
 
 
-@pytest.mark.parametrize("value, expected", SEQUENCE_ENCODING_TEST_CASES)
+@pytest.mark.parametrize(
+    "value, expected", SEQUENCE_ENCODING_TEST_CASES + [([1, 2], [1, 2])]
+)
 def test_encode_sequence(value, expected):
     """ Test that the JsonSerializer.encode_sequence encodes values as expected. """
     # Arrange
@@ -252,7 +199,7 @@ def test_decode_sequence_error():
     # Act & Assert
     with pytest.raises(NotImplementedError):
         jd = JsonDeserializer()
-        jd.decode_datetime(value)
+        jd.decode_sequence(value)
 
 
 def test_round_trip():
@@ -279,6 +226,8 @@ def test_round_trip():
         "nested_list": [1, 2, [3, 4, []]],
         "nested_tuple": (1, 2, (3, 4, ())),
         "complex_list": [1, 2, (3, 4, {5})],
+        "my_test": {(1, 2), (3, 4)},
+        "my_test2": {"one", "two"},
     }
 
     # Act
