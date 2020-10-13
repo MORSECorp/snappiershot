@@ -48,10 +48,23 @@ DATETIME_ENCODING_TEST_CASES = [
 ]
 
 SEQUENCE_ENCODING_TEST_CASES = [
-    ({1, 2, 3}, {SEQUENCE_KEY: "set", SEQUENCE_VALUE_KEY: [1, 2, 3], },),
-    ([1, 2, 3], {SEQUENCE_KEY: "list", SEQUENCE_VALUE_KEY: [1, 2, 3], },),
-    ([1], {SEQUENCE_KEY: "list", SEQUENCE_VALUE_KEY: [1], },),
-    ((1, 2, 3), {SEQUENCE_KEY: "tuple", SEQUENCE_VALUE_KEY: [1, 2, 3], },),
+    ({1, 2, 3}, {SEQUENCE_KEY: "set", SEQUENCE_VALUE_KEY: [1, 2, 3]}),
+    ([1, 2, 3], {SEQUENCE_KEY: "list", SEQUENCE_VALUE_KEY: [1, 2, 3]}),
+    ([1], {SEQUENCE_KEY: "list", SEQUENCE_VALUE_KEY: [1]}),
+    ((1, 2, 3), {SEQUENCE_KEY: "tuple", SEQUENCE_VALUE_KEY: [1, 2, 3]}),
+    (
+        [(1, 2, 3), datetime.time(10, 11, 12, 13)],
+        {
+            SEQUENCE_KEY: "list",
+            SEQUENCE_VALUE_KEY: [
+                {SEQUENCE_KEY: "tuple", SEQUENCE_VALUE_KEY: [1, 2, 3]},
+                {
+                    DATETIME_KEY: DatetimeType.TIME.value,
+                    DATETIME_VALUE_KEY: "10:11:12.000013",
+                },
+            ],
+        },
+    ),
     (
         [1, 2, [3], {4, 5}],
         {
@@ -60,7 +73,7 @@ SEQUENCE_ENCODING_TEST_CASES = [
                 1,
                 2,
                 {SEQUENCE_KEY: "list", SEQUENCE_VALUE_KEY: [3]},
-                {SEQUENCE_KEY: "set", SEQUENCE_VALUE_KEY: [4, 5], },
+                {SEQUENCE_KEY: "set", SEQUENCE_VALUE_KEY: [4, 5]},
             ],
         },
     ),
@@ -68,18 +81,14 @@ SEQUENCE_ENCODING_TEST_CASES = [
         [1, 2, (3, 4)],
         {
             SEQUENCE_KEY: "list",
-            SEQUENCE_VALUE_KEY: [
-                1,
-                2,
-                {SEQUENCE_KEY: "tuple", SEQUENCE_VALUE_KEY: [3, 4], },
-            ],
+            SEQUENCE_VALUE_KEY: [1, 2, {SEQUENCE_KEY: "tuple", SEQUENCE_VALUE_KEY: [3, 4]}],
         },
     ),
     (
         (1, 2, {3, 4}),
         {
             SEQUENCE_KEY: "tuple",
-            SEQUENCE_VALUE_KEY: [1, 2, {SEQUENCE_KEY: "set", SEQUENCE_VALUE_KEY: [3, 4], }],
+            SEQUENCE_VALUE_KEY: [1, 2, {SEQUENCE_KEY: "set", SEQUENCE_VALUE_KEY: [3, 4]}],
         },
     ),
     (
@@ -90,7 +99,7 @@ SEQUENCE_ENCODING_TEST_CASES = [
                 1,
                 2,
                 {SEQUENCE_KEY: "list", SEQUENCE_VALUE_KEY: [3]},
-                {SEQUENCE_KEY: "set", SEQUENCE_VALUE_KEY: [4, 5], },
+                {SEQUENCE_KEY: "set", SEQUENCE_VALUE_KEY: [4, 5]},
             ],
         },
     ),
@@ -202,11 +211,11 @@ def test_decode_datetime_error():
 def test_encode_sequence_error(value):
     """ Test that the JsonSerializer.encode_sequence raises an error if no encoding is defined. """
     # Arrange
-    value = "not a sequence"
 
     # Act & Assert
     with pytest.raises(NotImplementedError):
-        JsonSerializer.encode_sequence(value)
+        js = JsonSerializer()
+        js.encode_sequence(value)
 
 
 @pytest.mark.parametrize("value, expected", SEQUENCE_ENCODING_TEST_CASES)
@@ -215,7 +224,8 @@ def test_encode_sequence(value, expected):
     # Arrange
 
     # Act
-    result = JsonSerializer.encode_sequence(value)
+    js = JsonSerializer()
+    result = js.encode_sequence(value)
 
     # Assert
     assert result == expected
@@ -227,7 +237,8 @@ def test_decode_sequence(value, expected):
     # Arrange
 
     # Act
-    result = JsonDeserializer.decode_sequence(value)
+    jd = JsonDeserializer()
+    result = jd.decode_sequence(value)
 
     # Assert
     assert result == expected
@@ -240,7 +251,8 @@ def test_decode_sequence_error():
 
     # Act & Assert
     with pytest.raises(NotImplementedError):
-        JsonDeserializer.decode_datetime(value)
+        jd = JsonDeserializer()
+        jd.decode_datetime(value)
 
 
 def test_round_trip():
@@ -261,6 +273,12 @@ def test_round_trip():
         ),
         "datetime_without_tz": datetime.datetime(2020, 8, 9, 10, 11, 12, 13),
         "timedelta": datetime.timedelta(seconds=12, microseconds=13),
+        "list": [1, 2, 3],
+        "set": {1, 2, 3},
+        "tuple": (1, 2, 3),
+        "nested_list": [1, 2, [3, 4, []]],
+        "nested_tuple": (1, 2, (3, 4, ())),
+        "complex_list": [1, 2, (3, 4, {5})],
     }
 
     # Act

@@ -3,7 +3,7 @@ import datetime
 import json
 from enum import Enum
 from numbers import Number
-from typing import Any, Dict, Union
+from typing import Any, Dict, List, Union
 
 # Key identifying encoding of custom numeric types.
 NUMERIC_KEY = "__snappiershot_numeric__"
@@ -16,6 +16,8 @@ COMPLEX_TYPE = "complex"
 SEQUENCE_KEY = "__snappiershot_sequence__"
 SEQUENCE_VALUE_KEY = "values"
 SEQUENCE_TYPES = (set, list, tuple)
+TUPLE_HINT_KEY = "__tuple__"
+TUPLE_HINT_VALUE_KEY = "items"
 
 
 class SequenceType(Enum):
@@ -54,6 +56,45 @@ class JsonSerializer(json.JSONEncoder):
         >>> data = {"a": 1, "b": 2}
         >>> assert json.dumps(data, cls=JsonSerializer) == '{"a": 1, "b": 2}'
     """
+
+    def encode(self, obj: Any) -> Any:
+        """
+        Override JSONEncoder.encode to support tuple type hinting.
+
+        The default JSONEncoder supports both primitive types: tuples and lists. In its implementation,
+         tuples are implicitly converted to lists. To avoid this, this method allows tuples and lists
+         to be encoded as separate types.
+
+        Args:
+            obj: The python object to encode.
+        """
+
+        def hint_tuples(items: Any) -> Any:
+            """
+            Tuple type hinting method.
+
+            Wraps tuples in a dict using the following notation:
+            {
+                "__tuple__": True,
+                "items": <tuple>
+            }
+
+            Args:
+                items: The python sequence to encode.
+            """
+            if isinstance(items, tuple):
+                return {
+                    TUPLE_HINT_KEY: True,
+                    TUPLE_HINT_VALUE_KEY: [hint_tuples(item) for item in items],
+                }
+            if isinstance(items, list):
+                return [hint_tuples(item) for item in items]
+            if isinstance(items, dict):
+                return {key: hint_tuples(value) for key, value in items.items()}
+            else:
+                return items
+
+        return super(JsonSerializer, self).encode(hint_tuples(obj))
 
     def default(self, value: Any) -> Any:
         """ Encode a value into a serializable object.
@@ -192,8 +233,7 @@ class JsonSerializer(json.JSONEncoder):
             f"No encoding implemented for the following datetime type: {value} ({type(value)})"
         )
 
-    @staticmethod
-    def encode_sequence(value: Any) -> Union[Number, Dict[str, Any]]:
+    def encode_sequence(self, value: Any) -> Union[Number, Dict[str, Any]]:
         """ Encoding for sequence types.
 
         This will recursively encode sequence data types, including lists, sets, and tuples.
@@ -206,28 +246,25 @@ class JsonSerializer(json.JSONEncoder):
           at the top of this file.
 
         Raises:
-            NotImplementedError - If encoding is not implement for the given numeric type.
+            NotImplementedError - If encoding is not implemented for the given numeric type.
         """
         if isinstance(value, list):
-            serializer = JsonSerializer()
             # These types are by default supported by the JSONEncoder base class.
             return {
                 SEQUENCE_KEY: SequenceType.LIST.value,
-                SEQUENCE_VALUE_KEY: [serializer.default(ele) for ele in list(value)],
+                SEQUENCE_VALUE_KEY: [self.default(item) for item in value],
             }
         if isinstance(value, set):
-            serializer = JsonSerializer()
             # These types are by default supported by the JSONEncoder base class.
             return {
                 SEQUENCE_KEY: SequenceType.SET.value,
-                SEQUENCE_VALUE_KEY: [serializer.default(ele) for ele in list(value)],
+                SEQUENCE_VALUE_KEY: [self.default(item) for item in value],
             }
         if isinstance(value, tuple):
-            serializer = JsonSerializer()
             # These types are by default supported by the JSONEncoder base class.
             return {
                 SEQUENCE_KEY: SequenceType.TUPLE.value,
-                SEQUENCE_VALUE_KEY: [serializer.default(ele) for ele in list(value)],
+                SEQUENCE_VALUE_KEY: [self.default(item) for item in value],
             }
         raise NotImplementedError(
             f"No encoding implemented for the following sequence type: {value} ({type(value)})"
@@ -263,10 +300,24 @@ class JsonDeserializer(json.JSONDecoder):
         if set(dct.keys()) == {DATETIME_KEY, DATETIME_VALUE_KEY}:
             return self.decode_datetime(dct)
 
+        if "__tuple__" in dct:
+            return tuple(dct["items"])
+
         if set(dct.keys()) == {SEQUENCE_KEY, SEQUENCE_VALUE_KEY}:
             return self.decode_sequence(dct)
 
         return dct
+
+    def _decode(self, value: Any) -> Any:
+        """
+        Reserved method to dispatch object hook for decoding
+
+        Args:
+            value: value to decode
+        """
+        if isinstance(value, dict):
+            return self.object_hook(value)
+        return value
 
     @staticmethod
     def decode_numeric(dct: Dict[str, Any]) -> Any:
@@ -342,8 +393,7 @@ class JsonDeserializer(json.JSONDecoder):
             f"Deserialization for the following datetime type not implemented: {dct}"
         )
 
-    @staticmethod
-    def decode_sequence(dct: Dict[str, Any]) -> Any:
+    def decode_sequence(self, dct: Dict[str, Any]) -> Any:
         """ Decode an encoded sequence type
 
         This encoded numeric type object must be of the form:
@@ -364,39 +414,22 @@ class JsonDeserializer(json.JSONDecoder):
             NotImplementedError - If decoding is not implement for the given numeric type.
         """
 
-        ds = JsonDeserializer()
-        seq = []
+        seq: List[Any] = []
         type_ = dct.get(SEQUENCE_KEY)
         value = dct.get(SEQUENCE_VALUE_KEY)
 
-        if type_ not in [e.value for e in SequenceType]:
-            raise NotImplementedError(
-                f"Deserialization for the following sequence type not implemented: {dct}"
-            )
-
         if type_ == SequenceType.LIST.value:
-            tmp_seq = list()
-            for e in value:
-                if isinstance(e, dict) and SEQUENCE_KEY in e and SEQUENCE_VALUE_KEY in e:
-                    tmp_seq.append(ds.decode_sequence(e))
-                else:
-                    tmp_seq.append(e)
+            tmp_seq = list(self._decode(item) for item in value)
             return seq + tmp_seq
 
         if type_ == SequenceType.SET.value:
-            tmp_seq = list()
-            for e in value:
-                if isinstance(e, dict) and SEQUENCE_KEY in e and SEQUENCE_VALUE_KEY in e:
-                    tmp_seq.append(ds.decode_sequence(e))
-                else:
-                    tmp_seq.append(e)
+            tmp_seq = list(self._decode(item) for item in value)
             return set(seq + tmp_seq)
 
         if type_ == SequenceType.TUPLE.value:
-            tmp_seq = list()
-            for e in value:
-                if isinstance(e, dict) and SEQUENCE_KEY in e and SEQUENCE_VALUE_KEY in e:
-                    tmp_seq.append(ds.decode_sequence(e))
-                else:
-                    tmp_seq.append(e)
+            tmp_seq = list(self._decode(item) for item in value)
             return tuple(seq + tmp_seq)
+
+        raise NotImplementedError(
+            f"Deserialization for the following sequence type not implemented: {dct}"
+        )
