@@ -5,57 +5,50 @@ from decimal import Decimal
 from math import inf, isnan, nan
 
 import pytest
-from snappiershot.serializers.json import (
-    COMPLEX_TYPE,
-    DATETIME_KEY,
-    DATETIME_VALUE_KEY,
-    NUMERIC_KEY,
-    NUMERIC_VALUE_KEY,
-    DatetimeType,
-    JsonDeserializer,
-    JsonSerializer,
+from snappiershot.serializers.constants import (
+    CustomEncodedDatetimeTypes,
+    CustomEncodedNumericTypes,
 )
+from snappiershot.serializers.json import JsonDeserializer, JsonSerializer
 
 DATETIME_ENCODING_TEST_CASES = [
     (
         datetime.datetime(2020, 8, 9, 10, 11, 12, 13),
-        {
-            DATETIME_KEY: DatetimeType.DATETIME_WITHOUT_TZ.value,
-            DATETIME_VALUE_KEY: "2020-08-09T10:11:12.000013",
-        },
+        CustomEncodedDatetimeTypes.datetime_without_timezone.json_encoding(
+            "2020-08-09T10:11:12.000013"
+        ),
     ),
     (
         datetime.datetime(2020, 8, 9, 10, 11, 12, 13, tzinfo=datetime.timezone.utc),
-        {
-            DATETIME_KEY: DatetimeType.DATETIME_WITH_TZ.value,
-            DATETIME_VALUE_KEY: "2020-08-09T10:11:12.000013+0000",
-        },
+        CustomEncodedDatetimeTypes.datetime_with_timezone.json_encoding(
+            "2020-08-09T10:11:12.000013+0000"
+        ),
     ),
     (
         datetime.date(2020, 8, 9),
-        {DATETIME_KEY: DatetimeType.DATE.value, DATETIME_VALUE_KEY: "2020-08-09"},
+        CustomEncodedDatetimeTypes.date.json_encoding("2020-08-09"),
     ),
     (
         datetime.time(10, 11, 12, 13),
-        {DATETIME_KEY: DatetimeType.TIME.value, DATETIME_VALUE_KEY: "10:11:12.000013"},
+        CustomEncodedDatetimeTypes.time.json_encoding("10:11:12.000013"),
     ),
     (
         datetime.timedelta(seconds=12, microseconds=13),
-        {DATETIME_KEY: DatetimeType.TIMEDELTA.value, DATETIME_VALUE_KEY: 12.000013},
+        CustomEncodedDatetimeTypes.timedelta.json_encoding(12.000013),
     ),
 ]
 
 
-@pytest.mark.parametrize(
-    "value, expected",
-    [
-        (12, 12),
-        (3.14, 3.14),
-        (inf, inf),
-        (nan, nan),
-        (3 + 4j, {NUMERIC_KEY: COMPLEX_TYPE, NUMERIC_VALUE_KEY: [3, 4]}),
-    ],
-)
+NUMERIC_ENCODING_TEST_CASES = [
+    (12, 12),
+    (3.14, 3.14),
+    (inf, inf),
+    (nan, nan),
+    (3 + 4j, CustomEncodedNumericTypes.complex.json_encoding([3, 4])),
+]
+
+
+@pytest.mark.parametrize("value, expected", NUMERIC_ENCODING_TEST_CASES)
 def test_encode_numeric(value, expected):
     """ Test that the JsonSerializer.encode_numeric encodes values as expected. """
     # Arrange
@@ -78,9 +71,9 @@ def test_encode_numeric_error():
 
 
 @pytest.mark.parametrize(
-    "value, expected", [({NUMERIC_KEY: COMPLEX_TYPE, NUMERIC_VALUE_KEY: [3, 4]}, 3 + 4j)]
+    "expected, value", [(3 + 4j, CustomEncodedNumericTypes.complex.json_encoding([3, 4]))]
 )
-def test_decode_numeric(value, expected):
+def test_decode_numeric(expected, value):
     """ Test that the JsonDeserializer.decode_numeric decodes values as expected. """
     # Arrange
 

@@ -1,36 +1,15 @@
 """ Serializer (and Deserializer) class for the JSON format. """
 import datetime
 import json
-from enum import Enum
 from numbers import Number
-from typing import Any, Dict, Union
+from typing import Any, Dict
 
-# Key identifying encoding of custom numeric types.
-NUMERIC_KEY = "__snappiershot_numeric__"
-NUMERIC_VALUE_KEY = "value"
-
-# The name identifying the numeric type encoding for complex types.
-COMPLEX_TYPE = "complex"
-
-# Keys and values identifying encoding of datetime objects
-DATETIME_KEY = "__snappiershot_datetime__"
-DATETIME_VALUE_KEY = "value"
-DATETIME_TYPES = (datetime.date, datetime.time, datetime.datetime, datetime.timedelta)
-
-
-class DatetimeType(Enum):
-    DATETIME_WITH_TZ = "datetime_with_timezone"
-    DATETIME_WITHOUT_TZ = "datetime_without_timezone"
-    DATE = "date"
-    TIME = "time"
-    TIMEDELTA = "timedelta"
-
-
-class DatetimeFormatString(Enum):
-    DATETIME_WITH_TZ = "%Y-%m-%dT%H:%M:%S.%f%z"
-    DATETIME_WITHOUT_TZ = "%Y-%m-%dT%H:%M:%S.%f"
-    DATE = "%Y-%m-%d"
-    TIME = "%H:%M:%S.%f"
+from .constants import (
+    DATETIME_TYPES,
+    CustomEncodedDatetimeTypes,
+    CustomEncodedNumericTypes,
+    JsonType,
+)
 
 
 class JsonSerializer(json.JSONEncoder):
@@ -68,7 +47,7 @@ class JsonSerializer(json.JSONEncoder):
         )
 
     @staticmethod
-    def encode_numeric(value: Number) -> Union[Number, Dict[str, Any]]:
+    def encode_numeric(value: Number) -> JsonType:
         """ Encoding for numeric types.
 
         This will do nothing to naturally serializable types (bool, int, float)
@@ -88,13 +67,14 @@ class JsonSerializer(json.JSONEncoder):
             # These types are by default supported by the JSONEncoder base class.
             return value
         if isinstance(value, complex):
-            return {NUMERIC_KEY: COMPLEX_TYPE, NUMERIC_VALUE_KEY: [value.real, value.imag]}
+            encoded_value = [value.real, value.imag]
+            return CustomEncodedNumericTypes.complex.json_encoding(encoded_value)
         raise NotImplementedError(
             f"No encoding implemented for the following numeric type: {value} ({type(value)})"
         )
 
     @staticmethod
-    def encode_datetime(value: Any) -> Dict[str, Any]:
+    def encode_datetime(value: Any) -> JsonType:
         """ Encoding for datetime types
 
         This will perform custom encoding for datetime types
@@ -125,7 +105,8 @@ class JsonSerializer(json.JSONEncoder):
         """
 
         # Note: the "datetime.datetime" check must be before the "datetime.date" check
-        # because datetime.datetime objects are *also* instances of datetime.date (but not of datetime.time). E.g.:
+        # because datetime.datetime objects are *also* instances of datetime.date
+        # (but not of datetime.time). E.g.:
         #   >> isinstance(datetime.datetime.now(), datetime.date)
         #   True
         #   >> isinstance(datetime.datetime.now(), datetime.time)
@@ -136,42 +117,27 @@ class JsonSerializer(json.JSONEncoder):
         if isinstance(value, datetime.datetime):
             if value.tzinfo is not None:
                 # Encode as ISO 86001 format string with time zone information.
-                return {
-                    DATETIME_KEY: DatetimeType.DATETIME_WITH_TZ.value,
-                    DATETIME_VALUE_KEY: value.strftime(
-                        DatetimeFormatString.DATETIME_WITH_TZ.value
-                    ),
-                }
-
+                type_ = CustomEncodedDatetimeTypes.datetime_with_timezone
+                return type_.json_encoding(value.strftime(type_.value_formatter))
             else:
                 # Encode as ISO 86001 format string without time zone information.
-                return {
-                    DATETIME_KEY: DatetimeType.DATETIME_WITHOUT_TZ.value,
-                    DATETIME_VALUE_KEY: value.strftime(
-                        DatetimeFormatString.DATETIME_WITHOUT_TZ.value
-                    ),
-                }
+                type_ = CustomEncodedDatetimeTypes.datetime_without_timezone
+                return type_.json_encoding(value.strftime(type_.value_formatter))
 
         if isinstance(value, datetime.date):
             # Encode as ISO 86001 format string
-            return {
-                DATETIME_KEY: DatetimeType.DATE.value,
-                DATETIME_VALUE_KEY: value.strftime(DatetimeFormatString.DATE.value),
-            }
+            type_ = CustomEncodedDatetimeTypes.date
+            return type_.json_encoding(value.strftime(type_.value_formatter))
 
         if isinstance(value, datetime.time):
             # Encode as ISO 86001 format string
-            return {
-                DATETIME_KEY: DatetimeType.TIME.value,
-                DATETIME_VALUE_KEY: value.strftime(DatetimeFormatString.TIME.value),
-            }
+            type_ = CustomEncodedDatetimeTypes.time
+            return type_.json_encoding(value.strftime(type_.value_formatter))
 
         if isinstance(value, datetime.timedelta):
             # Encode as total seconds, float (fractional part encodes microseconds)
-            return {
-                DATETIME_KEY: DatetimeType.TIMEDELTA.value,
-                DATETIME_VALUE_KEY: value.total_seconds(),
-            }
+            type_ = CustomEncodedDatetimeTypes.timedelta
+            return type_.json_encoding(value.total_seconds())
 
         raise NotImplementedError(
             f"No encoding implemented for the following datetime type: {value} ({type(value)})"
@@ -201,10 +167,10 @@ class JsonDeserializer(json.JSONDecoder):
         Custom decoding is done here, for the custom encodings that occurred within
           the `snappiershot.serializers.json.JsonSerializer.default` method.
         """
-        if set(dct.keys()) == {NUMERIC_KEY, NUMERIC_VALUE_KEY}:
+        if set(dct.keys()) == CustomEncodedNumericTypes.keys():
             return self.decode_numeric(dct)
 
-        if set(dct.keys()) == {DATETIME_KEY, DATETIME_VALUE_KEY}:
+        if set(dct.keys()) == CustomEncodedDatetimeTypes.keys():
             return self.decode_datetime(dct)
 
         return dct
@@ -224,10 +190,13 @@ class JsonDeserializer(json.JSONDecoder):
         Raises:
             NotImplementedError - If decoding is not implement for the given numeric type.
         """
-        type_ = dct.get(NUMERIC_KEY)
-        if type_ == COMPLEX_TYPE:
-            real, imag = dct[NUMERIC_VALUE_KEY]
-            return complex(real, imag)
+        type_name = dct.get(CustomEncodedNumericTypes.type_key)
+        value = dct[CustomEncodedNumericTypes.complex.value_key]
+
+        if type_name == CustomEncodedNumericTypes.complex.name:
+            real, imag = value
+            return CustomEncodedNumericTypes.complex.type(real, imag)
+
         raise NotImplementedError(
             f"Deserialization for the following numerical type not implemented: {dct}"
         )
@@ -253,31 +222,32 @@ class JsonDeserializer(json.JSONDecoder):
         Raises:
             NotImplementedError - If decoding is not implement for the given numeric type.
         """
-        type_ = dct.get(DATETIME_KEY)
-        value = dct.get(DATETIME_VALUE_KEY)
+        type_name = dct.get(CustomEncodedDatetimeTypes.type_key)
+        value = dct.get(CustomEncodedDatetimeTypes.value_key)
 
-        if type_ == DatetimeType.DATE.value:
-            return datetime.datetime.strptime(value, DatetimeFormatString.DATE.value).date()
+        if type_name == CustomEncodedDatetimeTypes.date.name:
+            # Value is ISO formatted date string.
+            obj = CustomEncodedDatetimeTypes.date
+            return datetime.datetime.strptime(value, obj.value_formatter).date()
 
-        if type_ == DatetimeType.TIME.value:
-            # Value is ISO formatted time string
-            return datetime.datetime.strptime(value, DatetimeFormatString.TIME.value).time()
+        if type_name == CustomEncodedDatetimeTypes.time.name:
+            # Value is ISO formatted time string.
+            obj = CustomEncodedDatetimeTypes.time
+            return datetime.datetime.strptime(value, obj.value_formatter).time()
 
-        if type_ == DatetimeType.DATETIME_WITH_TZ.value:
-            # Value is ISO formatted datetime string *with* timezone information
-            return datetime.datetime.strptime(
-                value, DatetimeFormatString.DATETIME_WITH_TZ.value
-            )
+        if type_name == CustomEncodedDatetimeTypes.datetime_with_timezone.name:
+            # Value is ISO formatted datetime string *with* timezone information.
+            obj = CustomEncodedDatetimeTypes.datetime_with_timezone
+            return datetime.datetime.strptime(value, obj.value_formatter)
 
-        if type_ == DatetimeType.DATETIME_WITHOUT_TZ.value:
-            # Value is ISO formatted datetime string *without* timezone information
-            return datetime.datetime.strptime(
-                value, DatetimeFormatString.DATETIME_WITHOUT_TZ.value
-            )
+        if type_name == CustomEncodedDatetimeTypes.datetime_without_timezone.name:
+            # Value is ISO formatted datetime string *without* timezone information.
+            obj = CustomEncodedDatetimeTypes.datetime_without_timezone
+            return datetime.datetime.strptime(value, obj.value_formatter)
 
-        if type_ == DatetimeType.TIMEDELTA.value:
-            # Value is total seconds, float
-            return datetime.timedelta(seconds=value)
+        if type_name == CustomEncodedDatetimeTypes.timedelta.name:
+            # Value is total seconds, float.
+            return CustomEncodedDatetimeTypes.timedelta.type(seconds=value)
 
         raise NotImplementedError(
             f"Deserialization for the following datetime type not implemented: {dct}"
