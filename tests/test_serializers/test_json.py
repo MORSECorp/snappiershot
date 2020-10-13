@@ -11,6 +11,8 @@ from snappiershot.serializers.json import (
     DATETIME_VALUE_KEY,
     NUMERIC_KEY,
     NUMERIC_VALUE_KEY,
+    SEQUENCE_KEY,
+    SEQUENCE_VALUE_KEY,
     DatetimeType,
     JsonDeserializer,
     JsonSerializer,
@@ -43,6 +45,11 @@ DATETIME_ENCODING_TEST_CASES = [
         datetime.timedelta(seconds=12, microseconds=13),
         {DATETIME_KEY: DatetimeType.TIMEDELTA.value, DATETIME_VALUE_KEY: 12.000013},
     ),
+]
+
+SEQUENCE_ENCODING_TEST_CASES = [
+    ({1, 2, 3}, {SEQUENCE_KEY: "set", SEQUENCE_VALUE_KEY: [1, 2, 3]}),
+    ((1, 2, 3), {SEQUENCE_KEY: "tuple", SEQUENCE_VALUE_KEY: [1, 2, 3]}),
 ]
 
 
@@ -125,7 +132,7 @@ def test_encode_datetime_error():
 
 @pytest.mark.parametrize("expected, value", DATETIME_ENCODING_TEST_CASES)
 def test_decode_datetime(value, expected):
-    """ Test that the JsonDeserializer.decode_numeric decodes values as expected. """
+    """ Test that the JsonDeserializer.decode_datetime decodes values as expected. """
     # Arrange
 
     # Act
@@ -136,13 +143,63 @@ def test_decode_datetime(value, expected):
 
 
 def test_decode_datetime_error():
-    """ Test that the JsonDeserializer.decode_numeric raises an error if no decoding is defined. """
+    """ Test that the JsonDeserializer.decode_datetime raises an error if no decoding is defined. """
     # Arrange
     value = {"foo": "bar"}
 
     # Act & Assert
     with pytest.raises(NotImplementedError):
         JsonDeserializer.decode_datetime(value)
+
+
+def test_encode_sequence_error():
+    """ Test that the JsonSerializer.encode_sequence raises an error if no encoding is defined. """
+    # Arrange
+    value = b"banana"
+
+    # Act & Assert
+    with pytest.raises(NotImplementedError):
+        js = JsonSerializer()
+        js.encode_sequence(value)
+
+
+@pytest.mark.parametrize(
+    "value, expected", SEQUENCE_ENCODING_TEST_CASES + [([1, 2], [1, 2])]
+)
+def test_encode_sequence(value, expected):
+    """ Test that the JsonSerializer.encode_sequence encodes values as expected. """
+    # Arrange
+
+    # Act
+    js = JsonSerializer()
+    result = js.encode_sequence(value)
+
+    # Assert
+    assert result == expected
+
+
+@pytest.mark.parametrize("expected, value", SEQUENCE_ENCODING_TEST_CASES)
+def test_decode_sequence(value, expected):
+    """ Test that the JsonDeserializer.decode_sequence decodes sequences as expected. """
+    # Arrange
+
+    # Act
+    jd = JsonDeserializer()
+    result = jd.decode_sequence(value)
+
+    # Assert
+    assert result == expected
+
+
+def test_decode_sequence_error():
+    """ Test that the JsonDeserializer.decode_sequence raises an error if no decoding is defined. """
+    # Arrange
+    value = {"foo": "bar"}
+
+    # Act & Assert
+    with pytest.raises(NotImplementedError):
+        jd = JsonDeserializer()
+        jd.decode_sequence(value)
 
 
 def test_round_trip():
@@ -163,6 +220,14 @@ def test_round_trip():
         ),
         "datetime_without_tz": datetime.datetime(2020, 8, 9, 10, 11, 12, 13),
         "timedelta": datetime.timedelta(seconds=12, microseconds=13),
+        "list": [1, 2, 3],
+        "set": {1, 2, 3},
+        "tuple": (1, 2, 3),
+        "nested_list": [1, 2, [3, 4, []]],
+        "nested_tuple": (1, 2, (3, 4, ())),
+        "complex_list": [1, 2, (3, 4, {5})],
+        "my_test": {(1, 2), (3, 4)},
+        "my_test2": {"one", "two"},
     }
 
     # Act
