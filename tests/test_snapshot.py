@@ -381,3 +381,21 @@ class TestSnapshotFile:
         assert snapshot_file.exists() == file_written
         if file_written:
             assert snapshot_file_object._snapshot_statuses == expected_statuses
+
+    @staticmethod
+    def test_write_error(config: Config, metadata: SnapshotMetadata, snapshot_file: Path):
+        """ Test if an error occurs during snapshot writing, no file is written. """
+        # Arrange
+        snapshot_file_object = _SnapshotFile(config, metadata)
+        snapshot_file_object._changed_flag = True
+        snapshot_file_object.record_snapshot({("tuple as key",): None})
+
+        # Act
+        try:
+            snapshot_file_object.write()
+        except TypeError:
+            pass
+
+        # Assert
+        assert not snapshot_file.exists()
+        assert not list(snapshot_file.parent.glob("*"))

@@ -369,14 +369,20 @@ class _SnapshotFile:
         if not self._changed_flag:
             return
         if self._snapshot_file.suffix == ".json":
-            with self._snapshot_file.open("w") as snapshot_file:
-                json.dump(
-                    obj=self._file_contents,
-                    fp=snapshot_file,
-                    cls=JsonSerializer,
-                    indent=self.config.json_indentation,
-                    sort_keys=True,
-                )
+            temporary_output_file = self._snapshot_file.with_suffix(".temp")
+            try:
+                with temporary_output_file.open("w") as snapshot_file:
+                    json.dump(
+                        obj=self._file_contents,
+                        fp=snapshot_file,
+                        cls=JsonSerializer,
+                        indent=self.config.json_indentation,
+                        sort_keys=True,
+                    )
+                temporary_output_file.rename(self._snapshot_file)
+            finally:
+                if temporary_output_file.exists():
+                    temporary_output_file.unlink()
         else:  # pragma: no cover
             raise ValueError(
                 f"Unsupported snapshot file format: {self._snapshot_file.suffix}"
