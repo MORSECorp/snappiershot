@@ -84,6 +84,12 @@ Now the linters, formatters, and type checkers will be run automatically with
   every commit, making PRs easier to review and removing distractions from the
   contributing process.
 
+To run these commands independently from the `git commit` command, you can run
+  the following command:
+```bash
+(.venv) snappiershot$ pre-commit run --all
+```
+
 **NOTE**: The `mypy` type checker is included with these commits, meaning if
   the type annotations are not correct the pre-commit hooks will fail and by
   default your commit command will also fail.
