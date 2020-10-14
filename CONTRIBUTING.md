@@ -3,7 +3,7 @@
 Welcome and thank you for considering to contribute to SnappierShot!
 
 Here you will find all the information you'll need to setup your development
-  environment and and start contributing.
+  environment and start contributing.
 
 ## Table of Contents
   * [Submitting Bug Reports](#Submitting Bug Reports)
@@ -44,11 +44,11 @@ You can open an issue [here](https://github.com/MORSECorp/snappiershot/issues/ne
 
 ## Environment Setup
 We use the [poetry](https://python-poetry.org/) to both manage dependencies
-  and publishing the package. You can find information about installing this
+  and publish this package. You can find information about installing this
   software [here](https://python-poetry.org/docs/).
 
 This library supports Python versions `3.6.1` and above, so you must have
-  a version of Python install that meets those specification in order to
+  a version of Python installed that meets those specifications in order to
   progress any further with setting up your environment. We use the
   excellent [pyenv](https://github.com/pyenv/pyenv) to manage our local
   Python installation, but an in-depth guide to using this is outside the
@@ -118,7 +118,7 @@ Please leave helpful comments that will assist users, code reviewers, and
 To add support for an additional type, the following must be done:
   * Add information to [snappiershot/serializers/constants.py](snappiershot/serializers/constants.py)
     If you are adding support for a type related to an already supported type,
-    try to append to an already `CustomEncoded<descriptor>Types` class.
+    try to append to an already existing `CustomEncoded<descriptor>Types` class.
     If you are adding support for a completely new type, you'll need to
     create a new `CustomEncoded<descriptor>Types` class, using the existing
     ones as examples.
@@ -130,7 +130,7 @@ To add support for an additional type, the following must be done:
     If you are adding support for a completely new type, you'll need to
     create your own `encode_<descriptor>` method and add an associated branch
     to the `JSONSerializer.default` method.
-  * Write an decoder.
+  * Write a decoder.
     Look over the workflow for the `JSONDeserializer` class within
     [snappiershot/serializers/json.py](snappiershot/serializers/json.py).
     If you are adding support for a type related to an already supported type,
@@ -142,7 +142,7 @@ To add support for an additional type, the following must be done:
     Add unit tests to support the newly supported types to
     [tests/test_serializers/test_json.py](tests/test_serializers/test_json.py).
     Additionally, you'll need to add the newly supported type to the
-    `test_round_trip` test function within that file, which acts as an
+    `test_round_trip` test function within that file, which acts as a
     brief integration test.
 
 ### Black

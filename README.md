@@ -27,6 +27,11 @@ json_indentation = 4
 
 ## Usage
 
+SnappierShot allows you to take a "snapshot" of data the first time that a test
+  is run, and stores it nearby in a `.snapshots` directory. Then, for all
+  subsequent times that test is run, the data is assert to "match" the original
+  data.
+
 ### Pytest Example
 ```python
 def test_something(snapshot):
@@ -61,6 +66,14 @@ def test_something():
 
 test_something()
 ```
+
+### Support Types:
+  * Primitives (`bool`, `int`, `float`, `None`, `str`)
+  * Numerics (`complex`)
+  * Collections (`lists`, `tuples`, `sets`)
+  * Dictionaries
+  * Classes (with an underlying `__dict__`)
+  * Classes with custom encoding (by defining a `__snapshot__` method).
 
 ## Contributing
 See [CONTRIBUTING.md](CONTRIBUTING.md)
