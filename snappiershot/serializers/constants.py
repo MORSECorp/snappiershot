@@ -130,8 +130,23 @@ class CustomEncodedDatetimeTypes(_CustomEncodedTypeCollection):
     )
 
 
+class CustomEncodedCollectionTypes(_CustomEncodedTypeCollection):
+    """ Collection of custom-encoded collection types. """
+
+    # Corresponds to the _CustomEncodedType.type_key attribute.
+    type_key = "__snappiershot_collection__"
+    # Corresponds to the _CustomEncodedType.value_key attribute.
+    value_key = "values"
+
+    set = _CustomEncodedType(type_=set, name="set", type_key=type_key, value_key=value_key)
+    tuple = _CustomEncodedType(
+        type_=tuple, name="tuple", type_key=type_key, value_key=value_key
+    )
+
+
 # Tuples of types intended to be used for isinstance checking.
 PRIMITIVE_TYPES = bool, float, int, type(None), str
+COLLECTION_TYPES = tuple(value.type for value in CustomEncodedCollectionTypes.list())
 DATETIME_TYPES = tuple(value.type for value in CustomEncodedDatetimeTypes.list())
 NUMERIC_TYPES = tuple(value.type for value in CustomEncodedNumericTypes.list())
 SERIALIZABLE_TYPES = PRIMITIVE_TYPES + DATETIME_TYPES + NUMERIC_TYPES

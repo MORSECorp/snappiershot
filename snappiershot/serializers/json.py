@@ -1,11 +1,13 @@
-""" Serializer (and Deserializer) class for the JSON format. """
+""" Serializer (and Deserializer) classes for the JSON format. """
 import datetime
 import json
 from numbers import Number
-from typing import Any, Dict
+from typing import Any, Collection, Dict
 
 from .constants import (
+    COLLECTION_TYPES,
     DATETIME_TYPES,
+    CustomEncodedCollectionTypes,
     CustomEncodedDatetimeTypes,
     CustomEncodedNumericTypes,
     JsonType,
@@ -22,6 +24,33 @@ class JsonSerializer(json.JSONEncoder):
         >>> assert json.dumps(data, cls=JsonSerializer) == '{"a": 1, "b": 2}'
     """
 
+    def encode(self, obj: Any) -> str:
+        """
+        Override JSONEncoder.encode to support tuple type hinting.
+
+        The default JSONEncoder supports both primitive types: tuples and lists. In its implementation,
+         tuples are implicitly converted to lists. To avoid this, this method allows tuples and lists
+         to be encoded as separate types.
+
+        This method is intended to be called only by the ``json.dumps`` method.
+        """
+
+        def hint_tuples(obj_: Any) -> Any:
+            """ Convert tuples in a pre-processing step.
+
+            Extrapolated from: https://stackoverflow.com/a/15721641
+            """
+            if isinstance(obj_, list):
+                return [hint_tuples(item) for item in obj_]
+            if isinstance(obj_, COLLECTION_TYPES):
+                # Collection encoded before recursion to support sets.
+                return hint_tuples(self.encode_collection(obj_))
+            if isinstance(obj_, dict):
+                return {key: hint_tuples(value) for key, value in obj_.items()}
+            return obj_
+
+        return super().encode(hint_tuples(obj))
+
     def default(self, value: Any) -> Any:
         """ Encode a value into a serializable object.
 
@@ -32,6 +61,10 @@ class JsonSerializer(json.JSONEncoder):
         Any custom encoders must return a dictionary. This will allow them to
           be deserialized by the `snappiershot.serializers.json.JsonDeserializer`
           using object hooks.
+
+        Encoding of collections (sets and tuples) are done in a pre-processing step
+          within the ``JsonSerializer.encode`` method. That method should always be
+          called prior to this method.
 
         Args:
             value: The python object to encode.
@@ -57,8 +90,8 @@ class JsonSerializer(json.JSONEncoder):
               NUMERIC_KEY: <type-as-a-string>,
               NUMERIC_VALUE_KEY: <value>
             }
-        The values for the NUMERIC_KEY and NUMERIC_VALUE_KEY constants can be found
-          at the top of this file.
+        The values for the NUMERIC_KEY and NUMERIC_VALUE_KEY constants are attributes
+          to the `snappiershot.serializers.constants.CustomEncodedNumericTypes` class.
 
         Raises:
             NotImplementedError - If encoding is not implement for the given numeric type.
@@ -84,6 +117,9 @@ class JsonSerializer(json.JSONEncoder):
                 DATETIME_KEY: <type-as-a-string>,
                 DATETIME_VALUE_KEY: <value>
             }
+
+        The values for the DATETIME_KEY and DATETIME_VALUE_KEY constants are attributes
+          to the `snappiershot.serializers.constants.CustomEncodedDatetimeTypes` class.
 
         The different datetime types/values are encoded as:
             Type                            Value encoded as
@@ -143,6 +179,32 @@ class JsonSerializer(json.JSONEncoder):
             f"No encoding implemented for the following datetime type: {value} ({type(value)})"
         )
 
+    @staticmethod
+    def encode_collection(value: Collection) -> JsonType:
+        """ Encoding for collection types.
+
+        The custom encoding follows the template:
+            {
+              COLLECTION_KEY: <type-as-a-string>,
+              COLLECTION_VALUE_KEY: [<value>]
+            }
+        The values for the COLLECTION_KEY and COLLECTION_VALUE_KEY constants are attributes
+          to the `snappiershot.serializers.constants.CustomEncodedCollectionTypes` class.
+
+        Raises:
+            NotImplementedError - If encoding is not implemented for the given numeric type.
+        """
+        if isinstance(value, (str, list)):
+            # These are automatically serialized by the ``json`` module.
+            return value
+        if isinstance(value, set):
+            return CustomEncodedCollectionTypes.set.json_encoding(list(value))
+        if isinstance(value, tuple):
+            return CustomEncodedCollectionTypes.tuple.json_encoding(list(value))
+        raise NotImplementedError(
+            f"No encoding implemented for the following collection type: {value} ({type(value)})"
+        )
+
 
 class JsonDeserializer(json.JSONDecoder):
     """ Custom JSON deserializer.
@@ -173,6 +235,9 @@ class JsonDeserializer(json.JSONDecoder):
         if set(dct.keys()) == CustomEncodedDatetimeTypes.keys():
             return self.decode_datetime(dct)
 
+        if set(dct.keys()) == CustomEncodedCollectionTypes.keys():
+            return self.decode_collection(dct)
+
         return dct
 
     @staticmethod
@@ -184,8 +249,8 @@ class JsonDeserializer(json.JSONDecoder):
               NUMERIC_KEY: <type-as-a-string>,
               NUMERIC_VALUE_KEY: <value>
             }
-        The values for the NUMERIC_KEY and NUMERIC_VALUE_KEY constants can be found
-          at the top of this file.
+        The values for the NUMERIC_KEY and NUMERIC_VALUE_KEY constants are attributes
+          to the `snappiershot.serializers.constants.CustomEncodedNumericTypes` class.
 
         Raises:
             NotImplementedError - If decoding is not implement for the given numeric type.
@@ -195,7 +260,7 @@ class JsonDeserializer(json.JSONDecoder):
 
         if type_name == CustomEncodedNumericTypes.complex.name:
             real, imag = value
-            return CustomEncodedNumericTypes.complex.type(real, imag)
+            return complex(real, imag)
 
         raise NotImplementedError(
             f"Deserialization for the following numerical type not implemented: {dct}"
@@ -210,8 +275,8 @@ class JsonDeserializer(json.JSONDecoder):
               DATETIME_KEY: <type-as-a-string>,
               DATETIME_VALUE_KEY: <value>
             }
-        The values for the DATETIME_KEY and DATETIME_VALUE_KEY constants can be found
-          at the top of this file.
+        The values for the DATETIME_KEY and DATETIME_VALUE_KEY constants are attributes
+          to the `snappiershot.serializers.constants.CustomEncodedDatetimeTypes` class.
 
         Args:
             dct: dictionary to decode
@@ -251,4 +316,38 @@ class JsonDeserializer(json.JSONDecoder):
 
         raise NotImplementedError(
             f"Deserialization for the following datetime type not implemented: {dct}"
+        )
+
+    @staticmethod
+    def decode_collection(dct: Dict[str, Any]) -> Collection:
+        """ Decode an encoded collection type.
+
+        This encoded numeric type object must be of the form:
+            {
+              SEQUENCE_KEY: <type-as-a-string>,
+              SEQUENCE_VALUE_KEY: [<values>]
+            }
+        The values for the COLLECTION_KEY and COLLECTION_VALUE_KEY constants are attributes
+          to the `snappiershot.serializers.constants.CustomEncodedCollectionTypes` class.
+
+        Args:
+            dct: dictionary to decode
+
+        Returns:
+            Decoded collection object.
+
+        Raises:
+            NotImplementedError - If decoding is not implement for the given numeric type.
+        """
+        type_name = dct.get(CustomEncodedCollectionTypes.type_key)
+        values = dct.get(CustomEncodedCollectionTypes.value_key)
+
+        if type_name == CustomEncodedCollectionTypes.set.name:
+            return set(values)
+
+        if type_name == CustomEncodedCollectionTypes.tuple.name:
+            return tuple(values)
+
+        raise NotImplementedError(
+            f"Deserialization for the following collection type not implemented: {dct}"
         )
