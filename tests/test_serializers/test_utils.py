@@ -74,7 +74,7 @@ class TestDefaultEncodeValue:
 
     @staticmethod
     def test_encode_serializable_types():
-        """ Test that a class with custom-encoded types do not encode these types. """
+        """ Test that a class with custom-encoded types dose not encode these types. """
         # Arrange
         from datetime import datetime
 
