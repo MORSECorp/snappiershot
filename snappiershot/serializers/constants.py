@@ -12,7 +12,7 @@ class _CustomEncodedType(NamedTuple):
     """ Organizational object for holding information for serializing and de-serializing
     custom-encoded types.
 
-    See the ``json_encoding` method for examples of how this information is used.
+    See the ``json_encoding` method for an example of how this information is used.
 
     Args:
         type_: The type object (constructor) for the type.
@@ -44,14 +44,14 @@ class _CustomEncodedType(NamedTuple):
 
 
 class _CustomEncodedTypeCollection(ABC):
-    """ Abstract base class for CustomEncodedTypesCollection classes.
+    """ Abstract base class for CustomEncoded<group>Types classes.
 
     The _CustomEncodedTypes associated with the child classes are expected to
-      defined as class attributes. See:
+      be defined as class attributes. See:
         * `snappiershot.serializers.constants.CustomEncodedDatetimeTypes`
         * `snappiershot.serializers.constants.CustomEncodedNumericTypes`
 
-    Additionally provided the predefined ``list`` and ``keys`` classmethods.
+    Additionally provided are the predefined ``list`` and ``keys`` classmethods.
     """
 
     # Corresponds to the _CustomEncodedType.type_key attribute.
