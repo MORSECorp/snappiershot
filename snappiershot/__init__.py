@@ -8,6 +8,7 @@ except ImportError:
     #  < 3.8
     import importlib_metadata as metadata  # type: ignore
 
+from . import errors
 from .config import Config
 from .inspection import CallerInfo
 from .snapshot import Snapshot, SnapshotMetadata

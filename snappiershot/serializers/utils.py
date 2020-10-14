@@ -1,6 +1,7 @@
 """ Utilities for the serializers. """
 import inspect
 import json
+import warnings
 from pathlib import Path
 from typing import Any, Dict, Sequence
 
@@ -9,6 +10,7 @@ from ..constants import (
     SNAPSHOT_DIRECTORY,
     SnapshotKeys,
 )
+from ..errors import SnappierShotWarning
 from .constants import SERIALIZABLE_TYPES, JsonType
 from .json import JsonDeserializer
 
@@ -24,9 +26,13 @@ def default_encode_value(value: Any) -> JsonType:
         encoded_dict = dict()
         for key, item in value.items():
             try:
-                encoded_dict[str(key)] = default_encode_value(item)
+                encoded_dict[key] = default_encode_value(item)
             except ValueError:
-                pass  # TODO: Emit warning.
+                warnings.warn(
+                    f"Cannot serialize this value: {item} -- "
+                    f"Skipping over this (key, value) pair. ",
+                    SnappierShotWarning,
+                )
         return encoded_dict
 
     # If the value is a sequence, recurse.
@@ -36,7 +42,10 @@ def default_encode_value(value: Any) -> JsonType:
             try:
                 encoded_sequence.append(default_encode_value(item))
             except ValueError:
-                pass  # TODO: Emit warning.
+                warnings.warn(
+                    f"Cannot serialize this value: {item} -- Skipping over this item. ",
+                    SnappierShotWarning,
+                )
         return encoded_sequence
 
     # If the value is an instanced class.

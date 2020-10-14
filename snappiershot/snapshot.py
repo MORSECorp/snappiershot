@@ -2,12 +2,14 @@
 Snapshot object, metadata and related functionality
 """
 import json
+import warnings
 from enum import IntEnum, auto
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from .compare import ObjectComparison
 from .config import Config
+from .errors import SnappierShotWarning
 from .inspection import CallerInfo
 from .serializers import JsonSerializer
 from .serializers.utils import (
@@ -146,7 +148,12 @@ class Snapshot:
 
         # Overwrite the snapshot value.
         if self._metadata.update_on_next_run or (stored_value is _NO_SNAPSHOT):
-            # TODO: Implement warning if "update" is on
+            if update:
+                warnings.warn(
+                    "This snapshot was forced to update with update=True argument. "
+                    "This is dangerous to have on for CI pipelines! ",
+                    SnappierShotWarning,
+                )
             self._snapshot_file.record_snapshot(encoded_value, current_index)
             return True
 
@@ -158,7 +165,7 @@ class Snapshot:
         )
         if not comparison.equal:
             self._snapshot_file.mark_failed(current_index)
-            # TODO customize assertion error
+            # TODO: Add human readable diff to AssertionError
             raise AssertionError
         self._snapshot_file.mark_passed(current_index)
         return True
