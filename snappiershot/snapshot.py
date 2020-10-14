@@ -12,6 +12,7 @@ from .inspection import CallerInfo
 from .serializers import JsonSerializer
 from .serializers.utils import (
     SnapshotKeys,
+    default_encode_value,
     get_snapshot_file,
     parse_snapshot_file,
 )
@@ -141,7 +142,7 @@ class Snapshot:
         self._snapshot_index += 1
 
         # Encode the user-supplied value
-        encoded_value = self._encode_value(value)
+        encoded_value = default_encode_value(value)
 
         # Overwrite the snapshot value.
         if self._metadata.update_on_next_run or (stored_value is _NO_SNAPSHOT):
@@ -172,13 +173,6 @@ class Snapshot:
         if self._snapshot_file is not None:
             self._snapshot_file.write()
         self._within_context = False
-
-    @staticmethod
-    def _encode_value(value: Any) -> Any:
-        """Encode the given object for snapshotting
-        TODO: Implement
-        """
-        return value
 
     def _get_metadata(self, update_on_next_run: bool) -> SnapshotMetadata:
         """ Gather metadata via inspection of current context of the test function.
