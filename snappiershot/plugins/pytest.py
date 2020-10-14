@@ -1,4 +1,5 @@
 """ Tooling necessary to make snappiershot a pytest plugin. """
+import warnings
 from pathlib import Path
 from typing import Iterator
 
@@ -83,6 +84,8 @@ def _snapshot(request: FixtureRequest) -> Iterator[snappiershot.Snapshot]:
             function_name=snapshot._metadata.caller_info.function,
             metadata=snapshot._metadata,
         )
-    else:
-        # TODO: Add warning.
-        pass
+    else:  # pragma: no cover
+        warnings.warn(
+            "The snapshot fixture was used, but no snapshots were asserted against. ",
+            snappiershot.errors.SnappierShotWarning,
+        )

@@ -2,9 +2,18 @@
 name = "snappiershot"
 version = "0.1.0"
 description = "Snapshot testing library."
-authors = ["Ben Bonenfant <bbonenfant@morsecorp.com>"]
+authors = [
+    "Ben Bonenfant <bbonenfant@morsecorp.com>",
+    "Lena Bartell <lbartell@morsecorp.com>",
+]
 classifiers = [
+    "Development Status :: 4 - Beta",
     "Framework :: Pytest",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Testing :: Unit",
 ]
 
 [tool.poetry.dependencies]

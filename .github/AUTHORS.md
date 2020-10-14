@@ -6,5 +6,4 @@ This file is distinct from the CONTRIBUTORS files. See the latter for an explana
 Names should be added to this file as `Name or Organization <email address>`.
 The email address is not required for organizations.
 __________________________________________________________________________________________
-Syrus Akbary
 MORSE Corp. <info@morsecorp.com>

@@ -1,5 +1,10 @@
 # SnappierShot
+Add snapshot testing to your testing toolkit.
 
+## Installation
+```bash
+$ pip install snappiershot
+```
 
 ## Configuration
 Snappier shot is following the [trend of packages](https://github.com/carlosperate/awesome-pyproject/)
@@ -22,9 +27,7 @@ json_indentation = 4
 
 ## Usage
 
-### Example usage in a test
-
-### Pytest
+### Pytest Example
 ```python
 def test_something(snapshot):
     """ Test that something works as expected"""
@@ -39,7 +42,7 @@ def test_something(snapshot):
     snapshot.assert_match(result)
 ```
 
-#### No Test Runner
+#### No Test Runner Example
 ```python
 from snappiershot import Snapshot
 
@@ -58,3 +61,6 @@ def test_something():
 
 test_something()
 ```
+
+## Contributing
+See [CONTRIBUTING.md](CONTRIBUTING.md)

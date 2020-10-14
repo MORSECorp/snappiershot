@@ -2,9 +2,11 @@
 import json
 from pathlib import Path
 from typing import Dict, List, Type
+from warnings import WarningMessage
 
 import pytest
 from pytest_mock import MockerFixture
+from snappiershot.errors import SnappierShotWarning
 from snappiershot.snapshot import (
     _NO_SNAPSHOT,
     CallerInfo,
@@ -152,7 +154,9 @@ class TestSnapshot:
             snapshot.assert_match(value=bad_value)
 
     @staticmethod
-    def test_snapshot_update(snapshot: Snapshot, mocker: MockerFixture) -> None:
+    def test_snapshot_update(
+        snapshot: Snapshot, mocker: MockerFixture, warning_catcher: List[WarningMessage]
+    ) -> None:
         """ Checks that snapshot assert with update flag ON works as expected.
 
         If "update" is flagged, then no AssertionError should be raised.
@@ -169,6 +173,8 @@ class TestSnapshot:
 
         # Assert
         assert result
+        assert warning_catcher
+        assert warning_catcher[0].category == SnappierShotWarning
 
 
 @pytest.mark.usefixtures("empty_caller_info", "snapshot_file")
