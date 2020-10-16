@@ -83,3 +83,21 @@ Should You wish to submit work that is not Your original creation, You may submi
 
 You agree to notify the Project of any facts or circumstances of which you become aware that would make
   these representations inaccurate in any respect.
+
+
+## Template
+Use the following template to sign:
+```
+Full Name: <your full name>
+Email Address: <your email address>
+Country: <country of residence>
+```
+
+Below in the "Signatures" section, append your signature using the above template.
+Please leave one empty line between all signatures and keep all signatures within the code block.
+
+```
+Full Name: Benjamin Bonenfant
+Email Address: bbonenfant@morsecorp.com
+Country: United States of America
+```
