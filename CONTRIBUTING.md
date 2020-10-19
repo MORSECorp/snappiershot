@@ -13,7 +13,7 @@ Here you will find all the information you'll need to setup your development
   * [Opening A PR](#Opening A Pull Request)
 
 ### Preface
-Please read our [Contributor Code of Conduct](.github/CONTRIBUTOR_CODE_OF_CONDUCT.md)
+Please read our [Contributor Code of Conduct](CODE_OF_CONDUCT.md)
   and our [Contributor License Agreement](.github/CONTRIBUTOR_LICENSE_AGREEMENT.md).
   You will be asked to sign our CLA when you submit your first pull request.
 
@@ -167,6 +167,16 @@ This package uses the [mypy](https://github.com/python/mypy) package to perform
   [PEP 3107](https://www.python.org/dev/peps/pep-3107/) conventions.
 
 ## Opening A Pull Request
+
+To contribute, first [fork the repository](https://github.com/MORSECorp/snappiershot).
+
+### Which Branch to Use?
+The `primary` branch is the "master" branch for the repository where releases
+occur. **You cannot develop on this branch.** The `develop` branch is where
+development occurs, i.e. new features are added or bugs are fixed. This is the
+"staging area" before being merged into and released from the `primary` branch.
+If you plan on adding a new feature to the codebase, make sure to branch off of
+the `develop` branch, and once merged it will be included in the next release.
 
 Ready to push upstream? Open a pull request [here](https://github.com/MORSECorp/snappiershot/compare).
 Make sure to fill out the PR template fully to help the code reviewers
