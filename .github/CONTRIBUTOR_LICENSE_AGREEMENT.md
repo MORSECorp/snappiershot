@@ -1,4 +1,4 @@
-Individual Contributor License Agreement
+# Individual Contributor License Agreement
 
 Thank you for your interest in SnappierShot (the "Project").
 In order to clarify the intellectual property license granted with Contributions from any person or entity,
@@ -7,12 +7,6 @@ In order to clarify the intellectual property license granted with Contributions
 This license is for your protection as a Contributor as well as the protection of the Project and its users;
   it does not change your rights to use your own Contributions for any other purpose.
 
-    Full name: FULL NAME
-    Mailing Address: ADDRESS
-    Country: COUNTRY
-    Telephone: TELEPHONE
-    E-Mail: EMAIL
-
 You accept and agree to the following terms and conditions for Your present and future Contributions
   submitted to the Project.
 In return, the Project shall not use Your Contributions in a way that is contrary to the public benefit
@@ -20,9 +14,9 @@ In return, the Project shall not use Your Contributions in a way that is contrar
 Except for the license granted herein to the Project and recipients of software distributed by the Project,
   You reserve all right, title, and interest in and to Your Contributions.
 
-Definitions.
+## Definitions
 
-"You" (or "Your")
+### "You" (or "Your")
 "You" (or "Your") shall mean the copyright owner or legal entity authorized by the copyright owner
   that is making this Agreement with the Project.
 For legal entities, the entity making a Contribution and all other entities that control, are controlled by,
@@ -32,7 +26,7 @@ For the purposes of this definition, "control" means (i) the power, direct or in
   or (ii) ownership of fifty percent (50%) or more of the outstanding shares,
   or (iii) beneficial ownership of such entity.
 
-"Contribution"
+### "Contribution"
 "Contribution" shall mean any original work of authorship, including any modifications or additions
   to an existing work, that is intentionally submitted by You to the Project for inclusion in,
   or documentation of, any of the products owned or managed by the Project (the "Work").
@@ -43,13 +37,13 @@ For the purposes of this definition, "submitted" means any form of electronic, v
   but excluding communication that is conspicuously marked or otherwise designated in writing by
   You as "Not a Contribution."
 
-Grant of Copyright License.
+## Grant of Copyright License
 Subject to the terms and conditions of this Agreement, You hereby grant to the Project and
   to recipients of software distributed by the Project a perpetual, worldwide, non-exclusive,
   no-charge, royalty-free, irrevocable copyright license to reproduce, prepare derivative works of,
   publicly display, publicly perform, sublicense, and distribute Your Contributions and such derivative works.
 
-Grant of Patent License.
+## Grant of Patent License
 Subject to the terms and conditions of this Agreement, You hereby grant to the Project and
   to recipients of software distributed by the Project a perpetual, worldwide, non-exclusive,
   no-charge, royalty-free, irrevocable (except as stated in this section) patent license to make,
@@ -89,3 +83,25 @@ Should You wish to submit work that is not Your original creation, You may submi
 
 You agree to notify the Project of any facts or circumstances of which you become aware that would make
   these representations inaccurate in any respect.
+
+
+## Template
+Use the following template to sign:
+```
+Full Name: <your full name>
+Email Address: <your email address>
+Country: <country of residence>
+```
+
+Below in the "Signatures" section, append your signature using the above template.
+Please leave one empty line between all signatures and keep all signatures within the code block.
+
+```
+Full Name: Benjamin Bonenfant
+Email Address: bbonenfant@morsecorp.com
+Country: United States of America
+
+Full Name: Lena Bartell
+Email Address: lbartell@morsecorp.com
+Country: United States of America
+```
