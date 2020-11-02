@@ -1,7 +1,9 @@
 name: Release
 
 on:
-  release: [created]
+  release:
+    types:
+      - created
 
 jobs:
 
