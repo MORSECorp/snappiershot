@@ -5,7 +5,6 @@ on: release
 jobs:
 
   Release:
-    if: github.event.base_ref == 'refs/heads/primary'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
