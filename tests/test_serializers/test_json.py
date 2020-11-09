@@ -21,13 +21,13 @@ class TestNumericEncoding:
         (
             Decimal(3.1415),
             CustomEncodedNumericTypes.decimal.json_encoding(
-                list(Decimal(3.1415).as_tuple())
+                Decimal(3.1415).as_tuple()._asdict()
             ),
         ),
         (
             Decimal("3.1415"),
             CustomEncodedNumericTypes.decimal.json_encoding(
-                list(Decimal("3.1415").as_tuple())
+                Decimal("3.1415").as_tuple()._asdict()
             ),
         ),
     ]

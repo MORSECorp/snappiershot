@@ -106,7 +106,7 @@ class JsonSerializer(json.JSONEncoder):
             encoded_value: List[float] = [value.real, value.imag]
             return CustomEncodedNumericTypes.complex.json_encoding(encoded_value)
         if isinstance(value, Decimal):
-            encode_value: List[Any] = list(value.as_tuple())
+            encode_value: Dict[str, Any] = value.as_tuple()._asdict()
             return CustomEncodedNumericTypes.decimal.json_encoding(encode_value)
         raise NotImplementedError(
             f"No encoding implemented for the following numeric type: {value} ({type(value)})"
@@ -269,7 +269,7 @@ class JsonDeserializer(json.JSONDecoder):
             real, imag = value
             return complex(real, imag)
         if type_name == CustomEncodedNumericTypes.decimal.name:
-            return Decimal(DecimalTuple(value[0], value[1], value[2]))
+            return Decimal(DecimalTuple(**value))
 
         raise NotImplementedError(
             f"Deserialization for the following numerical type not implemented: {dct}"
