@@ -153,4 +153,4 @@ PRIMITIVE_TYPES = bool, float, int, type(None), str
 COLLECTION_TYPES = tuple(value.type for value in CustomEncodedCollectionTypes.list())
 DATETIME_TYPES = tuple(value.type for value in CustomEncodedDatetimeTypes.list())
 NUMERIC_TYPES = tuple(value.type for value in CustomEncodedNumericTypes.list())
-SERIALIZABLE_TYPES = PRIMITIVE_TYPES + DATETIME_TYPES + NUMERIC_TYPES
+SERIALIZABLE_TYPES = PRIMITIVE_TYPES + COLLECTION_TYPES + DATETIME_TYPES + NUMERIC_TYPES

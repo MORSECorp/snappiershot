@@ -3,9 +3,13 @@ Snapshot object, metadata and related functionality
 """
 import json
 import warnings
+from difflib import Differ
 from enum import IntEnum, auto
 from pathlib import Path
+from shutil import get_terminal_size
 from typing import Any, Dict, List, Optional, Union
+
+import pprint_ordered_sets as pprint
 
 from .compare import ObjectComparison
 from .config import Config
@@ -116,8 +120,10 @@ class Snapshot:
 
         Args:
             value: new value to compare to snapshot
-            exact: if True, enforce exact equality for floating point numbers, otherwise assert approximate equality
-            update: if True, overwrite snapshot with given value (assertion will always pass in this case)
+            exact: if True, enforce exact equality for floating point numbers,
+              otherwise assert approximate equality
+            update: if True, overwrite snapshot with given value
+              (assertion will always pass in this case)
 
         Returns:
             True if value matches the snapshot
@@ -165,8 +171,9 @@ class Snapshot:
         )
         if not comparison.equal:
             self._snapshot_file.mark_failed(current_index)
-            # TODO: Add human readable diff to AssertionError
-            raise AssertionError
+            diff = self._construct_diff(encoded_value, stored_value, comparison)
+            message = "Snapshot does not match:\n" + diff
+            raise AssertionError(message)
         self._snapshot_file.mark_passed(current_index)
         return True
 
@@ -180,6 +187,41 @@ class Snapshot:
         if self._snapshot_file is not None:
             self._snapshot_file.write()
         self._within_context = False
+
+    @staticmethod
+    def _construct_diff(value: Any, expected: Any, comparison: ObjectComparison) -> str:
+        """ Construct the human-readable diff between two objects.
+
+        Args:
+            value: The value to be diffed.
+            expected: The object to be diffed against.
+            comparison: The ObjectComparison object used to summarize the differences.
+
+        Return:
+            A multiline string with the following format:
+              <git-style diff between value and expected>
+              --------------------------------------------------------
+              Summary:
+                 <Bulleted list of summaries>
+        """
+        difference_summaries = comparison.differences.items.values()
+
+        width = get_terminal_size().columns - 2
+        value_formatted = f"{pprint.pformat(value, width=width)}\n"
+        expected_formatted = f"{pprint.pformat(expected, width=width)}\n"
+        result = Differ().compare(
+            value_formatted.splitlines(keepends=True),
+            expected_formatted.splitlines(keepends=True),
+        )
+
+        return (
+            "".join(result)
+            + ("-" * width)
+            + "\n"
+            + "Summary:\n"
+            + "\n".join(f"  > {difference}" for difference in difference_summaries)
+            + "\n"
+        )
 
     def _get_metadata(self, update_on_next_run: bool) -> SnapshotMetadata:
         """ Gather metadata via inspection of current context of the test function.

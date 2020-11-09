@@ -90,6 +90,18 @@ class TestDefaultEncodeValue:
         assert result == expected
 
     @staticmethod
+    @pytest.mark.parametrize("value", (set("abcdefg"), (1, 2, 3)))
+    def test_encode_collection_types(value):
+        """ Test that a class with custom-encoded types dose not encode collection. """
+        # Arrange
+
+        # Act
+        result = default_encode_value(value)
+
+        # Assert
+        assert result == value
+
+    @staticmethod
     @pytest.mark.parametrize("value", [isinstance, type, iter([1, 2])])
     def test_encode_unserializable(value):
         """ Test that an unserializable object raises an error. """
