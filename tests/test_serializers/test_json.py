@@ -18,7 +18,18 @@ class TestNumericEncoding:
 
     NUMERIC_DECODING_TEST_CASES = [
         (3 + 4j, CustomEncodedNumericTypes.complex.json_encoding([3, 4])),
-        (Decimal(3.1415), CustomEncodedNumericTypes.decimal.json_encoding(3.1415)),
+        (
+            Decimal(3.1415),
+            CustomEncodedNumericTypes.decimal.json_encoding(
+                list(Decimal(3.1415).as_tuple())
+            ),
+        ),
+        (
+            Decimal("3.1415"),
+            CustomEncodedNumericTypes.decimal.json_encoding(
+                list(Decimal("3.1415").as_tuple())
+            ),
+        ),
     ]
 
     NUMERIC_ENCODING_TEST_CASES = [
@@ -204,7 +215,8 @@ def test_round_trip():
         "none": None,
         "int": 12,
         "float": 3.14,
-        "decimal": Decimal(3.1415),
+        "decimal_1": Decimal(3.1415),
+        "decimal_2": Decimal("3.1415"),
         "inf": inf,
         "complex": 3 + 4j,
         "string": "string",

@@ -2,10 +2,10 @@
 import datetime
 from abc import ABC
 from decimal import Decimal
-from typing import Any, Dict, Iterator, List, NamedTuple, Set, Union
+from typing import Any, Dict, Iterator, List, NamedTuple, Set, Tuple, Union
 
 _Primitive = Union[bool, float, int, None, str]
-JsonType = Union[_Primitive, Dict[str, Any], List[Any]]
+JsonType = Union[_Primitive, Dict[str, Any], List[Any], Tuple[Any, ...]]
 
 
 # noinspection PyUnresolvedReferences
