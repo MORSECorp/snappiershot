@@ -1,14 +1,14 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - '*.*.*'
+  release:
+    types:
+      - created
 
 jobs:
 
   Release:
-    if: github.event.base_ref == 'refs/heads/primary'
+    if: github.ref == 'refs/heads/primary'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

@@ -12,11 +12,7 @@ class _CustomEncodedType(NamedTuple):
     """ Organizational object for holding information for serializing and de-serializing
     custom-encoded types.
 
-<<<<<<< HEAD
-    See the ``json_encoding` method for examples of how this information is used.
-=======
     See the ``json_encoding` method for an example of how this information is used.
->>>>>>> 09033e4fcbba0d30de51e0a375a5110b21b7c254
 
     Args:
         type_: The type object (constructor) for the type.

@@ -100,4 +100,8 @@ Please leave one empty line between all signatures and keep all signatures withi
 Full Name: Benjamin Bonenfant
 Email Address: bbonenfant@morsecorp.com
 Country: United States of America
+
+Full Name: Lena Bartell
+Email Address: lbartell@morsecorp.com
+Country: United States of America
 ```
