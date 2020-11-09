@@ -1,8 +1,9 @@
 """ Serializer (and Deserializer) classes for the JSON format. """
 import datetime
 import json
+from decimal import Decimal
 from numbers import Number
-from typing import Any, Collection, Dict
+from typing import Any, Collection, Dict, List
 
 from .constants import (
     COLLECTION_TYPES,
@@ -85,6 +86,7 @@ class JsonSerializer(json.JSONEncoder):
 
         This will do nothing to naturally serializable types (bool, int, float)
           but will perform custom encoding for non-supported types (complex).
+        This will cast Decimal values to float values.
         The custom encoding follows the template:
             {
               NUMERIC_KEY: <type-as-a-string>,
@@ -100,8 +102,11 @@ class JsonSerializer(json.JSONEncoder):
             # These types are by default supported by the JSONEncoder base class.
             return value
         if isinstance(value, complex):
-            encoded_value = [value.real, value.imag]
+            encoded_value: List[float] = [value.real, value.imag]
             return CustomEncodedNumericTypes.complex.json_encoding(encoded_value)
+        if isinstance(value, Decimal):
+            encode_value: float = float(value)
+            return CustomEncodedNumericTypes.decimal.json_encoding(encode_value)
         raise NotImplementedError(
             f"No encoding implemented for the following numeric type: {value} ({type(value)})"
         )
@@ -261,6 +266,8 @@ class JsonDeserializer(json.JSONDecoder):
         if type_name == CustomEncodedNumericTypes.complex.name:
             real, imag = value
             return complex(real, imag)
+        if type_name == CustomEncodedNumericTypes.decimal.name:
+            return Decimal.from_float(value)
 
         raise NotImplementedError(
             f"Deserialization for the following numerical type not implemented: {dct}"
