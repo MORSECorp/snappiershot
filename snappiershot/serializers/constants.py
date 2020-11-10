@@ -1,6 +1,7 @@
 """ Constant values used by the serializers. """
 import datetime
 from abc import ABC
+from decimal import Decimal
 from typing import Any, Dict, Iterator, List, NamedTuple, Set, Union
 
 _Primitive = Union[bool, float, int, None, str]
@@ -86,6 +87,9 @@ class CustomEncodedNumericTypes(_CustomEncodedTypeCollection):
 
     complex = _CustomEncodedType(
         type_=complex, name="complex", type_key=type_key, value_key=value_key
+    )
+    decimal = _CustomEncodedType(
+        type_=Decimal, name="decimal", type_key=type_key, value_key=value_key
     )
 
 
