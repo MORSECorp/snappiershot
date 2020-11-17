@@ -74,7 +74,7 @@ class TestDefaultEncodeValue:
 
     @staticmethod
     def test_encode_serializable_types():
-        """ Test that a class with custom-encoded types dose not encode these types. """
+        """ Test that a class with custom-encoded types does not encode these types. """
         # Arrange
         from datetime import datetime
 
@@ -92,7 +92,7 @@ class TestDefaultEncodeValue:
     @staticmethod
     @pytest.mark.parametrize("value", (set("abcdefg"), (1, 2, 3)))
     def test_encode_collection_types(value):
-        """ Test that a class with custom-encoded types dose not encode collection. """
+        """ Test that a class with custom-encoded types does not encode collection. """
         # Arrange
 
         # Act

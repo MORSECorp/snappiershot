@@ -63,19 +63,19 @@ class SnapshotTracker:
         for file, functions in self.snapshots.items():
             for function_name, function_calls in functions.items():
                 for function_call in function_calls:
-                    for snapshot in function_call["snapshots"]:
-                        if snapshot == SnapshotStatus.UNCHECKED:
+                    for status in function_call["snapshots"]:
+                        if status == SnapshotStatus.UNCHECKED:
                             unchecked += 1
-                        elif snapshot == SnapshotStatus.FAILED:
+                        elif status == SnapshotStatus.FAILED:
                             failed += 1
-                        elif snapshot == SnapshotStatus.PASSED:
+                        elif status == SnapshotStatus.PASSED:
                             passed += 1
-                        elif snapshot == SnapshotStatus.RECORDED:
+                        elif status == SnapshotStatus.RECORDED:
                             recorded += 1
-                        elif snapshot == SnapshotStatus.WRITTEN:
+                        elif status == SnapshotStatus.WRITTEN:
                             written += 1
                         else:  # pragma: no cover
-                            raise ValueError("Unknown Status")
+                            raise ValueError(f"Unknown snapshot status: {status}")
         return StatusReport(unchecked, failed, passed, recorded, written)
 
     def set_status(

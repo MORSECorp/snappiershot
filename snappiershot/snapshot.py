@@ -205,7 +205,7 @@ class Snapshot:
                  <Bulleted list of summaries>
         """
         difference_summaries = comparison.differences.items.values()
-
+        # 2 less than the terminal width because the Differ adds 2 characters to each line.
         width = get_terminal_size().columns - 2
         value_formatted = f"{pprint.pformat(value, width=width)}\n"
         expected_formatted = f"{pprint.pformat(expected, width=width)}\n"
@@ -281,11 +281,11 @@ class Snapshot:
 class SnapshotStatus(IntEnum):
     """ Enumeration of snapshot statuses.
 
-    Unchecked -- The snapshot was discovered, but never asserted against.
+    Unchecked -- The snapshot was discovered, but has not been asserted against.
     Failed    -- The snapshot assertion failed.
     Passed    -- The snapshot assertion passed.
     Recorded  -- The snapshot is staged to be written, but not yet written.
-    Written   -- The snapshot is written (or overwritten).
+    Written   -- The snapshot was written (or overwritten).
     """
 
     UNCHECKED = auto()
