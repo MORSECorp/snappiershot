@@ -33,6 +33,12 @@ class StatusReport(NamedTuple):
     recorded: int = 0
     written: int = 0
 
+    def any(self) -> bool:
+        """ Return a boolean that is False if all status reports are zero, else True. """
+        return bool(
+            self.unchecked or self.failed or self.passed or self.recorded or self.written
+        )
+
 
 class SnapshotTracker:
     """ Class used to track snapshot status throughout an entire test-run session. """
@@ -68,7 +74,7 @@ class SnapshotTracker:
                             recorded += 1
                         elif snapshot == SnapshotStatus.WRITTEN:
                             written += 1
-                        else:
+                        else:  # pragma: no cover
                             raise ValueError("Unknown Status")
         return StatusReport(unchecked, failed, passed, recorded, written)
 

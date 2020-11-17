@@ -68,11 +68,13 @@ def pytest_terminal_summary(
     tracker: SnapshotTracker = config.getoption(PACKAGE_TRACKER_OPTION)
     status_report = tracker.get_status_report()
 
-    terminalreporter.write_sep("=", "SnappierShot summary")
-    terminalreporter.line(f"{status_report.passed: 3d} Snapshots Passed", green=True)
-    terminalreporter.line(f"{status_report.failed: 3d} Snapshots Failed", red=True)
-    terminalreporter.line(f"{status_report.written: 3d} Snapshots Written", cyan=True)
-    terminalreporter.line(f"{status_report.unchecked: 3d} Snapshots Unchecked", yellow=True)
+    if status_report.any():
+        screen = terminalreporter
+        screen.write_sep("=", "SnappierShot summary")
+        screen.line(f"{status_report.passed: 3d} Snapshots Passed", green=True)
+        screen.line(f"{status_report.failed: 3d} Snapshots Failed", red=True)
+        screen.line(f"{status_report.written: 3d} Snapshots Written", cyan=True)
+        screen.line(f"{status_report.unchecked: 3d} Snapshots Unchecked", yellow=True)
 
 
 # noinspection PyShadowingNames
