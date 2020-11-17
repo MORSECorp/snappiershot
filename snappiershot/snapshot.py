@@ -279,7 +279,14 @@ class Snapshot:
 
 
 class SnapshotStatus(IntEnum):
-    """ Enumeration of snapshot statuses. """
+    """ Enumeration of snapshot statuses.
+
+    Unchecked -- The snapshot was discovered, but never asserted against.
+    Failed    -- The snapshot assertion failed.
+    Passed    -- The snapshot assertion passed.
+    Recorded  -- The snapshot is staged to be written, but not yet written.
+    Written   -- The snapshot is written (or overwritten).
+    """
 
     UNCHECKED = auto()
     FAILED = auto()

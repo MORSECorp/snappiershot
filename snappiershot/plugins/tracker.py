@@ -17,11 +17,21 @@ The underlying data format of tracker largely follows the structure of
  }
 """
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, NamedTuple
 
 from snappiershot.constants import SNAPSHOT_DIRECTORY
 from snappiershot.serializers.utils import SnapshotKeys, parse_snapshot_file
 from snappiershot.snapshot import SnapshotMetadata, SnapshotStatus
+
+
+class StatusReport(NamedTuple):
+    """ NamedTuple for returning a status report for the snapshot testing session. """
+
+    unchecked: int = 0
+    failed: int = 0
+    passed: int = 0
+    recorded: int = 0
+    written: int = 0
 
 
 class SnapshotTracker:
@@ -40,6 +50,27 @@ class SnapshotTracker:
             for file in directory.glob(f"*.json")
         }
         self.snapshots = self._construct()
+
+    def get_status_report(self) -> StatusReport:
+        """ Return the status report. """
+        unchecked = failed = passed = recorded = written = 0
+        for file, functions in self.snapshots.items():
+            for function_name, function_calls in functions.items():
+                for function_call in function_calls:
+                    for snapshot in function_call["snapshots"]:
+                        if snapshot == SnapshotStatus.UNCHECKED:
+                            unchecked += 1
+                        elif snapshot == SnapshotStatus.FAILED:
+                            failed += 1
+                        elif snapshot == SnapshotStatus.PASSED:
+                            passed += 1
+                        elif snapshot == SnapshotStatus.RECORDED:
+                            recorded += 1
+                        elif snapshot == SnapshotStatus.WRITTEN:
+                            written += 1
+                        else:
+                            raise ValueError("Unknown Status")
+        return StatusReport(unchecked, failed, passed, recorded, written)
 
     def set_status(
         self,
