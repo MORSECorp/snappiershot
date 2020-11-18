@@ -1,4 +1,4 @@
-name: Merge-into-primary
+name: Pre-Release
 
 on:
   pull_request:
