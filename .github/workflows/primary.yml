@@ -50,8 +50,8 @@ jobs:
           echo "Checking: ${PACKAGE_VERSION} != ${PYPI_VERSION}"
           if [ $PACKAGE_VERSION = $PYPI_VERSION ] ;
           then
-            exit 0
+            exit 1
           fi
       - name: Check changelog
         run: |
-          cat CHANGELOG.md | grep -F "## ${PACKAGE_VERSION}" || false
+          cat CHANGELOG.md | grep -F "## v${PACKAGE_VERSION}" || false
