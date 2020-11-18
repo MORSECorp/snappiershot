@@ -54,4 +54,4 @@ jobs:
           fi
       - name: Check changelog
         run: |
-          cat CHANGELOG.md | grep -F "## v${PACKAGE_VERSION}" || false
+          cat CHANGELOG.md | grep -F "## ${PACKAGE_VERSION}" || false
