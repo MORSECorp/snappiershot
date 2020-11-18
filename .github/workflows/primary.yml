@@ -36,11 +36,12 @@ jobs:
         run: |
           export PYPI_JSON=$(curl https://pypi.org/pypi/snappiershot/json)
           echo ${PYPI_JSON} | python -m json.tool
-          PYPI_VERSION=$(poetry run python -c "import json; import os; data = json.loads(os.getenv('PYPI_JSON')); print(sorted(data['releases'].keys())[-1])")
+          PYPI_VERSION=$(python -c "import json; import os; data = json.loads(os.getenv('PYPI_JSON')); print(sorted(data['releases'].keys())[-1])")
           echo "PYPI_VERSION=${PYPI_VERSION}"
           echo "PYPI_VERSION=${PYPI_VERSION}" >> $GITHUB_ENV
       - name: Get current package version
         run: |
+          source $HOME/.poetry/env
           PACKAGE_JSON=$(poetry run python -c "import snappiershot; print(snappiershot.__version__)")
           echo "PACKAGE_JSON=${PACKAGE_JSON}"
           echo "PACKAGE_JSON=${PACKAGE_JSON}" >> $GITHUB_ENV
