@@ -176,6 +176,32 @@ class TestSnapshot:
         assert warning_catcher
         assert warning_catcher[0].category == SnappierShotWarning
 
+    @staticmethod
+    def test_construct_diff(mocker: MockerFixture):
+        """ Test that the human-readable diff is constructed as expected. """
+        # Arrange
+        value = False
+        expected = 3 + 4j
+        comparison = mocker.MagicMock()
+
+        summary_message = "Types not equal: <class 'bool'> != <class 'complex'>"
+        comparison.differences.items = dict(msg=summary_message)
+        expected_diff = f"""
+- False
++ (3+4j)
+------------------------------------------------------------------------------
+Summary:
+  > {summary_message}
+""".lstrip(
+            "\n"
+        )  # Strip the newline from the start.
+
+        # Act
+        result = Snapshot._construct_diff(value, expected, comparison)
+
+        # Assert
+        assert result == expected_diff
+
 
 @pytest.mark.usefixtures("empty_caller_info", "snapshot_file")
 class TestSnapshotFile:

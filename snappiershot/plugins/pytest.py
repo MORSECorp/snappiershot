@@ -8,6 +8,7 @@ import snappiershot
 from _pytest.config import Config as PytestConfig
 from _pytest.config.argparsing import Parser as PytestParser
 from _pytest.fixtures import FixtureRequest
+from _pytest.terminal import TerminalReporter
 
 from .tracker import SnapshotTracker
 
@@ -58,6 +59,22 @@ def pytest_configure(config: PytestConfig) -> None:
         root_dir = Path(config.rootdir).resolve()
         test_paths = (Path(path).resolve().relative_to(root_dir) for path in config.args)
         setattr(config.option, PACKAGE_TRACKER_OPTION, SnapshotTracker(*test_paths))
+
+
+def pytest_terminal_summary(
+    terminalreporter: TerminalReporter, config: PytestConfig
+) -> None:
+    """ Add a summary to the end of the of the pytest output about snapshot statuses. """
+    tracker: SnapshotTracker = config.getoption(PACKAGE_TRACKER_OPTION)
+    status_report = tracker.get_status_report()
+
+    if status_report.any():
+        screen = terminalreporter
+        screen.write_sep("=", "SnappierShot summary")
+        screen.line(f"{status_report.passed: 3d} Snapshots Passed", green=True)
+        screen.line(f"{status_report.failed: 3d} Snapshots Failed", red=True)
+        screen.line(f"{status_report.written: 3d} Snapshots Written", cyan=True)
+        screen.line(f"{status_report.unchecked: 3d} Snapshots Unchecked", yellow=True)
 
 
 # noinspection PyShadowingNames

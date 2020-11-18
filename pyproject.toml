@@ -26,6 +26,7 @@ classifiers = [
 python = "^3.6.1"
 importlib-metadata = { version = ">1.5.1", python = "<3.8" }
 tomlkit = "^0.7.0"
+pprint_ordered_sets = "^1.0.0"
 
 [tool.poetry.dev-dependencies]
 black = "19.10b0"
