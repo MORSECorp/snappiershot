@@ -42,13 +42,16 @@ jobs:
       - name: Get current package version
         run: |
           source $HOME/.poetry/env
-          PACKAGE_JSON=$(poetry run python -c "import snappiershot; print(snappiershot.__version__)")
-          echo "PACKAGE_JSON=${PACKAGE_JSON}"
-          echo "PACKAGE_JSON=${PACKAGE_JSON}" >> $GITHUB_ENV
+          PACKAGE_VERSION=$(poetry run python -c "import snappiershot; print(snappiershot.__version__)")
+          echo "PACKAGE_VERSION=${PACKAGE_JSON}"
+          echo "PACKAGE_VERSION=${PACKAGE_JSON}" >> $GITHUB_ENV
       - name: Check version bump
         run: |
           echo "Checking: ${PACKAGE_VERSION} != ${PYPI_VERSION}"
-          eval "! [ $PACKAGE_VERSION = $PYPI_VERSION ]"
+          if [ $PACKAGE_VERSION = $PYPI_VERSION ] ;
+          then
+            exit 1
+          fi
       - name: Check changelog
         run: |
-          cat CHANGELOG.md | grep -F "## v${PACKAGE_VERSION}"
+          cat CHANGELOG.md | grep -F "## v${PACKAGE_VERSION}" || false
