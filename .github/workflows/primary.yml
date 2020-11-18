@@ -43,8 +43,8 @@ jobs:
         run: |
           source $HOME/.poetry/env
           PACKAGE_VERSION=$(poetry run python -c "import snappiershot; print(snappiershot.__version__)")
-          echo "PACKAGE_VERSION=${PACKAGE_JSON}"
-          echo "PACKAGE_VERSION=${PACKAGE_JSON}" >> $GITHUB_ENV
+          echo "PACKAGE_VERSION=${PACKAGE_VERSION}"
+          echo "PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
       - name: Check version bump
         run: |
           echo "Checking: ${PACKAGE_VERSION} != ${PYPI_VERSION}"
