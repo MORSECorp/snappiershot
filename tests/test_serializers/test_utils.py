@@ -8,6 +8,7 @@ from snappiershot.serializers.utils import (
     default_encode_value,
     get_snapshot_file,
     parse_snapshot_file,
+    write_json_file,
 )
 
 
@@ -219,3 +220,24 @@ class TestParseSnapshotFile:
         # Act & Assert
         with pytest.raises(ValueError):
             parse_snapshot_file(snapshot_file)
+
+
+class TestWritingToFile:
+    """ Tests for the file writing utility functions. """
+
+    @staticmethod
+    def test_write_json_error(tmp_path):
+        """ Test if an error occurs during snapshot writing, no file is written. """
+        # Arrange
+        obj = {("tuple as key",): None}
+        snapshot_file = tmp_path / "snapshot_file.json"
+
+        # Act
+        try:
+            write_json_file(obj, snapshot_file)
+        except TypeError:
+            pass
+
+        # Assert
+        assert not snapshot_file.exists()
+        assert not list(snapshot_file.parent.glob("*"))

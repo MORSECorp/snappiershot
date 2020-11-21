@@ -3,7 +3,7 @@ import inspect
 import json
 import warnings
 from pathlib import Path
-from typing import Any, Dict, Sequence
+from typing import Any, Dict, Optional, Sequence
 
 from ..constants import (
     ENCODING_FUNCTION_NAME,
@@ -12,7 +12,7 @@ from ..constants import (
 )
 from ..errors import SnappierShotWarning
 from .constants import SERIALIZABLE_TYPES, JsonType
-from .json import JsonDeserializer
+from .json import JsonDeserializer, JsonSerializer
 
 
 def default_encode_value(value: Any) -> JsonType:
@@ -121,3 +121,25 @@ def parse_snapshot_file(snapshot_file: Path) -> Dict:
             f"Expected top-level keys: {SnapshotKeys.version}, {SnapshotKeys.tests}"
         )
     return file_contents
+
+
+def write_json_file(obj: JsonType, file: Path, indent: Optional[int] = None) -> None:
+    """ Safely write a JSON file using the JsonSerializer.
+
+    The file will first be written to a temporary file to avoid partial writing and
+      errors during writing. Then the temporary file is moved to the specified location.
+      The temporary file is always cleaned up.
+
+    Args:
+         obj: The obj to be serialized to JSON and written to file.
+         file: The path to the output file.
+         indent: The indentation for the JSON file. Defaults to json module's default.
+    """
+    temporary_file = file.with_suffix(".temp")
+    try:
+        with temporary_file.open("w") as snapshot_file:
+            json.dump(obj, snapshot_file, cls=JsonSerializer, indent=indent, sort_keys=True)
+        temporary_file.rename(file)
+    finally:
+        if temporary_file.exists():
+            temporary_file.unlink()

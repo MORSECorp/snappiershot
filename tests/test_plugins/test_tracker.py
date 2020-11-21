@@ -1,8 +1,9 @@
 """ Tests for snappiershot/plugins/tracker.py """
 from pathlib import Path
 
+from snappiershot.inspection import CallerInfo
 from snappiershot.plugins.tracker import SnapshotTracker, StatusReport
-from snappiershot.snapshot import CallerInfo, SnapshotMetadata, SnapshotStatus
+from snappiershot.snapshot import SnapshotMetadata, SnapshotStatus
 
 
 def test_tracker_get_status_report():
