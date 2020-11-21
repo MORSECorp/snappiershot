@@ -2,7 +2,7 @@
 import warnings
 from difflib import Differ
 from shutil import get_terminal_size
-from typing import Any, Optional
+from typing import Any, Optional, Tuple
 
 import pprint_ordered_sets as pprint
 
@@ -12,6 +12,7 @@ from ..errors import SnappierShotWarning
 from ..inspection import CallerInfo
 from ..serializers.utils import default_encode_value
 from ._file import _NO_SNAPSHOT, _SnapshotFile
+from ._raises import _ExceptionTypes, _RaisesContext
 from .metadata import SnapshotMetadata
 
 
@@ -89,6 +90,54 @@ class Snapshot:
             raise AssertionError(message)
         self._snapshot_file.mark_passed(current_index)
         return True
+
+    def raises(
+        self, expected_exception: _ExceptionTypes, *, update: bool = False
+    ) -> "_RaisesContext":
+        """ Assert that a code block raises an expected exception
+        and snapshot the value of the raised exception.
+
+        This is directly inspired by the ``pytest.raises`` method.
+
+        This method must be used as a context manager:
+        ```python
+        >>> snapshot: Snapshot
+        >>> with snapshot.raises(ValueError):
+        ...    raise ValueError("This message will be part of the snapshot. ")
+        ```
+
+        Args:
+            expected_exception: BaseException type or tuple of BaseException types
+              used to assert against the type of the raised exception.
+            update: Whether to update the snapshot associated with the raised exception.
+
+        Raises:
+            TypeError: If the arguments to this method have invalid types.
+        """
+        # Type checking and type coercion of arguments.
+        expected_exceptions: Tuple[type, ...]
+        if isinstance(expected_exception, type):
+            expected_exceptions = (expected_exception,)
+        elif isinstance(expected_exception, tuple):
+            expected_exceptions = expected_exception
+        else:
+            raise TypeError(
+                "Expected exception must be a BaseException type or a tuple of "
+                f"BaseException types. Found: {expected_exception}"
+            )
+        for exc in expected_exceptions:
+            if not isinstance(exc, type) or not issubclass(exc, BaseException):
+                name = exc.__name__ if isinstance(exc, type) else type(exc).__name__
+                raise TypeError(
+                    f"Expected exception must be a BaseException type, not {name}"
+                )
+        if not isinstance(update, bool):
+            raise TypeError(f'Argument "update" must be a boolean. Found: {update}')
+
+        # Preload the metadata and snapshot file.
+        self._metadata = self._get_metadata(update_on_next_run=update)
+        self._snapshot_file = self._load_snapshot_file(metadata=self._metadata)
+        return _RaisesContext(self, expected_exceptions, update)
 
     def __enter__(self) -> "Snapshot":
         """ Enter the context of a Snapshot session. """
