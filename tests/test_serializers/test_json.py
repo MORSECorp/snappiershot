@@ -4,11 +4,14 @@ import json
 from decimal import Decimal
 from math import inf, isnan, nan
 
+import pandas as pd
 import pytest
 from snappiershot.serializers.constants import (
+    PANDAS_TYPES,
     CustomEncodedCollectionTypes,
     CustomEncodedDatetimeTypes,
     CustomEncodedNumericTypes,
+    CustomEncodedPandasTypes,
 )
 from snappiershot.serializers.json import JsonDeserializer, JsonSerializer
 
@@ -195,6 +198,66 @@ class TestCollectionEncoding:
             JsonDeserializer.decode_collection(value)
 
 
+class TestPandasEncoding:
+    """ Tests for custom encoding of pandas types. """
+
+    PANDAS_DECODING_TEST_CASES = [
+        # fmt: off
+        (pd.DataFrame({'a': [1, 2], 'balloons': ['are', 'awesome']}),
+         CustomEncodedPandasTypes.dataframe.json_encoding(
+             {'index': [0, 1], 'columns': ['a', 'balloons'], 'data': [[1, 'are'], [2, 'awesome']]})),
+        (pd.Series({0: 1, 1: 2}),
+         CustomEncodedPandasTypes.series.json_encoding({'index': [0, 1], 'data': [1, 2]})),
+        # fmt: on
+    ]
+
+    PANDAS_ENCODING_TEST_CASES = PANDAS_DECODING_TEST_CASES
+
+    @staticmethod
+    @pytest.mark.parametrize("value, expected", PANDAS_ENCODING_TEST_CASES)
+    def test_encode_pandas(value, expected):
+        """ Test that the JsonSerializer.encode_datetime encodes values as expected. """
+        # Arrange
+
+        # Act
+        result = JsonSerializer.encode_pandas(value)
+
+        # Assert
+        assert result == expected
+
+    @staticmethod
+    def test_encode_pandas_error():
+        """ Test that the JsonSerializer.encode_datetime raises an error if no encoding is defined. """
+        # Arrange
+        value = "not a datetime"
+
+        # Act & Assert
+        with pytest.raises(NotImplementedError):
+            JsonSerializer.encode_pandas(value)
+
+    @staticmethod
+    @pytest.mark.parametrize("expected, value", PANDAS_DECODING_TEST_CASES)
+    def test_decode_pandas(value, expected):
+        """ Test that the JsonDeserializer.decode_datetime decodes values as expected. """
+        # Arrange
+
+        # Act
+        result = JsonDeserializer.decode_pandas(value)
+
+        # Assert
+        assert expected.equals(result)
+
+    @staticmethod
+    def test_decode_pandas_error():
+        """ Test that the JsonDeserializer.decode_datetime raises an error if no decoding is defined. """
+        # Arrange
+        value = {"foo": "bar"}
+
+        # Act & Assert
+        with pytest.raises(NotImplementedError):
+            JsonDeserializer.decode_pandas(value)
+
+
 def test_round_trip():
     """ Test that a serialized and then deserialized dictionary is unchanged. """
     # Arrange
@@ -221,6 +284,8 @@ def test_round_trip():
         "complex_list": [1, 2, (3, 4, {5})],
         "my_test": {(1, 2), (3, 4)},
         "my_test2": {"one", "two"},
+        "pandas_dataframe": pd.DataFrame({"a": [1, 2], "balloons": ["are", "awesome"]}),
+        "pandas_series": pd.Series({0: 1, 1: 2}),
     }
 
     # Act
@@ -228,4 +293,11 @@ def test_round_trip():
     deserialized = json.loads(serialized, cls=JsonDeserializer)
 
     # Assert
-    assert deserialized == data
+    for key, value in deserialized.items():
+        expected = data.get(key)
+
+        if isinstance(expected, PANDAS_TYPES):
+            assert expected.equals(value)
+
+        else:
+            assert expected == value
