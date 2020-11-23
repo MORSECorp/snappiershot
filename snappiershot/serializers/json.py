@@ -4,8 +4,6 @@ import json
 from numbers import Number
 from typing import Any, Collection, Dict
 
-import pandas as pd
-
 from .constants import (
     COLLECTION_TYPES,
     DATETIME_TYPES,
@@ -15,6 +13,7 @@ from .constants import (
     CustomEncodedNumericTypes,
     CustomEncodedPandasTypes,
     JsonType,
+    get_pandas,
 )
 
 
@@ -79,12 +78,23 @@ class JsonSerializer(json.JSONEncoder):
         if isinstance(value, DATETIME_TYPES):
             return self.encode_datetime(value)
 
-        if isinstance(value, PANDAS_TYPES):
+        if self._is_pandas_object(value):
             return self.encode_pandas(value)
 
         raise NotImplementedError(  # pragma: no cover
             f"Encoding for this object is not yet implemented: {value} ({type(value)})"
         )
+
+    @staticmethod
+    def _is_pandas_object(obj: object) -> bool:
+        """Return true if the given object is a pandas object
+
+        A special effort is made to avoid importing pandas unless it's really necessary.
+        """
+        pd = get_pandas()
+        if pd is not None:
+            return isinstance(obj, PANDAS_TYPES)
+        return False
 
     @staticmethod
     def encode_numeric(value: Number) -> JsonType:
@@ -228,6 +238,9 @@ class JsonSerializer(json.JSONEncoder):
         Raises:
             NotImplementedError - If encoding is not implemented for the given pandas type.
         """
+        # A special effort is made to avoid importing pandas unless it's really necessary.
+        import pandas as pd
+
         if isinstance(value, pd.DataFrame):
             encoded_value = value.to_dict("split")
             return CustomEncodedPandasTypes.dataframe.json_encoding(encoded_value)
@@ -414,6 +427,9 @@ class JsonDeserializer(json.JSONDecoder):
         Raises:
             NotImplementedError - If decoding is not implement for the given numeric type.
         """
+        # A special effort is made to avoid importing pandas unless it's really necessary.
+        import pandas as pd
+
         type_name = dct.get(CustomEncodedPandasTypes.type_key)
         value = dct.get(CustomEncodedPandasTypes.value_key)
 
