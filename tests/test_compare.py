@@ -1,6 +1,7 @@
 """ Tests for snappiershot/compare.py """
 from math import nan
 
+import pandas as pd
 import pytest
 from snappiershot.compare import ObjectComparison
 from snappiershot.config import Config
@@ -114,6 +115,34 @@ def test_compare_types(config):
     assert not comparison.equal
 
 
+@pytest.mark.parametrize(
+    "value, expected, is_equal",
+    [
+        (
+            pd.DataFrame({"a": [1, 2], "b": ["three", "four"]}),
+            pd.DataFrame({"a": [1, 2], "b": ["three", "four"]}),
+            True,
+        ),
+        (
+            pd.DataFrame({"a": [1, 2], "b": ["three", "four"]}),
+            pd.DataFrame({"a": [1, 2], "b": ["three", "five"]}),
+            False,
+        ),
+        (pd.Series([1, 2, 3]), pd.Series([1, 2, 3]), True),
+        (pd.Series([1, 2, 3]), pd.Series([1, 2, 4]), False),
+    ],
+)
+def test_compare_pandas(value, expected, config, is_equal):
+    """ Test comparing pandas objects"""
+    # Arrange
+
+    # Act
+    comparison = ObjectComparison(value, expected, config)
+
+    # Assert
+    assert comparison.equal == is_equal
+
+
 # ===== Integration Tests ==================================
 
 
@@ -128,6 +157,8 @@ def test_compare(config):
         "list": list(range(5)),
         "tuple": (True, False, None),
         "set": set("abcdefg"),
+        "pandas_dataframe": pd.DataFrame({"a": [1, 2], "b": ["three", "four"]}),
+        "pandas_series": pd.Series([1, 2, 3]),
     }
     value["dict"] = value.copy()
 

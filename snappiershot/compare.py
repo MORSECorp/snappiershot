@@ -183,13 +183,6 @@ class ObjectComparison:
         self, value: Any, expected: Any, *, operations: List[Callable]
     ) -> None:
         """ Recursively compare pandas objects by encoding then comparing """
-        if type(value) != type(expected):
-            message = (
-                f"Pandas objects do not have the same type: "
-                f"got {value} of type {type(value)} but expected type {type(expected)}."
-            )
-            return self.differences.add(operations, message)
-
         encoded_value = JsonSerializer.encode_pandas(value)
         encoded_expected = JsonSerializer.encode_pandas(expected)
 
