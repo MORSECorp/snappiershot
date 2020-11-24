@@ -7,14 +7,13 @@ from typing import Any, Collection, Dict
 from .constants import (
     COLLECTION_TYPES,
     DATETIME_TYPES,
-    PANDAS_TYPES,
     CustomEncodedCollectionTypes,
     CustomEncodedDatetimeTypes,
     CustomEncodedNumericTypes,
     CustomEncodedPandasTypes,
     JsonType,
-    get_pandas,
 )
+from .optional_module_utils import is_pandas_object
 
 
 class JsonSerializer(json.JSONEncoder):
@@ -78,23 +77,12 @@ class JsonSerializer(json.JSONEncoder):
         if isinstance(value, DATETIME_TYPES):
             return self.encode_datetime(value)
 
-        if self._is_pandas_object(value):
+        if is_pandas_object(value):
             return self.encode_pandas(value)
 
         raise NotImplementedError(  # pragma: no cover
             f"Encoding for this object is not yet implemented: {value} ({type(value)})"
         )
-
-    @staticmethod
-    def _is_pandas_object(obj: object) -> bool:
-        """Return true if the given object is a pandas object
-
-        A special effort is made to avoid importing pandas unless it's really necessary.
-        """
-        pd = get_pandas()
-        if pd is not None:
-            return isinstance(obj, PANDAS_TYPES)
-        return False
 
     @staticmethod
     def encode_numeric(value: Number) -> JsonType:

@@ -1,8 +1,9 @@
 """ Constant values used by the serializers. """
 import datetime
 from abc import ABC
-from types import ModuleType
-from typing import Any, Dict, Iterator, List, NamedTuple, Optional, Set, Union
+from typing import Any, Dict, Iterator, List, NamedTuple, Set, Union
+
+from .optional_module_utils import get_pandas
 
 _Primitive = Union[bool, float, int, None, str]
 JsonType = Union[_Primitive, Dict[str, Any], List[Any]]
@@ -145,15 +146,8 @@ class CustomEncodedCollectionTypes(_CustomEncodedTypeCollection):
     )
 
 
-class _UnknownType:
-    """ Empty class for handling optional type dependencies """
-
-
-def get_pandas() -> Optional[ModuleType]:
-    """ Return pandas module, if it is already imported, otherwise return None"""
-    import sys
-
-    return sys.modules.get("pandas")
+class _UnavailableType:
+    """ Empty class for handling optional type dependencies that are unavailable """
 
 
 class CustomEncodedPandasTypes(_CustomEncodedTypeCollection):
@@ -171,13 +165,13 @@ class CustomEncodedPandasTypes(_CustomEncodedTypeCollection):
     pd = get_pandas()
 
     dataframe = _CustomEncodedType(
-        type_=pd.DataFrame if pd is not None else _UnknownType,  # type: ignore
+        type_=pd.DataFrame if pd is not None else _UnavailableType,  # type: ignore
         name="dataframe",
         type_key=type_key,
         value_key=value_key,
     )
     series = _CustomEncodedType(
-        type_=pd.Series if pd is not None else _UnknownType,  # type: ignore
+        type_=pd.Series if pd is not None else _UnavailableType,  # type: ignore
         name="series",
         type_key=type_key,
         value_key=value_key,

@@ -19,8 +19,8 @@ The underlying data format of tracker largely follows the structure of
 from pathlib import Path
 from typing import Dict, List
 
-from snappiershot.constants import SNAPSHOT_DIRECTORY
-from snappiershot.serializers.utils import SnapshotKeys, parse_snapshot_file
+from snappiershot.constants import SNAPSHOT_DIRECTORY, SnapshotKeys
+from snappiershot.serializers.io import parse_snapshot_file
 from snappiershot.snapshot import SnapshotMetadata, SnapshotStatus
 
 
