@@ -4,6 +4,8 @@ from operator import itemgetter
 from typing import Any, Callable, Dict, Iterable, List, Sequence, Set, Tuple
 
 from .config import Config
+from .serializers.json import JsonSerializer
+from .serializers.optional_module_utils import is_pandas_object
 
 
 class ObjectComparison:
@@ -61,6 +63,9 @@ class ObjectComparison:
 
         if isinstance(value, float) and not self.exact:
             return self._compare_floats(value, expected, operations=operations)
+
+        if is_pandas_object(value):
+            return self._compare_pandas(value, expected, operations=operations)
 
         # Default to exact comparison for all other types.
         if value != expected:
@@ -173,6 +178,22 @@ class ObjectComparison:
             missing = expected - value
             reason = f"Sets do not match. Missing: {missing}; Extra: {extra}"
             return self.differences.add(operations, reason)
+
+    def _compare_pandas(
+        self, value: Any, expected: Any, *, operations: List[Callable]
+    ) -> None:
+        """ Recursively compare pandas objects by encoding then comparing """
+        if type(value) != type(expected):
+            message = (
+                f"Pandas objects do not have the same type: "
+                f"got {value} of type {type(value)} but expected type {type(expected)}."
+            )
+            return self.differences.add(operations, message)
+
+        encoded_value = JsonSerializer.encode_pandas(value)
+        encoded_expected = JsonSerializer.encode_pandas(expected)
+
+        self._compare(value=encoded_value, expected=encoded_expected, operations=operations)
 
 
 class _Differences:

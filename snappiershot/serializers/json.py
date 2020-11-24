@@ -13,7 +13,7 @@ from .constants import (
     CustomEncodedPandasTypes,
     JsonType,
 )
-from .optional_module_utils import is_pandas_object
+from .optional_module_utils import get_pandas, is_pandas_object
 
 
 class JsonSerializer(json.JSONEncoder):
@@ -227,13 +227,13 @@ class JsonSerializer(json.JSONEncoder):
             NotImplementedError - If encoding is not implemented for the given pandas type.
         """
         # A special effort is made to avoid importing pandas unless it's really necessary.
-        import pandas as pd
+        pd = get_pandas(raise_error=True)
 
-        if isinstance(value, pd.DataFrame):
+        if isinstance(value, pd.DataFrame):  # type: ignore
             encoded_value = value.to_dict("split")
             return CustomEncodedPandasTypes.dataframe.json_encoding(encoded_value)
 
-        if isinstance(value, pd.Series):
+        if isinstance(value, pd.Series):  # type: ignore
             encoded_value = {
                 "data": value.to_list(),
                 "index": value.index.to_list(),
@@ -416,16 +416,16 @@ class JsonDeserializer(json.JSONDecoder):
             NotImplementedError - If decoding is not implement for the given numeric type.
         """
         # A special effort is made to avoid importing pandas unless it's really necessary.
-        import pandas as pd
+        pd = get_pandas(raise_error=True)
 
         type_name = dct.get(CustomEncodedPandasTypes.type_key)
         value = dct.get(CustomEncodedPandasTypes.value_key)
 
         if type_name == CustomEncodedPandasTypes.dataframe.name:
-            return pd.DataFrame(**value)
+            return pd.DataFrame(**value)  # type: ignore
 
         if type_name == CustomEncodedPandasTypes.series.name:
-            return pd.Series(**value)
+            return pd.Series(**value)  # type: ignore
 
         raise NotImplementedError(
             f"Deserialization for the following pandas type not implemented: {dct}"
