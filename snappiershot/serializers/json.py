@@ -1,8 +1,9 @@
 """ Serializer (and Deserializer) classes for the JSON format. """
 import datetime
 import json
+from decimal import Decimal, DecimalTuple
 from numbers import Number
-from typing import Any, Collection, Dict
+from typing import Any, Collection, Dict, List
 
 from .constants import (
     COLLECTION_TYPES,
@@ -90,6 +91,8 @@ class JsonSerializer(json.JSONEncoder):
 
         This will do nothing to naturally serializable types (bool, int, float)
           but will perform custom encoding for non-supported types (complex).
+        This will convert Decimal values to their tuple encodings.
+            See: https://docs.python.org/3.9/library/decimal.html#decimal.Decimal.as_tuple
         The custom encoding follows the template:
             {
               NUMERIC_KEY: <type-as-a-string>,
@@ -105,8 +108,11 @@ class JsonSerializer(json.JSONEncoder):
             # These types are by default supported by the JSONEncoder base class.
             return value
         if isinstance(value, complex):
-            encoded_value = [value.real, value.imag]
+            encoded_value: List[float] = [value.real, value.imag]
             return CustomEncodedNumericTypes.complex.json_encoding(encoded_value)
+        if isinstance(value, Decimal):
+            encode_value: Dict[str, Any] = value.as_tuple()._asdict()
+            return CustomEncodedNumericTypes.decimal.json_encoding(encode_value)
         raise NotImplementedError(
             f"No encoding implemented for the following numeric type: {value} ({type(value)})"
         )
@@ -293,7 +299,8 @@ class JsonDeserializer(json.JSONDecoder):
             }
         The values for the NUMERIC_KEY and NUMERIC_VALUE_KEY constants are attributes
           to the `snappiershot.serializers.constants.CustomEncodedNumericTypes` class.
-
+        Decimal types are decoded by reassembling the DecimalTuple which was cast to a
+          list during the encoding process.
         Raises:
             NotImplementedError - If decoding is not implement for the given numeric type.
         """
@@ -303,6 +310,8 @@ class JsonDeserializer(json.JSONDecoder):
         if type_name == CustomEncodedNumericTypes.complex.name:
             real, imag = value
             return complex(real, imag)
+        if type_name == CustomEncodedNumericTypes.decimal.name:
+            return Decimal(DecimalTuple(**value))
 
         raise NotImplementedError(
             f"Deserialization for the following numerical type not implemented: {dct}"

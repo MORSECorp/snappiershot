@@ -1,6 +1,7 @@
 """ Constant values used by the serializers. """
 import datetime
 from abc import ABC
+from decimal import Decimal
 from typing import Any, Dict, Iterator, List, NamedTuple, Set, Union
 
 from .optional_module_utils import get_pandas
@@ -88,6 +89,9 @@ class CustomEncodedNumericTypes(_CustomEncodedTypeCollection):
 
     complex = _CustomEncodedType(
         type_=complex, name="complex", type_key=type_key, value_key=value_key
+    )
+    decimal = _CustomEncodedType(
+        type_=Decimal, name="decimal", type_key=type_key, value_key=value_key
     )
 
 
@@ -184,4 +188,6 @@ COLLECTION_TYPES = tuple(value.type for value in CustomEncodedCollectionTypes.li
 DATETIME_TYPES = tuple(value.type for value in CustomEncodedDatetimeTypes.list())
 NUMERIC_TYPES = tuple(value.type for value in CustomEncodedNumericTypes.list())
 PANDAS_TYPES = tuple(value.type for value in CustomEncodedPandasTypes.list())
-SERIALIZABLE_TYPES = PRIMITIVE_TYPES + DATETIME_TYPES + NUMERIC_TYPES + PANDAS_TYPES
+SERIALIZABLE_TYPES = (
+    PRIMITIVE_TYPES + COLLECTION_TYPES + DATETIME_TYPES + NUMERIC_TYPES + PANDAS_TYPES
+)

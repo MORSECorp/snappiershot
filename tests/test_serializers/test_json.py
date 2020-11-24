@@ -21,6 +21,18 @@ class TestNumericEncoding:
 
     NUMERIC_DECODING_TEST_CASES = [
         (3 + 4j, CustomEncodedNumericTypes.complex.json_encoding([3, 4])),
+        (
+            Decimal(3.1415),
+            CustomEncodedNumericTypes.decimal.json_encoding(
+                Decimal(3.1415).as_tuple()._asdict()
+            ),
+        ),
+        (
+            Decimal("3.1415"),
+            CustomEncodedNumericTypes.decimal.json_encoding(
+                Decimal("3.1415").as_tuple()._asdict()
+            ),
+        ),
     ]
 
     NUMERIC_ENCODING_TEST_CASES = [
@@ -46,7 +58,7 @@ class TestNumericEncoding:
     def test_encode_numeric_error():
         """ Test that the JsonSerializer.encode_numeric raises an error if no encoding is defined. """
         # Arrange
-        value = Decimal("3.14")
+        value = "3.121"
 
         # Act & Assert
         with pytest.raises(NotImplementedError):
@@ -266,6 +278,8 @@ def test_round_trip():
         "none": None,
         "int": 12,
         "float": 3.14,
+        "decimal_1": Decimal(3.1415),
+        "decimal_2": Decimal("3.1415"),
         "inf": inf,
         "complex": 3 + 4j,
         "string": "string",
