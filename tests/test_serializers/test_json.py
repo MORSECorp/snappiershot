@@ -1,6 +1,7 @@
 """ Tests for snappiershot/serializers/json.py """
 import datetime
 import json
+import pathlib
 from decimal import Decimal
 from math import inf, isnan, nan
 
@@ -9,6 +10,7 @@ from snappiershot.serializers.constants import (
     CustomEncodedCollectionTypes,
     CustomEncodedDatetimeTypes,
     CustomEncodedNumericTypes,
+    CustomEncodedPathTypes,
 )
 from snappiershot.serializers.json import JsonDeserializer, JsonSerializer
 
@@ -207,6 +209,78 @@ class TestCollectionEncoding:
             JsonDeserializer.decode_collection(value)
 
 
+class TestPathEncoding:
+    """ Tests for custom encoding of Path types. """
+
+    PATH_DECODING_TEST_CASES = [
+        (pathlib.Path(), CustomEncodedPathTypes.path.json_encoding([])),
+        (pathlib.PosixPath(), CustomEncodedPathTypes.path.json_encoding([])),
+        (pathlib.PurePath(), CustomEncodedPathTypes.pure_path.json_encoding([])),
+        (pathlib.PurePosixPath(), CustomEncodedPathTypes.pure_posix_path.json_encoding([])),
+        (
+            pathlib.PureWindowsPath(),
+            CustomEncodedPathTypes.pure_windows_path.json_encoding([]),
+        ),
+        (pathlib.Path("/"), CustomEncodedPathTypes.path.json_encoding(["/"])),
+        (pathlib.PosixPath("/"), CustomEncodedPathTypes.path.json_encoding(["/"])),
+        (pathlib.PurePath("/"), CustomEncodedPathTypes.pure_path.json_encoding(["/"])),
+        (
+            pathlib.PurePosixPath("/"),
+            CustomEncodedPathTypes.pure_posix_path.json_encoding(["/"]),
+        ),
+        (
+            pathlib.PureWindowsPath("/"),
+            CustomEncodedPathTypes.pure_windows_path.json_encoding(["/"]),
+        ),
+    ]
+
+    PATH_ENCODING_TEST_CASES = PATH_DECODING_TEST_CASES
+
+    @staticmethod
+    def test_encode_path_error():
+        """ Test that the JsonSerializer.encode_path raises an error if no encoding is defined. """
+        # Arrange
+        value = b"banana"
+
+        # Act & Assert
+        with pytest.raises(NotImplementedError):
+            JsonSerializer.encode_path(value)
+
+    @staticmethod
+    @pytest.mark.parametrize("value, expected", PATH_ENCODING_TEST_CASES)
+    def test_encode_path(value, expected):
+        """ Test that the JsonSerializer.encode_collection encodes values as expected. """
+        # Arrange
+
+        # Act
+        result = JsonSerializer.encode_path(value)
+
+        # Assert
+        assert result == expected
+
+    @staticmethod
+    @pytest.mark.parametrize("expected, value", PATH_DECODING_TEST_CASES)
+    def test_decode_path(value, expected):
+        """ Test that the JsonDeserializer.decode_collection decodes collections as expected. """
+        # Arrange
+
+        # Act
+        result = JsonDeserializer.decode_path(value)
+
+        # Assert
+        assert result == expected
+
+    @staticmethod
+    def test_decode_path_error():
+        """ Test that the JsonDeserializer.decode_collection raises an error if no decoding is defined. """
+        # Arrange
+        value = {"foo": "bar"}
+
+        # Act & Assert
+        with pytest.raises(NotImplementedError):
+            JsonDeserializer.decode_path(value)
+
+
 def test_round_trip():
     """ Test that a serialized and then deserialized dictionary is unchanged. """
     # Arrange
@@ -235,6 +309,9 @@ def test_round_trip():
         "complex_list": [1, 2, (3, 4, {5})],
         "my_test": {(1, 2), (3, 4)},
         "my_test2": {"one", "two"},
+        "purepath_windows": pathlib.PureWindowsPath(),
+        "purepath_posix": pathlib.PurePosixPath(),
+        "path": pathlib.Path(),
     }
 
     # Act
