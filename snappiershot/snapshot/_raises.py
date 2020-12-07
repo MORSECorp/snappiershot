@@ -17,6 +17,7 @@ if TYPE_CHECKING:  # pragma: no cover
     # Used to avoid circular imports.
     from .snapshot import Snapshot
 
+# Creates a Exception TypeVariable to be used for type-hinting.
 _E = TypeVar("_E", bound=BaseException)
 _ExceptionTypes = Union[Type[_E], Tuple[Type[_E], ...]]
 

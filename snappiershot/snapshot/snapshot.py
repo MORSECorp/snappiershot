@@ -114,7 +114,7 @@ class Snapshot:
         Raises:
             TypeError: If the arguments to this method have invalid types.
         """
-        # Type checking and type coercion of arguments.
+        # Type checking and type coercion of expected_exception argument.
         expected_exceptions: Tuple[type, ...]
         if isinstance(expected_exception, type):
             expected_exceptions = (expected_exception,)
@@ -131,8 +131,6 @@ class Snapshot:
                 raise TypeError(
                     f"Expected exception must be a BaseException type, not {name}"
                 )
-        if not isinstance(update, bool):
-            raise TypeError(f'Argument "update" must be a boolean. Found: {update}')
 
         # Preload the metadata and snapshot file.
         self._metadata = self._get_metadata(update_on_next_run=update)
