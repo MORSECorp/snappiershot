@@ -43,7 +43,7 @@ You can open an issue [here](https://github.com/MORSECorp/snappiershot/issues/ne
 
 
 ## Environment Setup
-We use the [poetry](https://python-poetry.org/) to both manage dependencies
+We use [poetry](https://python-poetry.org/) to both manage dependencies
   and publish this package. You can find information about installing this
   software [here](https://python-poetry.org/docs/).
 
