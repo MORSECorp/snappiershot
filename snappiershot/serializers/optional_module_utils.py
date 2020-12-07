@@ -34,6 +34,6 @@ def get_pandas(
     except ImportError as error:
         pd = None
         if raise_error:
-            default_error_message = "pandas is required for snappiershot testing"
+            default_error_message = "pandas is required for snappiershot testing when snapshotting pandas objects"
             raise ImportError(custom_error_message or default_error_message) from error
     return pd

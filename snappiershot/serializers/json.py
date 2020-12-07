@@ -11,10 +11,8 @@ from .constants import (
     CustomEncodedCollectionTypes,
     CustomEncodedDatetimeTypes,
     CustomEncodedNumericTypes,
-    CustomEncodedPandasTypes,
     JsonType,
 )
-from .optional_module_utils import get_pandas, is_pandas_object
 
 
 class JsonSerializer(json.JSONEncoder):
@@ -77,9 +75,6 @@ class JsonSerializer(json.JSONEncoder):
 
         if isinstance(value, DATETIME_TYPES):
             return self.encode_datetime(value)
-
-        if is_pandas_object(value):
-            return self.encode_pandas(value)
 
         raise NotImplementedError(  # pragma: no cover
             f"Encoding for this object is not yet implemented: {value} ({type(value)})"
@@ -216,40 +211,6 @@ class JsonSerializer(json.JSONEncoder):
             f"No encoding implemented for the following collection type: {value} ({type(value)})"
         )
 
-    @staticmethod
-    def encode_pandas(value: Any) -> JsonType:
-        """ Encoding for collection types.
-
-        The custom encoding follows the template:
-            {
-              PANDAS_KEY: <type, as a string>>,
-              PANDAS_VALUE_KEY: <value, with a list or dict-of-lists with (index, value) tuples>
-            }
-
-        The values for the PANDAS_KEY and PANDAS_VALUE_KEY constants are attributes
-          to the `snappiershot.serializers.constants.CustomEncodedPandasTypes` class.
-
-        Raises:
-            NotImplementedError - If encoding is not implemented for the given pandas type.
-        """
-        # A special effort is made to avoid importing pandas unless it's really necessary.
-        pd = get_pandas(raise_error=True)
-
-        if isinstance(value, pd.DataFrame):  # type: ignore
-            encoded_value = value.to_dict("split")
-            return CustomEncodedPandasTypes.dataframe.json_encoding(encoded_value)
-
-        if isinstance(value, pd.Series):  # type: ignore
-            encoded_value = {
-                "data": value.to_list(),
-                "index": value.index.to_list(),
-            }
-            return CustomEncodedPandasTypes.series.json_encoding(encoded_value)
-
-        raise NotImplementedError(
-            f"No encoding implemented for the following pandas type: {value} ({type(value)})"
-        )
-
 
 class JsonDeserializer(json.JSONDecoder):
     """ Custom JSON deserializer.
@@ -282,9 +243,6 @@ class JsonDeserializer(json.JSONDecoder):
 
         if set(dct.keys()) == CustomEncodedCollectionTypes.keys():
             return self.decode_collection(dct)
-
-        if set(dct.keys()) == CustomEncodedPandasTypes.keys():
-            return self.decode_pandas(dct)
 
         return dct
 
@@ -401,41 +359,4 @@ class JsonDeserializer(json.JSONDecoder):
 
         raise NotImplementedError(
             f"Deserialization for the following collection type not implemented: {dct}"
-        )
-
-    @staticmethod
-    def decode_pandas(dct: Dict[str, Any]) -> Collection:
-        """ Decode an encoded pandas type.
-
-        This encoded numeric type object must be of the form:
-            {
-              PANDAS_KEY: <type-as-a-string>,
-              PANDAS_VALUE_KEY: [<values>]
-            }
-        The values for the PANDAS_KEY and PANDAS_VALUE_KEY constants are attributes
-          to the `snappiershot.serializers.constants.CustomEncodedPandasTypes` class.
-
-        Args:
-            dct: dictionary to decode
-
-        Returns:
-            Decoded pandas object.
-
-        Raises:
-            NotImplementedError - If decoding is not implement for the given numeric type.
-        """
-        # A special effort is made to avoid importing pandas unless it's really necessary.
-        pd = get_pandas(raise_error=True)
-
-        type_name = dct.get(CustomEncodedPandasTypes.type_key)
-        value = dct.get(CustomEncodedPandasTypes.value_key)
-
-        if type_name == CustomEncodedPandasTypes.dataframe.name:
-            return pd.DataFrame(**value)  # type: ignore
-
-        if type_name == CustomEncodedPandasTypes.series.name:
-            return pd.Series(**value)  # type: ignore
-
-        raise NotImplementedError(
-            f"Deserialization for the following pandas type not implemented: {dct}"
         )
