@@ -151,6 +151,10 @@ class CustomEncodedCollectionTypes(_CustomEncodedTypeCollection):
     )
 
 
+class _UnavailableType:
+    """ Empty class for handling optional type dependencies that are unavailable """
+
+
 # Tuples of types intended to be used for isinstance checking.
 PRIMITIVE_TYPES = bool, float, int, type(None), str
 COLLECTION_TYPES = tuple(value.type for value in CustomEncodedCollectionTypes.list())
