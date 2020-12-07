@@ -47,7 +47,7 @@ def test_something(snapshot):
     snapshot.assert_match(result)
 ```
 
-#### No Test Runner Example
+### No Test Runner Example
 ```python
 from snappiershot import Snapshot
 
@@ -65,6 +65,26 @@ def test_something():
         snapshot.assert_match(result)
 
 test_something()
+```
+
+### Raises
+Snappiershot also allows you to take a "snapshot" errors that are raised during
+  the execution of a code block. This allows you to track how and when errors
+  are reported more easily.
+
+```python
+def fallible_function():
+    """ A function with an error state. """
+    raise RuntimeError("An error occurred!")
+
+
+def test_fallible_function(snapshot):
+    """ Test that errors are being reported as expected"""
+    # Arrange
+
+    # Act & Assert
+    with snapshot.raises(RuntimeError):
+        fallible_function()
 ```
 
 ### Support Types:
