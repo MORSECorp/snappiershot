@@ -3,12 +3,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Union
 
 from ..config import Config
-from ..serializers.utils import (
-    SnapshotKeys,
-    get_snapshot_file,
-    parse_snapshot_file,
-    write_json_file,
-)
+from ..constants import SnapshotKeys
+from ..serializers.io import parse_snapshot_file, write_json_file
+from ..serializers.utils import get_snapshot_file
 from .metadata import SnapshotMetadata
 from .status import SnapshotStatus
 

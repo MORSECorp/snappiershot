@@ -7,11 +7,11 @@ $ pip install snappiershot
 ```
 
 ## Configuration
-Snappier shot is following the [trend of packages](https://github.com/carlosperate/awesome-pyproject/)
+SnappierShot is following the [trend of packages](https://github.com/carlosperate/awesome-pyproject/)
 in performing project-wide configuration through the pyproject.toml file established by
 [PEP 518](https://www.python.org/dev/peps/pep-0518/).
 
-Within the pyproject.toml file, all snappiershot configuration can be found under the
+Within the pyproject.toml file, all SnappierShot configuration can be found under the
 `[tool.snappiershot]` heading.
 
 ### Example (with default values):

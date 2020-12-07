@@ -155,6 +155,7 @@ class TestCollectionEncoding:
     COLLECTION_DECODING_TEST_CASES = [
         ({1, 2, 3}, CustomEncodedCollectionTypes.set.json_encoding([1, 2, 3])),
         ((1, 2, 3), CustomEncodedCollectionTypes.tuple.json_encoding([1, 2, 3])),
+        (b"\x01\x02\x03", CustomEncodedCollectionTypes.bytes.json_encoding([1, 2, 3]),),
     ]
 
     COLLECTION_ENCODING_TEST_CASES = [
@@ -166,7 +167,7 @@ class TestCollectionEncoding:
     def test_encode_collection_error():
         """ Test that the JsonSerializer.encode_collection raises an error if no encoding is defined. """
         # Arrange
-        value = b"banana"
+        value = bytearray(10)
 
         # Act & Assert
         with pytest.raises(NotImplementedError):
@@ -235,6 +236,7 @@ def test_round_trip():
         "complex_list": [1, 2, (3, 4, {5})],
         "my_test": {(1, 2), (3, 4)},
         "my_test2": {"one", "two"},
+        "bytes": b"bytes",
     }
 
     # Act
@@ -242,4 +244,6 @@ def test_round_trip():
     deserialized = json.loads(serialized, cls=JsonDeserializer)
 
     # Assert
-    assert deserialized == data
+    for key, value in deserialized.items():
+        expected = data.get(key)
+        assert expected == value
