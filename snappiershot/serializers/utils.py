@@ -2,8 +2,9 @@
 import inspect
 import json
 import warnings
+from functools import wraps
 from pathlib import Path
-from typing import Any, Dict, Sequence
+from typing import Any, Callable, Dict, Optional, Sequence, Set
 
 from ..constants import (
     ENCODING_FUNCTION_NAME,
@@ -15,7 +16,30 @@ from .constants import SERIALIZABLE_TYPES, JsonType
 from .json import JsonDeserializer
 
 
-def default_encode_value(value: Any) -> JsonType:
+def filter_recursive_objects(
+    func: Callable[[Any, Set[int]], JsonType]
+) -> Callable[[Any, Optional[Set[int]]], JsonType]:
+    """ Decorator object for catching and tracking recursive objects. """
+
+    @wraps(func)
+    def wrapper(value: Any, context: Optional[Set[int]] = None) -> JsonType:
+        """ Wrapper function to catch and track recursive objects. """
+        if context is None:
+            context = set()
+
+        object_id = id(value)
+        if object_id in context:
+            raise RecursionError(value)
+        context.add(object_id)
+        result = func(value, context)
+        context.discard(object_id)
+        return result
+
+    return wrapper
+
+
+@filter_recursive_objects
+def default_encode_value(value: Any, context: Set[int]) -> JsonType:
     """ Perform a default encoding of the specified value into a serializable data. """
     # If the value is already serializable, return.
     if isinstance(value, SERIALIZABLE_TYPES):
@@ -26,13 +50,15 @@ def default_encode_value(value: Any) -> JsonType:
         encoded_dict = dict()
         for key, item in value.items():
             try:
-                encoded_dict[key] = default_encode_value(item)
-            except ValueError:
-                warnings.warn(
-                    f"Cannot serialize this value: {item} -- "
-                    f"Skipping over this (key, value) pair. ",
-                    SnappierShotWarning,
-                )
+                encoded_dict[key] = default_encode_value(item, context)
+            except (ValueError, RecursionError) as err:
+                if isinstance(err, RecursionError):
+                    message = f"This object was determined to be recursive: {item} -- "
+                else:
+                    message = f"Cannot serialize this value: {item} -- "
+                message += "Skipping over this (key, value) pair. "
+                warnings.warn(message, SnappierShotWarning)
+
         return encoded_dict
 
     # If the value is a sequence, recurse.
@@ -40,12 +66,14 @@ def default_encode_value(value: Any) -> JsonType:
         encoded_sequence = list()
         for item in value:
             try:
-                encoded_sequence.append(default_encode_value(item))
-            except ValueError:
-                warnings.warn(
-                    f"Cannot serialize this value: {item} -- Skipping over this item. ",
-                    SnappierShotWarning,
-                )
+                encoded_sequence.append(default_encode_value(item, context))
+            except (ValueError, RecursionError) as err:
+                if isinstance(err, RecursionError):
+                    message = f"This object was determined to be recursive: {item} -- "
+                else:
+                    message = f"Cannot serialize this value: {item} -- "
+                message += "Skipping over this item. "
+                warnings.warn(message, SnappierShotWarning)
         return encoded_sequence
 
     # If the value is an instanced class.
@@ -54,7 +82,7 @@ def default_encode_value(value: Any) -> JsonType:
         if hasattr(value, ENCODING_FUNCTION_NAME):
             return getattr(value, ENCODING_FUNCTION_NAME)()
         # Default to encoding the class dictionary.
-        return default_encode_value(vars(value))
+        return default_encode_value(vars(value), context)
 
     raise ValueError(
         f"Cannot serialize this value: {value} \n"

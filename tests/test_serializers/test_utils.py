@@ -128,6 +128,26 @@ class TestDefaultEncodeValue:
         # Assert
         assert result == expected
 
+    @staticmethod
+    def test_encode_recursive_object():
+        """ Test that recursive objects are handled gracefully. """
+        # Arrange
+        value = SimpleNamespace(class_=None, dict_=None, list_=None)
+        value.class_ = value
+        value.dict_ = dict(normal="string", recursive=value)
+        value.list_ = [value, 1]
+        expected = dict(dict_=dict(normal="string"), list_=[1])
+
+        # Act
+        import warnings
+
+        with warnings.catch_warnings(record=True) as record:
+            result = default_encode_value(value)
+
+        # Assert
+        assert result == expected
+        assert all("recursive" in warn.message.args[0] for warn in record)
+
 
 class TestGetSnapshotFile:
     """ Tests for the get_snapshot_file utility function. """
