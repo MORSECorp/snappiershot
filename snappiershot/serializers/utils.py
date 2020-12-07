@@ -30,6 +30,11 @@ def default_encode_value(value: Any) -> JsonType:
                 )
         return encoded_dict
 
+    # If the value is an exception. Every exception has unique hashes and therefore
+    #   cannot automatically be compared.
+    if isinstance(value, BaseException):
+        return encode_exception(value)
+
     # If the value is a sequence, recurse.
     if isinstance(value, Sequence):
         encoded_sequence = list()
@@ -62,6 +67,27 @@ def default_encode_value(value: Any) -> JsonType:
         "You must either encode this value manually, or open an Issue on our Github "
         "page describing a default serialization for this type. "
     )
+
+
+def encode_exception(value: BaseException) -> JsonType:
+    """ Encode an exception object.
+
+    These objects need to be specially handled because each exception has a unique
+      hash and therefore cannot be automatically compared.
+
+    The encoded format:
+      {
+        exception_type: <Exception Name>
+        exception_message: <Exception Message>
+      }
+
+    Args:
+        value: The exception object to be encoded.
+
+    Returns:
+        JSON serializable and comparable object.
+    """
+    return dict(exception_type=type(value).__name__, exception_value=str(value))
 
 
 def get_snapshot_file(test_file: Path, suffix: str) -> Path:

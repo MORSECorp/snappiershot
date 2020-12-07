@@ -5,6 +5,7 @@ from warnings import WarningMessage
 import pytest
 from pytest_mock import MockerFixture
 from snappiershot.errors import SnappierShotWarning
+from snappiershot.serializers.utils import encode_exception
 from snappiershot.snapshot.snapshot import Snapshot
 
 
@@ -89,7 +90,7 @@ Summary:
         assert result == expected_diff
 
     @staticmethod
-    def test_not_within_context(mocker):
+    def test_not_within_context(mocker: MockerFixture):
         """ Test that an error is raised when trying to call the `Snapshot.assert_match`
         method outside of context. """
         # Arrange
@@ -100,3 +101,36 @@ Summary:
         # Act & Assert
         with pytest.raises(RuntimeError):
             snapshot.assert_match(True)
+
+    @staticmethod
+    def test_raises_match(snapshot: Snapshot, mocker: MockerFixture):
+        """ Test that `Snapshot.raises` catches and snapshot exceptions as expected. """
+        # Arrange
+        exception = ZeroDivisionError("Whoops")
+        value = encode_exception(exception)
+        mocker.patch.object(snapshot._snapshot_file, "get_snapshot", return_value=value)
+
+        # Act
+        with snapshot.raises(type(exception)) as raises:
+            raise exception
+
+        # Assert
+        assert raises._assert_match
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        "expected_exception, update",
+        [
+            (None, False),
+            (int, False),
+            ({OSError, KeyError}, False),
+            ((OSError, None), False),
+        ],
+    )
+    def test_raises_type_errors(expected_exception, update, snapshot: Snapshot):
+        """ Test that `Snapshot.raises` rejects invalid argument types. """
+        # Arrange
+
+        # Act & Assert
+        with pytest.raises(TypeError):
+            snapshot.raises(expected_exception, update=update)

@@ -5,6 +5,7 @@ import pandas as pd
 import pytest
 from snappiershot.serializers.utils import (
     default_encode_value,
+    encode_exception,
     get_snapshot_file,
 )
 
@@ -195,3 +196,30 @@ class TestGetSnapshotFile:
         # Act & Assert
         with pytest.raises(TypeError):
             get_snapshot_file(test_file, suffix)
+
+
+class TestEncodingExceptions:
+    """ Tests for exception encoding. """
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        "value, expected",
+        # fmt: off
+        [(ValueError("That's a bad value"),
+          dict(exception_type="ValueError",
+               exception_value="That's a bad value")),
+         (OSError(2, "No such file or directory", "<><"),
+          dict(exception_type="FileNotFoundError",
+               exception_value="[Errno 2] No such file or directory: '<><'")),
+         ]
+        # fmt: on
+    )
+    def test_write_json_error(value, expected):
+        """ Test if an error occurs during snapshot writing, no file is written. """
+        # Arrange
+
+        # Act
+        result = encode_exception(value)
+
+        # Assert
+        assert result == expected
