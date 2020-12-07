@@ -7,6 +7,7 @@ from typing import Any, Dict, Sequence
 from ..constants import ENCODING_FUNCTION_NAME, SNAPSHOT_DIRECTORY
 from ..errors import SnappierShotWarning
 from .constants import SERIALIZABLE_TYPES, JsonType
+from .optional_module_utils import Pandas
 
 
 def default_encode_value(value: Any) -> JsonType:
@@ -41,6 +42,11 @@ def default_encode_value(value: Any) -> JsonType:
                     SnappierShotWarning,
                 )
         return encoded_sequence
+
+    # If the value is a pandas object, encode and recurse
+    if Pandas.is_pandas_object(value):
+        encoded_pandas = Pandas.encode_pandas(value)
+        return default_encode_value(encoded_pandas)
 
     # If the value is an instanced class.
     if is_instanced_object(value):

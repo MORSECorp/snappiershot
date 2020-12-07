@@ -4,8 +4,6 @@ from operator import itemgetter
 from typing import Any, Callable, Dict, Iterable, List, Sequence, Set, Tuple
 
 from .config import Config
-from .serializers.constants import CustomEncodedPandasTypes, JsonType
-from .serializers.optional_module_utils import get_pandas, is_pandas_object
 
 
 class ObjectComparison:
@@ -63,9 +61,6 @@ class ObjectComparison:
 
         if isinstance(value, float) and not self.exact:
             return self._compare_floats(value, expected, operations=operations)
-
-        if is_pandas_object(value):
-            return self._compare_pandas(value, expected, operations=operations)
 
         # Default to exact comparison for all other types.
         if value != expected:
@@ -178,49 +173,6 @@ class ObjectComparison:
             missing = expected - value
             reason = f"Sets do not match. Missing: {missing}; Extra: {extra}"
             return self.differences.add(operations, reason)
-
-    def _compare_pandas(
-        self, value: Any, expected: Any, *, operations: List[Callable]
-    ) -> None:
-        """ Recursively compare pandas objects by encoding then comparing """
-        encoded_value = self._encode_pandas(value)
-        encoded_expected = self._encode_pandas(expected)
-
-        self._compare(value=encoded_value, expected=encoded_expected, operations=operations)
-
-    @staticmethod
-    def _encode_pandas(value: Any) -> JsonType:
-        """ Encoding for collection types.
-
-        The custom encoding follows the template:
-            {
-              PANDAS_KEY: <type, as a string>>,
-              PANDAS_VALUE_KEY: <value, with a list or dict-of-lists with (index, value) tuples>
-            }
-
-        The values for the PANDAS_KEY and PANDAS_VALUE_KEY constants are attributes
-          to the `snappiershot.serializers.constants.CustomEncodedPandasTypes` class.
-
-        Raises:
-            NotImplementedError - If encoding is not implemented for the given pandas type.
-        """
-        # A special effort is made to avoid importing pandas unless it's really necessary.
-        pd = get_pandas(raise_error=True)
-
-        if isinstance(value, pd.DataFrame):  # type: ignore
-            encoded_value = value.to_dict("split")
-            return CustomEncodedPandasTypes.dataframe.json_encoding(encoded_value)
-
-        if isinstance(value, pd.Series):  # type: ignore
-            encoded_value = {
-                "data": value.to_list(),
-                "index": value.index.to_list(),
-            }
-            return CustomEncodedPandasTypes.series.json_encoding(encoded_value)
-
-        raise NotImplementedError(
-            f"No encoding implemented for the following pandas type: {value} ({type(value)})"
-        )
 
 
 class _Differences:

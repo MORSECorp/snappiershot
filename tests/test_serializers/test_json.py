@@ -6,7 +6,6 @@ from math import inf, isnan, nan
 
 import pytest
 from snappiershot.serializers.constants import (
-    PANDAS_TYPES,
     CustomEncodedCollectionTypes,
     CustomEncodedDatetimeTypes,
     CustomEncodedNumericTypes,
@@ -245,9 +244,4 @@ def test_round_trip():
     # Assert
     for key, value in deserialized.items():
         expected = data.get(key)
-
-        if isinstance(expected, PANDAS_TYPES):
-            assert expected.equals(value)
-
-        else:
-            assert expected == value
+        assert expected == value
