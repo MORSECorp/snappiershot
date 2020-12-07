@@ -57,7 +57,7 @@ jobs:
     - name: Install dependencies
       run: |
         source $HOME/.poetry/env
-        poetry install -vvv
+        poetry install -vvv --extras pandas
     - name: Test
       run: |
         source $HOME/.poetry/env

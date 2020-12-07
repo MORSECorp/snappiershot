@@ -26,13 +26,18 @@ classifiers = [
 python = "^3.6.1"
 importlib-metadata = { version = ">1.5.1", python = "<3.8" }
 tomlkit = "^0.7.0"
+pandas = { version = ">=0.20.0", optional = true}
 pprint_ordered_sets = "^1.0.0"
+
+[tool.poetry.extras]
+pandas = ["pandas"]
 
 [tool.poetry.dev-dependencies]
 black = "19.10b0"
 coverage = "^5.3"
 flake8 = "^3.8.3"
 mypy = "^0.782"
+pandas = ">=0.20.0"
 pre-commit = "^2.6.0"
 pytest = "^6.0.1"
 pytest_mock = "^3.3.1"

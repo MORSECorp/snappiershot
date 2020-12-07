@@ -13,15 +13,12 @@ import pprint_ordered_sets as pprint
 
 from .compare import ObjectComparison
 from .config import Config
+from .constants import SnapshotKeys
 from .errors import SnappierShotWarning
 from .inspection import CallerInfo
 from .serializers import JsonSerializer
-from .serializers.utils import (
-    SnapshotKeys,
-    default_encode_value,
-    get_snapshot_file,
-    parse_snapshot_file,
-)
+from .serializers.io import parse_snapshot_file
+from .serializers.utils import default_encode_value, get_snapshot_file
 
 _NO_SNAPSHOT = object()
 
