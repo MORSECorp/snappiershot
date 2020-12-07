@@ -125,7 +125,6 @@ Summary:
             (int, False),
             ({OSError, KeyError}, False),
             ((OSError, None), False),
-            (OSError, KeyError),
         ],
     )
     def test_raises_type_errors(expected_exception, update, snapshot: Snapshot):
