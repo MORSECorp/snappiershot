@@ -75,6 +75,9 @@ testpaths = ["tests"]
 norecursedirs = "pytester_example_dir"
 pytester_example_dir = "tests/test_plugins/pytester_example_dir"
 addopts = "-vv -p pytester"
+filterwarnings = [
+    "ignore:::pandas"
+]
 
 [build-system]
 requires = ["poetry>=1.0.5"]
