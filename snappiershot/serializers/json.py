@@ -247,17 +247,13 @@ class JsonSerializer(json.JSONEncoder):
             encoded_value = list(value.parts)
             return CustomEncodedPathTypes.path.json_encoding(encoded_value)
 
-        if isinstance(value, PurePosixPath):
-            encode_value = list(value.parts)
-            return CustomEncodedPathTypes.pure_posix_path.json_encoding(encode_value)
-
         if isinstance(value, PureWindowsPath):
             encode_value = list(value.parts)
             return CustomEncodedPathTypes.pure_windows_path.json_encoding(encode_value)
 
-        if isinstance(value, PurePath):
+        if isinstance(value, PurePosixPath):
             encode_value = list(value.parts)
-            return CustomEncodedPathTypes.pure_path.json_encoding(encode_value)
+            return CustomEncodedPathTypes.pure_posix_path.json_encoding(encode_value)
 
         raise NotImplementedError(
             f"No encoding implemented for the following Path type: {value} ({type(value)})"
@@ -431,24 +427,23 @@ class JsonDeserializer(json.JSONDecoder):
         Path and PurePath types are decoded by reassembling the PurePath.parts tuple which was cast to a
           list during the encoding process.
 
-        NOTE: WindowsPath and PosixPath types are NOT currently supported, while PureWindowsPath and PurePosixPath
-          types are supported. This is intentional, to avoid OS-specific pathlib errors such as snapshots being
-          created on a Posix machine and tested on a Windows machine.
+        NOTE: WindowsPath, PosixPath, PurePath types are NOT currently supported.
+
+            This is intentional, to avoid OS-specific pathlib errors such as snapshots being created on a
+             Posix machine and tested on a Windows machine.
         Raises:
             NotImplementedError - If decoding is not implemented for the given Path type.
         """
         type_name = dct.get(CustomEncodedPathTypes.type_key)
-        parts = dct[CustomEncodedPathTypes.value_key]
-        path_str = os.path.join(*parts) if len(parts) > 0 else ""
+        parts = dct.get(CustomEncodedPathTypes.value_key)
+        path_str = os.path.join(*parts) if parts else ""
 
-        if type_name == CustomEncodedPathTypes.pure_path.name:
-            return PurePath(path_str)
+        if type_name == CustomEncodedPathTypes.path.name:
+            return Path(path_str)
         if type_name == CustomEncodedPathTypes.pure_posix_path.name:
             return PurePosixPath(path_str)
         if type_name == CustomEncodedPathTypes.pure_windows_path.name:
             return PureWindowsPath(path_str)
-        if type_name == CustomEncodedPathTypes.path.name:
-            return Path(path_str)
 
         raise NotImplementedError(
             f"Deserialization for the following Path type not implemented: {dct}"

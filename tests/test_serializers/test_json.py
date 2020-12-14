@@ -215,32 +215,31 @@ class TestPathEncoding:
     PATH_DECODING_TEST_CASES = [
         (pathlib.Path(), CustomEncodedPathTypes.path.json_encoding([])),
         (pathlib.PosixPath(), CustomEncodedPathTypes.path.json_encoding([])),
-        (pathlib.PurePath(), CustomEncodedPathTypes.pure_path.json_encoding([])),
         (pathlib.PurePosixPath(), CustomEncodedPathTypes.pure_posix_path.json_encoding([])),
-        (
-            pathlib.PureWindowsPath(),
-            CustomEncodedPathTypes.pure_windows_path.json_encoding([]),
-        ),
-        (pathlib.Path("/"), CustomEncodedPathTypes.path.json_encoding(["/"])),
-        (pathlib.PosixPath("/"), CustomEncodedPathTypes.path.json_encoding(["/"])),
-        (pathlib.PurePath("/"), CustomEncodedPathTypes.pure_path.json_encoding(["/"])),
         (
             pathlib.PurePosixPath("/"),
             CustomEncodedPathTypes.pure_posix_path.json_encoding(["/"]),
         ),
         (
+            pathlib.PureWindowsPath(),
+            CustomEncodedPathTypes.pure_windows_path.json_encoding([]),
+        ),
+        (
             pathlib.PureWindowsPath("/"),
-            CustomEncodedPathTypes.pure_windows_path.json_encoding(["/"]),
+            CustomEncodedPathTypes.pure_windows_path.json_encoding(["\\"]),
         ),
     ]
 
     PATH_ENCODING_TEST_CASES = PATH_DECODING_TEST_CASES
 
+    PATH_ENCODING_UNSUPPORTED_CASES = [pathlib.PurePath, pathlib.WindowsPath, pathlib.Path]
+
     @staticmethod
-    def test_encode_path_error():
+    @pytest.mark.parametrize("value", PATH_ENCODING_UNSUPPORTED_CASES)
+    def test_encode_path_error(value):
         """ Test that the JsonSerializer.encode_path raises an error if no encoding is defined. """
         # Arrange
-        value = b"banana"
+        value = b"foobar"
 
         # Act & Assert
         with pytest.raises(NotImplementedError):
@@ -309,9 +308,9 @@ def test_round_trip():
         "complex_list": [1, 2, (3, 4, {5})],
         "my_test": {(1, 2), (3, 4)},
         "my_test2": {"one", "two"},
-        "purepath_windows": pathlib.PureWindowsPath(),
-        "purepath_posix": pathlib.PurePosixPath(),
         "path": pathlib.Path(),
+        "pure_windows_path": pathlib.PureWindowsPath(),
+        "pure_posix_Path": pathlib.PurePosixPath(),
     }
 
     # Act

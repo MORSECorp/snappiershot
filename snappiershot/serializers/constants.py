@@ -2,7 +2,7 @@
 import datetime
 from abc import ABC
 from decimal import Decimal
-from pathlib import Path, PurePath, PurePosixPath, PureWindowsPath
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any, Dict, Iterator, List, NamedTuple, Set, Union
 
 _Primitive = Union[bool, float, int, None, str]
@@ -160,9 +160,6 @@ class CustomEncodedPathTypes(_CustomEncodedTypeCollection):
     path = _CustomEncodedType(
         type_=Path, name="Path", type_key=type_key, value_key=value_key
     )
-    pure_path = _CustomEncodedType(
-        type_=PurePath, name="PurePath", type_key=type_key, value_key=value_key
-    )
     pure_posix_path = _CustomEncodedType(
         type_=PurePosixPath, name="PurePosixPath", type_key=type_key, value_key=value_key
     )
@@ -179,7 +176,7 @@ PRIMITIVE_TYPES = bool, float, int, type(None), str
 COLLECTION_TYPES = tuple(value.type for value in CustomEncodedCollectionTypes.list())
 DATETIME_TYPES = tuple(value.type for value in CustomEncodedDatetimeTypes.list())
 NUMERIC_TYPES = tuple(value.type for value in CustomEncodedNumericTypes.list())
-PATH_TYPES = PurePath, PurePosixPath, PureWindowsPath, Path
+PATH_TYPES = PurePosixPath, PureWindowsPath, Path
 SERIALIZABLE_TYPES = (
     PRIMITIVE_TYPES + COLLECTION_TYPES + DATETIME_TYPES + NUMERIC_TYPES + PATH_TYPES
 )
