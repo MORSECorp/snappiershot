@@ -214,6 +214,8 @@ class JsonSerializer(json.JSONEncoder):
             return CustomEncodedCollectionTypes.set.json_encoding(list(value))
         if isinstance(value, tuple):
             return CustomEncodedCollectionTypes.tuple.json_encoding(list(value))
+        if isinstance(value, bytes):
+            return CustomEncodedCollectionTypes.bytes.json_encoding(list(value))
         raise NotImplementedError(
             f"No encoding implemented for the following collection type: {value} ({type(value)})"
         )
@@ -407,6 +409,9 @@ class JsonDeserializer(json.JSONDecoder):
 
         if type_name == CustomEncodedCollectionTypes.tuple.name:
             return tuple(values)
+
+        if type_name == CustomEncodedCollectionTypes.bytes.name:
+            return bytes(values)
 
         raise NotImplementedError(
             f"Deserialization for the following collection type not implemented: {dct}"
