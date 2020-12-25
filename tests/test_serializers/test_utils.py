@@ -1,6 +1,7 @@
 """ Tests for snappiershot/serializers/utils.py """
 from types import SimpleNamespace
 
+import numpy as np
 import pandas as pd
 import pytest
 from snappiershot.serializers.utils import (
@@ -145,6 +146,28 @@ class TestDefaultEncodeValue:
     def test_encode_pandas_recurse(value, expected) -> None:
         """
         Test recursive encoding of pandas objects
+        """
+        # Arrange
+
+        # Act
+        result = default_encode_value(value)
+
+        # Assert
+        assert result == expected
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            # fmt: off
+            (np.array(['balloons', 'are', 'awesome']), ['balloons', 'are', 'awesome']),
+            ([np.float16(4), np.uint(4)], [4, 4]),
+            # fmt: on
+        ],
+    )
+    def test_encode_numpy_recurse(value, expected) -> None:
+        """
+        Test recursive encoding of numpy objects
         """
         # Arrange
 
