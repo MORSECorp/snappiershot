@@ -64,7 +64,7 @@ class Snapshot:
         self._snapshot_index += 1
 
         # Encode the user-supplied value
-        encoded_value = default_encode_value(value)
+        encoded_value = default_encode_value(value)  # type: ignore
 
         # Overwrite the snapshot value.
         if self._metadata.update_on_next_run or (stored_value is _NO_SNAPSHOT):
