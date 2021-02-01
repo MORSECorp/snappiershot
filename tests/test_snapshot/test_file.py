@@ -1,206 +1,15 @@
-""" Tests for snappiershot/snapshot.py """
+""" Tests for snappiershot/snapshot/_file.py """
 import json
 from pathlib import Path
-from typing import Dict, List, Type
-from warnings import WarningMessage
+from types import SimpleNamespace
+from typing import Dict, List
 
 import pytest
-from pytest_mock import MockerFixture
-from snappiershot.errors import SnappierShotWarning
-from snappiershot.snapshot import (
-    _NO_SNAPSHOT,
-    CallerInfo,
-    Config,
-    Snapshot,
-    SnapshotMetadata,
-    SnapshotStatus,
-    _SnapshotFile,
-)
-
-
-# ===== Fixtures ===========================================
-@pytest.fixture(name="config")
-def _config() -> Config:
-    """ Construct a default Config object to be used for all tests. """
-    return Config()
-
-
-@pytest.fixture(name="empty_caller_info")
-def _empty_caller_info(tmp_path: Path, mocker: MockerFixture) -> CallerInfo:
-    """ Mocks the call to the "from_call_stack" method of snappiershot.inspection.CallerInfo.
-
-    The method returns an CallerInfo object that contains no arguments.
-    """
-    empty_caller_info = CallerInfo(tmp_path, "test_function", args=dict())
-    mocker.patch(
-        "snappiershot.snapshot.CallerInfo.from_call_stack", return_value=empty_caller_info
-    )
-    return empty_caller_info
-
-
-@pytest.fixture(name="metadata")
-def _metadata(empty_caller_info: CallerInfo) -> SnapshotMetadata:
-    """ Construct a default SnapshotMetadata object. """
-    return SnapshotMetadata(empty_caller_info, update_on_next_run=False)
-
-
-@pytest.fixture(name="snapshot_file")
-def _snapshot_file(tmp_path: Path, mocker: MockerFixture) -> Path:
-    """ Mocks the call to the snappiershot.serializers.utils.get_snapshot_file. """
-    snapshot_file = tmp_path.joinpath("snapshot.json")
-    mocker.patch("snappiershot.snapshot.get_snapshot_file", return_value=snapshot_file)
-    return snapshot_file
-
-
-@pytest.fixture(name="snapshot")
-@pytest.mark.usefixtures("snapshot_file")
-def _snapshot(config: Config, metadata: SnapshotMetadata) -> Snapshot:
-    """ Returns a snappiershot.snapshot.Snapshot object with preset
-    _metadata and _snapshot_file attributes.
-    """
-    snapshot = Snapshot()
-    snapshot._metadata = metadata
-    snapshot._snapshot_file = _SnapshotFile(config=config, metadata=metadata)
-    snapshot._within_context = True
-    return snapshot
-
-
-# ===== Unit Tests =========================================
-
-
-class TestSnapshotMetadata:
-    """ Tests for the snappiershot.snapshot.SnapshotMetadata object. """
-
-    FAKE_CALLER_INFO = CallerInfo(
-        file=Path("fake/file/path"),
-        function="fake_fully_qualified_function_name",
-        args={"foo": 1, "bar": "two"},
-    )
-
-    DEFAULT_METADATA_KWARGS = dict(
-        caller_info=FAKE_CALLER_INFO,
-        update_on_next_run=False,
-        test_runner_provided_name="",
-        user_provided_name="",
-    )
-
-    @staticmethod
-    @pytest.mark.parametrize(
-        "metadata_kwargs, expected_error",
-        [
-            ({**DEFAULT_METADATA_KWARGS, "caller_info": None}, TypeError),
-            ({**DEFAULT_METADATA_KWARGS, "update_on_next_run": "foo"}, TypeError),
-            ({**DEFAULT_METADATA_KWARGS, "test_runner_provided_name": 1.23}, TypeError),
-            ({**DEFAULT_METADATA_KWARGS, "user_provided_name": 1.23}, TypeError),
-        ],
-    )
-    def test_metadata_validate(metadata_kwargs: Dict, expected_error: Type[Exception]):
-        """ Checks that validation of the metadata values occurs as expected. """
-        # Arrange
-
-        # Act & Assert
-        with pytest.raises(expected_error):
-            SnapshotMetadata(**metadata_kwargs)
-
-    @staticmethod
-    @pytest.mark.parametrize(
-        "metadata_kwargs, metadata_dict, matches",
-        [
-            (DEFAULT_METADATA_KWARGS, {"arguments": FAKE_CALLER_INFO.args}, True),
-            (DEFAULT_METADATA_KWARGS, {"arguments": {"foo": 1, "bar": 2}}, False),
-        ],
-    )
-    def test_metadata_matches(metadata_kwargs: Dict, metadata_dict: Dict, matches: bool):
-        """ Checks that the SnapshotMetadata.matches method functions as expected. """
-        # Arrange
-        metadata = SnapshotMetadata(**metadata_kwargs)
-
-        # Act
-        result = metadata.matches(metadata_dict)
-
-        # Assert
-        assert result == matches
-
-
-class TestSnapshot:
-    """ Tests for the snappiershot.snapshot.Snapshot object. """
-
-    @staticmethod
-    def test_snapshot_assert(snapshot: Snapshot, mocker: MockerFixture) -> None:
-        """ Checks that snapshot assert works as expected """
-        # Arrange
-        # Mock stored snapshot value
-        value = {"balloons": "are awesome"}
-        mocker.patch.object(snapshot._snapshot_file, "get_snapshot", return_value=value)
-
-        # Act
-        result = snapshot.assert_match(value=value)
-
-        # Assert
-        assert result
-
-    @staticmethod
-    def test_snapshot_assert_failure(snapshot: Snapshot, mocker: MockerFixture) -> None:
-        """ Checks that snapshot assert works as expected with mis-matched values"""
-        # Arrange
-        # Mock stored snapshot value
-        value = {"balloons": "are awesome"}
-        mocker.patch.object(snapshot._snapshot_file, "get_snapshot", return_value=value)
-
-        bad_value = {"balloons": "are not awesome"}
-
-        # Act / Assert
-        with pytest.raises(AssertionError):
-            snapshot.assert_match(value=bad_value)
-
-    @staticmethod
-    def test_snapshot_update(
-        snapshot: Snapshot, mocker: MockerFixture, warning_catcher: List[WarningMessage]
-    ) -> None:
-        """ Checks that snapshot assert with update flag ON works as expected.
-
-        If "update" is flagged, then no AssertionError should be raised.
-        """
-        # Arrange
-        # Mock stored snapshot value
-        value = {"balloons": "are awesome"}
-        mocker.patch.object(snapshot._snapshot_file, "get_snapshot", return_value=value)
-
-        new_value = {"balloons": "are not awesome"}
-
-        # Act
-        result = snapshot.assert_match(value=new_value, update=True)
-
-        # Assert
-        assert result
-        assert warning_catcher
-        assert warning_catcher[0].category == SnappierShotWarning
-
-    @staticmethod
-    def test_construct_diff(mocker: MockerFixture):
-        """ Test that the human-readable diff is constructed as expected. """
-        # Arrange
-        value = False
-        expected = 3 + 4j
-        comparison = mocker.MagicMock()
-
-        summary_message = "Types not equal: <class 'bool'> != <class 'complex'>"
-        comparison.differences.items = dict(msg=summary_message)
-        expected_diff = f"""
-- False
-+ (3+4j)
-------------------------------------------------------------------------------
-Summary:
-  > {summary_message}
-""".lstrip(
-            "\n"
-        )  # Strip the newline from the start.
-
-        # Act
-        result = Snapshot._construct_diff(value, expected, comparison)
-
-        # Assert
-        assert result == expected_diff
+from snappiershot.config import Config
+from snappiershot.inspection import CallerInfo
+from snappiershot.snapshot._file import _NO_SNAPSHOT, _SnapshotFile
+from snappiershot.snapshot.metadata import SnapshotMetadata
+from snappiershot.snapshot.status import SnapshotStatus
 
 
 @pytest.mark.usefixtures("empty_caller_info", "snapshot_file")
@@ -415,19 +224,18 @@ class TestSnapshotFile:
             assert snapshot_file_object._snapshot_statuses == expected_statuses
 
     @staticmethod
-    def test_write_error(config: Config, metadata: SnapshotMetadata, snapshot_file: Path):
-        """ Test if an error occurs during snapshot writing, no file is written. """
+    def test_encoded_metadata(config: Config, snapshot_file: Path):
+        """ Test that SnapshotMetadata gets encoded to eliminate serialization errors. """
         # Arrange
+        args = dict(unhandled_type=SimpleNamespace(complex=3 + 4j))
+        caller_info = CallerInfo(snapshot_file, "test_function", args)
+        metadata = SnapshotMetadata(caller_info, update_on_next_run=False)
         snapshot_file_object = _SnapshotFile(config, metadata)
-        snapshot_file_object._changed_flag = True
-        snapshot_file_object.record_snapshot({("tuple as key",): None})
 
         # Act
-        try:
-            snapshot_file_object.write()
-        except TypeError:
-            pass
+        snapshot_file_object._changed_flag = True
+        snapshot_file_object.write()
 
         # Assert
-        assert not snapshot_file.exists()
-        assert not list(snapshot_file.parent.glob("*"))
+        assert snapshot_file.exists()
+        print(snapshot_file.read_text())

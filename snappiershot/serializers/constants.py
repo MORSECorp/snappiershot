@@ -146,6 +146,13 @@ class CustomEncodedCollectionTypes(_CustomEncodedTypeCollection):
     tuple = _CustomEncodedType(
         type_=tuple, name="tuple", type_key=type_key, value_key=value_key
     )
+    bytes = _CustomEncodedType(
+        type_=bytes, name="bytes", type_key=type_key, value_key=value_key
+    )
+
+
+class _UnavailableType:
+    """ Empty class for handling optional type dependencies that are unavailable """
 
 
 # Tuples of types intended to be used for isinstance checking.
