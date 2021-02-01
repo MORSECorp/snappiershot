@@ -1,0 +1,59 @@
+name: Pre-Release
+
+on:
+  pull_request:
+    branches:
+      - primary
+jobs:
+  Primary-Merge-Checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install and set up Poetry
+        run: |
+          curl -fsS -o get-poetry.py https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py
+          python get-poetry.py --preview -y
+          source $HOME/.poetry/env
+      - name: Set up cache
+        uses: actions/cache@v1
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
+      - name: Upgrade pip
+        run: |
+          source $HOME/.poetry/env
+          poetry run python -m pip install pip -U
+      - name: Install dependencies
+        run: |
+          source $HOME/.poetry/env
+          poetry install -vvv
+      - name: Get latest PyPI version
+        run: |
+          export PYPI_JSON=$(curl https://pypi.org/pypi/snappiershot/json)
+          echo ${PYPI_JSON} | python -m json.tool
+          PYPI_VERSION=$(python -c "import json; import os; data = json.loads(os.getenv('PYPI_JSON')); print(sorted(data['releases'].keys())[-1])")
+          echo "PYPI_VERSION=${PYPI_VERSION}"
+          echo "PYPI_VERSION=${PYPI_VERSION}" >> $GITHUB_ENV
+      - name: Get current package version
+        run: |
+          source $HOME/.poetry/env
+          PACKAGE_VERSION=$(poetry run python -c "import snappiershot; print(snappiershot.__version__)")
+          echo "PACKAGE_VERSION=${PACKAGE_VERSION}"
+          echo "PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
+      # Check that the version of the package has been bumped.
+      - name: Check version bump
+        run: |
+          echo "Checking: ${PACKAGE_VERSION} != ${PYPI_VERSION}"
+          if [ $PACKAGE_VERSION = $PYPI_VERSION ] ;
+          then
+            exit 1
+          fi
+      # Check that the changelog has been updated.
+      - name: Check changelog
+        run: |
+          cat CHANGELOG.md | grep -F "## v${PACKAGE_VERSION}" || false
