@@ -436,11 +436,13 @@ class JsonDeserializer(json.JSONDecoder):
         """
         type_name = dct.get(CustomEncodedPathTypes.type_key)
         parts = dct.get(CustomEncodedPathTypes.value_key)
-        for index, part in enumerate(parts):
-            if part == "\\":
-                parts[index] = "/"
-
-        path_str = os.path.join(*parts) if parts else ""
+        if parts:
+            for index, part in enumerate(parts):
+                if part == "\\":
+                    parts[index] = "/"
+            path_str = os.path.join(*parts)
+        else:
+            path_str = ""
 
         if type_name == CustomEncodedPathTypes.path.name:
             return Path(path_str)
