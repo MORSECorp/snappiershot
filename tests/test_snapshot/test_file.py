@@ -1,10 +1,12 @@
 """ Tests for snappiershot/snapshot/_file.py """
 import json
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Dict, List
 
 import pytest
 from snappiershot.config import Config
+from snappiershot.inspection import CallerInfo
 from snappiershot.snapshot._file import _NO_SNAPSHOT, _SnapshotFile
 from snappiershot.snapshot.metadata import SnapshotMetadata
 from snappiershot.snapshot.status import SnapshotStatus
@@ -220,3 +222,20 @@ class TestSnapshotFile:
         assert snapshot_file.exists() == file_written
         if file_written:
             assert snapshot_file_object._snapshot_statuses == expected_statuses
+
+    @staticmethod
+    def test_encoded_metadata(config: Config, snapshot_file: Path):
+        """ Test that SnapshotMetadata gets encoded to eliminate serialization errors. """
+        # Arrange
+        args = dict(unhandled_type=SimpleNamespace(complex=3 + 4j))
+        caller_info = CallerInfo(snapshot_file, "test_function", args)
+        metadata = SnapshotMetadata(caller_info, update_on_next_run=False)
+        snapshot_file_object = _SnapshotFile(config, metadata)
+
+        # Act
+        snapshot_file_object._changed_flag = True
+        snapshot_file_object.write()
+
+        # Assert
+        assert snapshot_file.exists()
+        print(snapshot_file.read_text())

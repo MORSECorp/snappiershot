@@ -1,11 +1,11 @@
 """ Interface for the snapshot files. """
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Union, cast
 
 from ..config import Config
 from ..constants import SnapshotKeys
 from ..serializers.io import parse_snapshot_file, write_json_file
-from ..serializers.utils import get_snapshot_file
+from ..serializers.utils import default_encode_value, get_snapshot_file
 from .metadata import SnapshotMetadata
 from .status import SnapshotStatus
 
@@ -187,8 +187,9 @@ class _SnapshotFile:
                 return function_snapshot[SnapshotKeys.snapshots]
 
         # If no sub-section exists, create it.
+        encoded_metadata = cast(dict, default_encode_value(metadata.as_dict()))
         function_snapshots.append(
-            dict(metadata={**metadata.as_dict(), "update_on_next_run": False}, snapshots=[])
+            dict(metadata={**encoded_metadata, "update_on_next_run": False}, snapshots=[])
         )
         return function_snapshots[-1][SnapshotKeys.snapshots]
 
