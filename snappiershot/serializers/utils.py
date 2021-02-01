@@ -1,18 +1,13 @@
 """ Utilities for the serializers. """
 import inspect
-import json
 import warnings
 from pathlib import Path
 from typing import Any, Dict, Sequence
 
-from ..constants import (
-    ENCODING_FUNCTION_NAME,
-    SNAPSHOT_DIRECTORY,
-    SnapshotKeys,
-)
+from ..constants import ENCODING_FUNCTION_NAME, SNAPSHOT_DIRECTORY
 from ..errors import SnappierShotWarning
 from .constants import SERIALIZABLE_TYPES, JsonType
-from .json import JsonDeserializer
+from .optional_module_utils import Pandas
 
 
 def default_encode_value(value: Any) -> JsonType:
@@ -35,6 +30,11 @@ def default_encode_value(value: Any) -> JsonType:
                 )
         return encoded_dict
 
+    # If the value is an exception. Every exception has unique hashes and therefore
+    #   cannot automatically be compared.
+    if isinstance(value, BaseException):
+        return encode_exception(value)
+
     # If the value is a sequence, recurse.
     if isinstance(value, Sequence):
         encoded_sequence = list()
@@ -47,6 +47,11 @@ def default_encode_value(value: Any) -> JsonType:
                     SnappierShotWarning,
                 )
         return encoded_sequence
+
+    # If the value is a pandas object, encode and recurse
+    if Pandas.is_pandas_object(value):
+        encoded_pandas = Pandas.encode_pandas(value)
+        return default_encode_value(encoded_pandas)
 
     # If the value is an instanced class.
     if is_instanced_object(value):
@@ -62,6 +67,27 @@ def default_encode_value(value: Any) -> JsonType:
         "You must either encode this value manually, or open an Issue on our Github "
         "page describing a default serialization for this type. "
     )
+
+
+def encode_exception(value: BaseException) -> JsonType:
+    """ Encode an exception object.
+
+    These objects need to be specially handled because each exception has a unique
+      hash and therefore cannot be automatically compared.
+
+    The encoded format:
+      {
+        exception_type: <Exception Name>
+        exception_message: <Exception Message>
+      }
+
+    Args:
+        value: The exception object to be encoded.
+
+    Returns:
+        JSON serializable and comparable object.
+    """
+    return dict(exception_type=type(value).__name__, exception_value=str(value))
 
 
 def get_snapshot_file(test_file: Path, suffix: str) -> Path:
@@ -96,28 +122,3 @@ def is_instanced_object(value: Any) -> bool:
     is_function = inspect.isroutine(value)
     is_object = hasattr(value, "__dict__")
     return is_object and not is_type and not is_function
-
-
-def parse_snapshot_file(snapshot_file: Path) -> Dict:
-    """ Parses the snapshot file.
-
-    Args:
-        snapshot_file: The path to the file containing snapshots.
-
-    Raises:
-        ValueError: If the file format of the snapshot_file is not supported or recognized.
-    """
-    if snapshot_file.suffix == ".json":
-        with snapshot_file.open() as json_file:
-            file_contents = json.load(json_file, cls=JsonDeserializer)
-    else:
-        raise ValueError(f"Unsupported snapshot file format: {snapshot_file.suffix}")
-
-    contains_version = SnapshotKeys.version in file_contents
-    contains_tests = SnapshotKeys.tests in file_contents
-    if not (contains_tests and contains_version):
-        raise ValueError(
-            f"Invalid snapshot file detected: {snapshot_file} \n"
-            f"Expected top-level keys: {SnapshotKeys.version}, {SnapshotKeys.tests}"
-        )
-    return file_contents

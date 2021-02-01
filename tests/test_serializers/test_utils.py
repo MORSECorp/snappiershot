@@ -1,13 +1,12 @@
 """ Tests for snappiershot/serializers/utils.py """
-import json
 from types import SimpleNamespace
 
+import pandas as pd
 import pytest
 from snappiershot.serializers.utils import (
-    SnapshotKeys,
     default_encode_value,
+    encode_exception,
     get_snapshot_file,
-    parse_snapshot_file,
 )
 
 
@@ -128,6 +127,33 @@ class TestDefaultEncodeValue:
         # Assert
         assert result == expected
 
+    @staticmethod
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            # fmt: off
+            (pd.DataFrame({'a': [1, 2, 3], 'balloons': ['are', 'awesome', SimpleNamespace(floating='wicker', propelled_by='fire')]}),
+             {'index': [0, 1, 2],
+              'columns': ['a', 'balloons'],
+              'data': [[1, 'are'], [2, 'awesome'], [3, dict(floating='wicker', propelled_by='fire')]]}),
+            (pd.Series({0: 1, 1: 2, 2: SimpleNamespace(balloons="are awesome")}),
+             {'index': [0, 1, 2],
+              'data': [1, 2, dict(balloons="are awesome")]}),
+            # fmt: on
+        ],
+    )
+    def test_encode_pandas_recurse(value, expected) -> None:
+        """
+        Test recursive encoding of pandas objects
+        """
+        # Arrange
+
+        # Act
+        result = default_encode_value(value)
+
+        # Assert
+        assert result == expected
+
 
 class TestGetSnapshotFile:
     """ Tests for the get_snapshot_file utility function. """
@@ -172,50 +198,28 @@ class TestGetSnapshotFile:
             get_snapshot_file(test_file, suffix)
 
 
-class TestParseSnapshotFile:
-    """ Tests for the parse_snapshot_file utility function. """
-
-    @staticmethod
-    def test_parse_snapshot_file(tmp_path):
-        """ Test that parse_snapshot_file parses snapshot files as expected """
-        # Arrange
-        snapshot_file = tmp_path / "example_test.json"
-        expected = {SnapshotKeys.version: "X.X.X", SnapshotKeys.tests: dict()}
-        snapshot_file.write_text(json.dumps(expected))
-
-        # Act
-        returned = parse_snapshot_file(snapshot_file)
-
-        # Assert
-        assert returned == expected
-
-    @staticmethod
-    def test_parse_snapshot_file_format_error(tmp_path):
-        """ Test that parse_snapshot_file raises an error when attempting to parse
-        an unsupported file format for snapshot files.
-        """
-        # Arrange
-        snapshot_file = tmp_path / "example_test.png"
-
-        # Act & Assert
-        with pytest.raises(ValueError):
-            parse_snapshot_file(snapshot_file)
+class TestEncodingExceptions:
+    """ Tests for exception encoding. """
 
     @staticmethod
     @pytest.mark.parametrize(
-        "contents", ["{}", '{"snappiershot_version": "X.X.X"}', '{"tests": {}}']
+        "value, expected",
+        # fmt: off
+        [(ValueError("That's a bad value"),
+          dict(exception_type="ValueError",
+               exception_value="That's a bad value")),
+         (OSError(2, "No such file or directory", "<><"),
+          dict(exception_type="FileNotFoundError",
+               exception_value="[Errno 2] No such file or directory: '<><'")),
+         ]
+        # fmt: on
     )
-    def test_parse_snapshot_file_error(contents: str, tmp_path):
-        """ Test that parse_snapshot_file raises an error when the contents of
-        the parsed snapshot file do not adhere to the snapshot file format.
-
-        The snapshot format should be:
-          {"snappiershot_version": "X.X.X", "tests": {...}}
-        """
+    def test_write_json_error(value, expected):
+        """ Test if an error occurs during snapshot writing, no file is written. """
         # Arrange
-        snapshot_file = tmp_path / "example_test.json"
-        snapshot_file.write_text(contents)
 
-        # Act & Assert
-        with pytest.raises(ValueError):
-            parse_snapshot_file(snapshot_file)
+        # Act
+        result = encode_exception(value)
+
+        # Assert
+        assert result == expected
