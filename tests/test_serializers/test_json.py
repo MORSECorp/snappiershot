@@ -213,20 +213,37 @@ class TestPathEncoding:
     """ Tests for custom encoding of Path types. """
 
     PATH_DECODING_TEST_CASES = [
-        (pathlib.Path(), CustomEncodedPathTypes.path.json_encoding([])),
-        (pathlib.PosixPath(), CustomEncodedPathTypes.path.json_encoding([])),
-        (pathlib.PurePosixPath(), CustomEncodedPathTypes.pure_posix_path.json_encoding([])),
         (
-            pathlib.PurePosixPath("/"),
-            CustomEncodedPathTypes.pure_posix_path.json_encoding(["/"]),
+            pathlib.Path("/Users/"),
+            CustomEncodedPathTypes.path.json_encoding(["/", "Users"]),
         ),
         (
-            pathlib.PureWindowsPath(),
-            CustomEncodedPathTypes.pure_windows_path.json_encoding([]),
+            pathlib.PosixPath("/Users/Shared/"),
+            CustomEncodedPathTypes.path.json_encoding(["/", "Users", "Shared"]),
         ),
         (
-            pathlib.PureWindowsPath("/"),
-            CustomEncodedPathTypes.pure_windows_path.json_encoding(["\\"]),
+            pathlib.PurePosixPath("/Users/Shared/test"),
+            CustomEncodedPathTypes.pure_posix_path.json_encoding(
+                ["/", "Users", "Shared", "test"]
+            ),
+        ),
+        (
+            pathlib.PurePosixPath("/Users/guest/Documents/test"),
+            CustomEncodedPathTypes.pure_posix_path.json_encoding(
+                ["/", "Users", "guest", "Documents", "test"]
+            ),
+        ),
+        (
+            pathlib.PureWindowsPath("/Users/guest/Documents/test"),
+            CustomEncodedPathTypes.pure_windows_path.json_encoding(
+                ["\\", "Users", "guest", "Documents", "test"]
+            ),
+        ),
+        (
+            pathlib.PureWindowsPath("/Library/directory_name/sub_dir_name/test"),
+            CustomEncodedPathTypes.pure_windows_path.json_encoding(
+                ["\\", "Library", "directory_name", "sub_dir_name", "test"]
+            ),
         ),
     ]
 
