@@ -187,7 +187,7 @@ class _SnapshotFile:
                 return function_snapshot[SnapshotKeys.snapshots]
 
         # If no sub-section exists, create it.
-        encoded_metadata = cast(dict, default_encode_value(metadata.as_dict()))
+        encoded_metadata = cast(dict, default_encode_value(metadata.as_dict(), set()))
         function_snapshots.append(
             dict(metadata={**encoded_metadata, "update_on_next_run": False}, snapshots=[])
         )

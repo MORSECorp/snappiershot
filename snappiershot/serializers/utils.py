@@ -83,7 +83,7 @@ def default_encode_value(value: Any, context: Set[int]) -> JsonType:
     # If the value is a numpy object, encode and recurse
     if Numpy.is_numpy_object(value):
         encoded_numpy = Numpy.encode_numpy(value)
-        return default_encode_value(encoded_numpy)
+        return default_encode_value(encoded_numpy, context)
 
     # If the value is an instanced class.
     if is_instanced_object(value):
