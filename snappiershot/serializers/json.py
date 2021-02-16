@@ -1,7 +1,6 @@
 """ Serializer (and Deserializer) classes for the JSON format. """
 import datetime
 import json
-import os
 from decimal import Decimal, DecimalTuple
 from numbers import Number
 from pathlib import Path, PurePath, PurePosixPath, PureWindowsPath
@@ -441,20 +440,13 @@ class JsonDeserializer(json.JSONDecoder):
         """
         type_name = dct.get(CustomEncodedPathTypes.type_key)
         parts = dct.get(CustomEncodedPathTypes.value_key)
-        if parts:
-            for index, part in enumerate(parts):
-                if part == "\\":
-                    parts[index] = "/"
-            path_str = os.path.join(*parts)
-        else:
-            path_str = ""
 
         if type_name == CustomEncodedPathTypes.path.name:
-            return Path(path_str)
+            return Path().joinpath(*parts)
         if type_name == CustomEncodedPathTypes.pure_posix_path.name:
-            return PurePosixPath(path_str)
+            return PurePosixPath().joinpath(*parts)
         if type_name == CustomEncodedPathTypes.pure_windows_path.name:
-            return PureWindowsPath(path_str)
+            return PureWindowsPath().joinpath(*parts)
 
         raise NotImplementedError(
             f"Deserialization for the following Path type not implemented: {dct}"
