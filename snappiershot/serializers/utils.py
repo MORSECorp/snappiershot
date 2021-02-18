@@ -1,6 +1,7 @@
 """ Utilities for the serializers. """
 import inspect
 import warnings
+from copy import copy
 from functools import wraps
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Sequence, Set
@@ -91,7 +92,7 @@ def default_encode_value(value: Any, context: Set[int]) -> JsonType:
         if hasattr(value, ENCODING_FUNCTION_NAME):
             return getattr(value, ENCODING_FUNCTION_NAME)()
         # Default to encoding the class dictionary.
-        return default_encode_value(vars(value), context)
+        return default_encode_value(fullvars(value), context)
 
     raise ValueError(
         f"Cannot serialize this value: {value} \n"
@@ -152,5 +153,29 @@ def is_instanced_object(value: Any) -> bool:
     """ Check if the input value is an instanced object, i.e. an instantiated class. """
     is_type = inspect.isclass(value)
     is_function = inspect.isroutine(value)
-    is_object = hasattr(value, "__dict__")
+    is_object = hasattr(value, "__dict__") or hasattr(value, "__slots__")
     return is_object and not is_type and not is_function
+
+
+def fullvars(value: Any) -> dict:
+    """ Returns a mapping of all attributes to their associated values for a given object.
+    Supports slots-optimized classes.
+
+    Args:
+        value: An instantiated class.
+    Returns:
+        A full `vars` dictionary.
+    """
+    # Start with the contents of __dict__ (if it exists).
+    obj_dict = copy(getattr(value, "__dict__", dict()))
+
+    # Iterate through the __slots__ (if they exist).
+    for slot in getattr(value, "__slots__", tuple()):
+        # The __dict__ object may be included in the __slots__.
+        if slot in obj_dict or slot == "__dict__":
+            continue
+        # Slots attributes are not necessarily instantiated.
+        if hasattr(value, slot):
+            obj_dict[slot] = getattr(value, slot)
+
+    return obj_dict
