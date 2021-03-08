@@ -94,9 +94,6 @@ class JsonSerializer(json.JSONEncoder):
         if isinstance(value, PATH_TYPES):
             return self.encode_path(value)
 
-        if isinstance(value, COLLECTION_TYPES):
-            return self.encode_collection(value)
-
         raise NotImplementedError(  # pragma: no cover
             f"Encoding for this object is not yet implemented: {value} ({type(value)})"
         )
