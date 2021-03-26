@@ -2,6 +2,7 @@
 import datetime
 from abc import ABC
 from decimal import Decimal
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any, Dict, Iterator, List, NamedTuple, Set, Union
 
 _Primitive = Union[bool, float, int, None, str]
@@ -155,9 +156,34 @@ class _UnavailableType:
     """ Empty class for handling optional type dependencies that are unavailable """
 
 
+class CustomEncodedPathTypes(_CustomEncodedTypeCollection):
+    """ Collection of custom-encoded Path types. """
+
+    # Corresponds to the _CustomEncodedType.type_key attribute.
+    type_key = "__snappiershot_path__"
+    # Corresponds to the _CustomEncodedType.value_key attribute.
+    value_key = "parts"
+
+    path = _CustomEncodedType(
+        type_=Path, name="Path", type_key=type_key, value_key=value_key
+    )
+    pure_posix_path = _CustomEncodedType(
+        type_=PurePosixPath, name="PurePosixPath", type_key=type_key, value_key=value_key
+    )
+    pure_windows_path = _CustomEncodedType(
+        type_=PureWindowsPath,
+        name="PureWindowsPath",
+        type_key=type_key,
+        value_key=value_key,
+    )
+
+
 # Tuples of types intended to be used for isinstance checking.
 PRIMITIVE_TYPES = bool, float, int, type(None), str
 COLLECTION_TYPES = tuple(value.type for value in CustomEncodedCollectionTypes.list())
 DATETIME_TYPES = tuple(value.type for value in CustomEncodedDatetimeTypes.list())
 NUMERIC_TYPES = tuple(value.type for value in CustomEncodedNumericTypes.list())
-SERIALIZABLE_TYPES = PRIMITIVE_TYPES + COLLECTION_TYPES + DATETIME_TYPES + NUMERIC_TYPES
+PATH_TYPES = PurePosixPath, PureWindowsPath, Path
+SERIALIZABLE_TYPES = (
+    PRIMITIVE_TYPES + COLLECTION_TYPES + DATETIME_TYPES + NUMERIC_TYPES + PATH_TYPES
+)

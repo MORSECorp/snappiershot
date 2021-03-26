@@ -1,6 +1,7 @@
 """ Tests for snappiershot/serializers/json.py """
 import datetime
 import json
+import pathlib
 from decimal import Decimal
 from math import inf, isnan, nan
 
@@ -9,6 +10,7 @@ from snappiershot.serializers.constants import (
     CustomEncodedCollectionTypes,
     CustomEncodedDatetimeTypes,
     CustomEncodedNumericTypes,
+    CustomEncodedPathTypes,
 )
 from snappiershot.serializers.json import JsonDeserializer, JsonSerializer
 
@@ -208,7 +210,95 @@ class TestCollectionEncoding:
             JsonDeserializer.decode_collection(value)
 
 
-def test_round_trip():
+class TestPathEncoding:
+    """ Tests for custom encoding of Path types. """
+
+    PATH_DECODING_TEST_CASES = [
+        (
+            pathlib.Path("/Users/"),
+            CustomEncodedPathTypes.path.json_encoding(["/", "Users"]),
+        ),
+        (
+            pathlib.PosixPath("/Users/Shared/"),
+            CustomEncodedPathTypes.path.json_encoding(["/", "Users", "Shared"]),
+        ),
+        (
+            pathlib.PurePosixPath("/Users/Shared/test"),
+            CustomEncodedPathTypes.pure_posix_path.json_encoding(
+                ["/", "Users", "Shared", "test"]
+            ),
+        ),
+        (
+            pathlib.PurePosixPath("/Users/guest/Documents/test"),
+            CustomEncodedPathTypes.pure_posix_path.json_encoding(
+                ["/", "Users", "guest", "Documents", "test"]
+            ),
+        ),
+        (
+            pathlib.PureWindowsPath("/Users/guest/Documents/test"),
+            CustomEncodedPathTypes.pure_windows_path.json_encoding(
+                ["\\", "Users", "guest", "Documents", "test"]
+            ),
+        ),
+        (
+            pathlib.PureWindowsPath("/Library/directory_name/sub_dir_name/test"),
+            CustomEncodedPathTypes.pure_windows_path.json_encoding(
+                ["\\", "Library", "directory_name", "sub_dir_name", "test"]
+            ),
+        ),
+    ]
+
+    PATH_ENCODING_TEST_CASES = PATH_DECODING_TEST_CASES
+
+    PATH_ENCODING_UNSUPPORTED_CASES = [pathlib.PurePath, pathlib.WindowsPath, pathlib.Path]
+
+    @staticmethod
+    @pytest.mark.parametrize("value", PATH_ENCODING_UNSUPPORTED_CASES)
+    def test_encode_path_error(value):
+        """ Test that the JsonSerializer.encode_path raises an error if no encoding is defined. """
+        # Arrange
+        value = b"foobar"
+
+        # Act & Assert
+        with pytest.raises(NotImplementedError):
+            JsonSerializer.encode_path(value)
+
+    @staticmethod
+    @pytest.mark.parametrize("value, expected", PATH_ENCODING_TEST_CASES)
+    def test_encode_path(value, expected):
+        """ Test that the JsonSerializer.encode_collection encodes values as expected. """
+        # Arrange
+
+        # Act
+        result = JsonSerializer.encode_path(value)
+
+        # Assert
+        assert result == expected
+
+    @staticmethod
+    @pytest.mark.parametrize("expected, value", PATH_DECODING_TEST_CASES)
+    def test_decode_path(value, expected):
+        """ Test that the JsonDeserializer.decode_collection decodes collections as expected. """
+        # Arrange
+
+        # Act
+        result = JsonDeserializer.decode_path(value)
+
+        # Assert
+        assert result == expected
+
+    @staticmethod
+    def test_decode_path_error():
+        """ Test that the JsonDeserializer.decode_collection raises an error if no decoding is defined. """
+        # Arrange
+        value = {"foo": "bar"}
+
+        # Act & Assert
+        with pytest.raises(NotImplementedError):
+            JsonDeserializer.decode_path(value)
+
+
+def test_round_trip(tmp_path: pathlib.Path):
     """ Test that a serialized and then deserialized dictionary is unchanged. """
     # Arrange
     data = {
@@ -236,14 +326,22 @@ def test_round_trip():
         "complex_list": [1, 2, (3, 4, {5})],
         "my_test": {(1, 2), (3, 4)},
         "my_test2": {"one", "two"},
+        "path": pathlib.Path(),
+        "pure_windows_path": pathlib.PureWindowsPath(),
+        "pure_posix_Path": pathlib.PurePosixPath(),
         "bytes": b"bytes",
     }
+    test_file = tmp_path / "test.json"
 
     # Act
     serialized = json.dumps(data, cls=JsonSerializer)
     deserialized = json.loads(serialized, cls=JsonDeserializer)
 
+    json.dump(data, test_file.open("w"), cls=JsonSerializer)
+    deserialized_from_file = json.load(test_file.open(), cls=JsonDeserializer)
+
     # Assert
     for key, value in deserialized.items():
         expected = data.get(key)
         assert expected == value
+    assert deserialized == deserialized_from_file

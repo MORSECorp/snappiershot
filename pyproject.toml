@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "snappiershot"
-version = "1.0.0"
+version = "1.0.1"
 description = "Snapshot testing library."
 authors = [
     "Ben Bonenfant <bonenfan5ben@gmail.com>",

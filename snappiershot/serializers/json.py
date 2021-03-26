@@ -3,14 +3,17 @@ import datetime
 import json
 from decimal import Decimal, DecimalTuple
 from numbers import Number
-from typing import Any, Collection, Dict, List
+from pathlib import Path, PurePath, PurePosixPath, PureWindowsPath
+from typing import Any, Collection, Dict, Iterator, List
 
 from .constants import (
     COLLECTION_TYPES,
     DATETIME_TYPES,
+    PATH_TYPES,
     CustomEncodedCollectionTypes,
     CustomEncodedDatetimeTypes,
     CustomEncodedNumericTypes,
+    CustomEncodedPathTypes,
     JsonType,
 )
 
@@ -25,6 +28,21 @@ class JsonSerializer(json.JSONEncoder):
         >>> assert json.dumps(data, cls=JsonSerializer) == '{"a": 1, "b": 2}'
     """
 
+    @classmethod
+    def _hint_tuples(cls, obj: Any) -> Any:
+        """ Convert tuples in a pre-processing step.
+
+        Extrapolated from: https://stackoverflow.com/a/15721641
+        """
+        if isinstance(obj, list):
+            return [cls._hint_tuples(item) for item in obj]
+        if isinstance(obj, COLLECTION_TYPES):
+            # Collection encoded before recursion to support sets.
+            return cls._hint_tuples(cls.encode_collection(obj))
+        if isinstance(obj, dict):
+            return {key: cls._hint_tuples(value) for key, value in obj.items()}
+        return obj
+
     def encode(self, obj: Any) -> str:
         """
         Override JSONEncoder.encode to support tuple type hinting.
@@ -35,22 +53,19 @@ class JsonSerializer(json.JSONEncoder):
 
         This method is intended to be called only by the ``json.dumps`` method.
         """
+        return super().encode(self._hint_tuples(obj))
 
-        def hint_tuples(obj_: Any) -> Any:
-            """ Convert tuples in a pre-processing step.
+    def iterencode(self, obj: Any, _one_shot: bool = False) -> Iterator[str]:
+        """
+        Override JSONEncoder.iterencode to support tuple type hinting.
 
-            Extrapolated from: https://stackoverflow.com/a/15721641
-            """
-            if isinstance(obj_, list):
-                return [hint_tuples(item) for item in obj_]
-            if isinstance(obj_, COLLECTION_TYPES):
-                # Collection encoded before recursion to support sets.
-                return hint_tuples(self.encode_collection(obj_))
-            if isinstance(obj_, dict):
-                return {key: hint_tuples(value) for key, value in obj_.items()}
-            return obj_
+        The default JSONEncoder supports both primitive types: tuples and lists. In its implementation,
+         tuples are implicitly converted to lists. To avoid this, this method allows tuples and lists
+         to be encoded as separate types.
 
-        return super().encode(hint_tuples(obj))
+        This method is intended to be called only by the ``json.dump`` method.
+        """
+        return super().iterencode(self._hint_tuples(obj), _one_shot)
 
     def default(self, value: Any) -> Any:
         """ Encode a value into a serializable object.
@@ -75,6 +90,9 @@ class JsonSerializer(json.JSONEncoder):
 
         if isinstance(value, DATETIME_TYPES):
             return self.encode_datetime(value)
+
+        if isinstance(value, PATH_TYPES):
+            return self.encode_path(value)
 
         raise NotImplementedError(  # pragma: no cover
             f"Encoding for this object is not yet implemented: {value} ({type(value)})"
@@ -143,7 +161,7 @@ class JsonSerializer(json.JSONEncoder):
             Dictionary with encoded datetime type and value
 
         Raises:
-            NotImplementedError - If encoding is not implement for the given numeric type.
+            NotImplementedError - If encoding is not implemented for the given datetime type.
         """
 
         # Note: the "datetime.datetime" check must be before the "datetime.date" check
@@ -213,6 +231,47 @@ class JsonSerializer(json.JSONEncoder):
             f"No encoding implemented for the following collection type: {value} ({type(value)})"
         )
 
+    @staticmethod
+    def encode_path(value: PurePath) -> JsonType:
+        """ Encoding for Path types
+
+        This will perform custom encoding for all Path types, as all Path types are subclasses of the PurePath type.
+        Instances of the PurePath type are handled separately from instances of the Path type.
+
+        The custom encoding follows the template:
+            {
+                PATH_KEY: <type-as-a-string>,
+                PATH_VALUE_KEY: [<parts>]
+            }
+
+        The values for the PATH_KEY and PATH_VALUE_KEY constants are attributes
+          to the `snappiershot.serializers.constants.CustomEncodedPathTypes` class.
+
+        Args:
+            value: Path value to be encoded
+
+        Returns:
+            Dictionary with encoded Path type and parts
+
+        Raises:
+            NotImplementedError - If encoding is not implemented for the given Path type.
+        """
+        if isinstance(value, Path):
+            encoded_value = list(value.parts)
+            return CustomEncodedPathTypes.path.json_encoding(encoded_value)
+
+        if isinstance(value, PureWindowsPath):
+            encode_value = list(value.parts)
+            return CustomEncodedPathTypes.pure_windows_path.json_encoding(encode_value)
+
+        if isinstance(value, PurePosixPath):
+            encode_value = list(value.parts)
+            return CustomEncodedPathTypes.pure_posix_path.json_encoding(encode_value)
+
+        raise NotImplementedError(
+            f"No encoding implemented for the following Path type: {value} ({type(value)})"
+        )
+
 
 class JsonDeserializer(json.JSONDecoder):
     """ Custom JSON deserializer.
@@ -246,6 +305,9 @@ class JsonDeserializer(json.JSONDecoder):
         if set(dct.keys()) == CustomEncodedCollectionTypes.keys():
             return self.decode_collection(dct)
 
+        if set(dct.keys()) == CustomEncodedPathTypes.keys():
+            return self.decode_path(dct)
+
         return dct
 
     @staticmethod
@@ -262,7 +324,7 @@ class JsonDeserializer(json.JSONDecoder):
         Decimal types are decoded by reassembling the DecimalTuple which was cast to a
           list during the encoding process.
         Raises:
-            NotImplementedError - If decoding is not implement for the given numeric type.
+            NotImplementedError - If decoding is not implemented for the given numeric type.
         """
         type_name = dct.get(CustomEncodedNumericTypes.type_key)
         value = dct[CustomEncodedNumericTypes.complex.value_key]
@@ -296,7 +358,7 @@ class JsonDeserializer(json.JSONDecoder):
             decoded datetime object, either a datetime.date, datetime.time, datetime.datetime, or datetime.timedelta
 
         Raises:
-            NotImplementedError - If decoding is not implement for the given numeric type.
+            NotImplementedError - If decoding is not implemented for the given numeric type.
         """
         type_name = dct.get(CustomEncodedDatetimeTypes.type_key)
         value = dct.get(CustomEncodedDatetimeTypes.value_key)
@@ -348,7 +410,7 @@ class JsonDeserializer(json.JSONDecoder):
             Decoded collection object.
 
         Raises:
-            NotImplementedError - If decoding is not implement for the given numeric type.
+            NotImplementedError - If decoding is not implemented for the given numeric type.
         """
         type_name = dct.get(CustomEncodedCollectionTypes.type_key)
         values = dct.get(CustomEncodedCollectionTypes.value_key)
@@ -364,4 +426,40 @@ class JsonDeserializer(json.JSONDecoder):
 
         raise NotImplementedError(
             f"Deserialization for the following collection type not implemented: {dct}"
+        )
+
+    @staticmethod
+    def decode_path(dct: Dict[str, Any]) -> PurePath:
+        """ Decode an encoded Path type.
+
+        This encoded Path type object must be of the form:
+            {
+              PATH_KEY: <type-as-a-string>,
+              PATH_VALUE_KEY: [<parts>]
+            }
+        The values for the PATH_KEY and PATH_VALUE_KEY constants are attributes
+          to the `snappiershot.serializers.constants.CustomEncodedPathTypes` class.
+
+        Path and PurePath types are decoded by reassembling the PurePath.parts tuple which was cast to a
+          list during the encoding process.
+
+        NOTE: WindowsPath, PosixPath, PurePath types are NOT currently supported.
+
+            This is intentional, to avoid OS-specific pathlib errors such as snapshots being created on a
+             Posix machine and tested on a Windows machine.
+        Raises:
+            NotImplementedError - If decoding is not implemented for the given Path type.
+        """
+        type_name = dct.get(CustomEncodedPathTypes.type_key)
+        parts = dct.get(CustomEncodedPathTypes.value_key)
+
+        if type_name == CustomEncodedPathTypes.path.name:
+            return Path().joinpath(*parts)
+        if type_name == CustomEncodedPathTypes.pure_posix_path.name:
+            return PurePosixPath().joinpath(*parts)
+        if type_name == CustomEncodedPathTypes.pure_windows_path.name:
+            return PureWindowsPath().joinpath(*parts)
+
+        raise NotImplementedError(
+            f"Deserialization for the following Path type not implemented: {dct}"
         )
