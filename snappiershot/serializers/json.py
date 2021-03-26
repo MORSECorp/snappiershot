@@ -4,7 +4,7 @@ import json
 from decimal import Decimal, DecimalTuple
 from numbers import Number
 from pathlib import Path, PurePath, PurePosixPath, PureWindowsPath
-from typing import Any, Collection, Dict, List
+from typing import Any, Collection, Dict, Iterator, List
 
 from .constants import (
     COLLECTION_TYPES,
@@ -28,6 +28,21 @@ class JsonSerializer(json.JSONEncoder):
         >>> assert json.dumps(data, cls=JsonSerializer) == '{"a": 1, "b": 2}'
     """
 
+    @classmethod
+    def _hint_tuples(cls, obj: Any) -> Any:
+        """ Convert tuples in a pre-processing step.
+
+        Extrapolated from: https://stackoverflow.com/a/15721641
+        """
+        if isinstance(obj, list):
+            return [cls._hint_tuples(item) for item in obj]
+        if isinstance(obj, COLLECTION_TYPES):
+            # Collection encoded before recursion to support sets.
+            return cls._hint_tuples(cls.encode_collection(obj))
+        if isinstance(obj, dict):
+            return {key: cls._hint_tuples(value) for key, value in obj.items()}
+        return obj
+
     def encode(self, obj: Any) -> str:
         """
         Override JSONEncoder.encode to support tuple type hinting.
@@ -38,22 +53,19 @@ class JsonSerializer(json.JSONEncoder):
 
         This method is intended to be called only by the ``json.dumps`` method.
         """
+        return super().encode(self._hint_tuples(obj))
 
-        def hint_tuples(obj_: Any) -> Any:
-            """ Convert tuples in a pre-processing step.
+    def iterencode(self, obj: Any, _one_shot: bool = False) -> Iterator[str]:
+        """
+        Override JSONEncoder.iterencode to support tuple type hinting.
 
-            Extrapolated from: https://stackoverflow.com/a/15721641
-            """
-            if isinstance(obj_, list):
-                return [hint_tuples(item) for item in obj_]
-            if isinstance(obj_, COLLECTION_TYPES):
-                # Collection encoded before recursion to support sets.
-                return hint_tuples(self.encode_collection(obj_))
-            if isinstance(obj_, dict):
-                return {key: hint_tuples(value) for key, value in obj_.items()}
-            return obj_
+        The default JSONEncoder supports both primitive types: tuples and lists. In its implementation,
+         tuples are implicitly converted to lists. To avoid this, this method allows tuples and lists
+         to be encoded as separate types.
 
-        return super().encode(hint_tuples(obj))
+        This method is intended to be called only by the ``json.dump`` method.
+        """
+        return super().iterencode(self._hint_tuples(obj), _one_shot)
 
     def default(self, value: Any) -> Any:
         """ Encode a value into a serializable object.

@@ -298,7 +298,7 @@ class TestPathEncoding:
             JsonDeserializer.decode_path(value)
 
 
-def test_round_trip():
+def test_round_trip(tmp_path: pathlib.Path):
     """ Test that a serialized and then deserialized dictionary is unchanged. """
     # Arrange
     data = {
@@ -331,12 +331,17 @@ def test_round_trip():
         "pure_posix_Path": pathlib.PurePosixPath(),
         "bytes": b"bytes",
     }
+    test_file = tmp_path / "test.json"
 
     # Act
     serialized = json.dumps(data, cls=JsonSerializer)
     deserialized = json.loads(serialized, cls=JsonDeserializer)
 
+    json.dump(data, test_file.open("w"), cls=JsonSerializer)
+    deserialized_from_file = json.load(test_file.open(), cls=JsonDeserializer)
+
     # Assert
     for key, value in deserialized.items():
         expected = data.get(key)
         assert expected == value
+    assert deserialized == deserialized_from_file
