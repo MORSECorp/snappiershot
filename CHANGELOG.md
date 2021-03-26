@@ -5,7 +5,7 @@
 #### Features
 * Support for pathlib.Path objects.
 #### Bug-Fixes
-* Collections are now properly serialized by both 
+* Collections are now properly serialized by both
 the `json.dump` and `json.dumps` methods.
 
 ## v1.0.0 -- 2021-02-01
