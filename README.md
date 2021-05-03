@@ -97,3 +97,4 @@ def test_fallible_function(snapshot):
 
 ## Contributing
 See [CONTRIBUTING.md](CONTRIBUTING.md)
+Discord Server: https://discord.gg/Are4Ab8Hzd
