@@ -167,7 +167,10 @@ def fullvars(value: Any) -> dict:
         A full `vars` dictionary.
     """
     # Start with the contents of __dict__ (if it exists).
-    obj_dict = copy(getattr(value, "__dict__", dict()))
+    if hasattr(value, "to_dict"):
+        obj_dict = copy(value.to_dict())
+    else:
+        obj_dict = copy(getattr(value, "__dict__", dict()))
 
     # Iterate through the __slots__ (if they exist).
     for slot in getattr(value, "__slots__", tuple()):
