@@ -28,6 +28,7 @@ importlib-metadata = { version = ">1.5.1", python = "<3.8" }
 tomlkit = "^0.7.0"
 pandas = { version = ">=0.20.0", optional = true}
 pprint_ordered_sets = "^1.0.0"
+pint = "^0.14"
 
 [tool.poetry.extras]
 pandas = ["pandas"]
