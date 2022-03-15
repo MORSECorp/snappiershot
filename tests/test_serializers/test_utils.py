@@ -384,3 +384,24 @@ class TestFullVars:
 
         # Assert
         assert result == dict()
+
+    @staticmethod
+    def test_to_dict_class():
+        """ Test that fullvars works for classes with to_dict. """
+        # Arrange
+        class ToDictClass:
+            def __init__(self):
+                self.a = 1
+                self.b = 2
+                self.c = 3
+
+            def to_dict(self):
+                return getattr(self, "__dict__", dict())
+
+        klass = ToDictClass()
+
+        # Act
+        result = fullvars(klass)
+
+        # Assert
+        assert result == dict(a=1, b=2, c=3)

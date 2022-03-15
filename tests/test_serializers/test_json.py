@@ -6,11 +6,13 @@ from decimal import Decimal
 from math import inf, isnan, nan
 
 import pytest
+from pint import Unit
 from snappiershot.serializers.constants import (
     CustomEncodedCollectionTypes,
     CustomEncodedDatetimeTypes,
     CustomEncodedNumericTypes,
     CustomEncodedPathTypes,
+    CustomEncodedUnitTypes,
 )
 from snappiershot.serializers.json import JsonDeserializer, JsonSerializer
 
@@ -266,7 +268,7 @@ class TestPathEncoding:
     @staticmethod
     @pytest.mark.parametrize("value, expected", PATH_ENCODING_TEST_CASES)
     def test_encode_path(value, expected):
-        """ Test that the JsonSerializer.encode_collection encodes values as expected. """
+        """ Test that the JsonSerializer.encode_path encodes values as expected. """
         # Arrange
 
         # Act
@@ -278,7 +280,7 @@ class TestPathEncoding:
     @staticmethod
     @pytest.mark.parametrize("expected, value", PATH_DECODING_TEST_CASES)
     def test_decode_path(value, expected):
-        """ Test that the JsonDeserializer.decode_collection decodes collections as expected. """
+        """ Test that the JsonDeserializer.decode_path decodes collections as expected. """
         # Arrange
 
         # Act
@@ -289,13 +291,67 @@ class TestPathEncoding:
 
     @staticmethod
     def test_decode_path_error():
-        """ Test that the JsonDeserializer.decode_collection raises an error if no decoding is defined. """
+        """ Test that the JsonDeserializer.decode_path raises an error if no decoding is defined. """
         # Arrange
         value = {"foo": "bar"}
 
         # Act & Assert
         with pytest.raises(NotImplementedError):
             JsonDeserializer.decode_path(value)
+
+
+class TestUnitEncoding:
+    """ Tests for custom encoding of Unit types from pint. """
+
+    UNIT_DECODING_TEST_CASES = [
+        (Unit("meter"), CustomEncodedUnitTypes.unit.json_encoding("meter"),),
+    ]
+
+    UNIT_ENCODING_TEST_CASES = UNIT_DECODING_TEST_CASES
+
+    @staticmethod
+    def test_encode_unit_error():
+        """ Test that the JsonSerializer.encode_unit raises an error if no encoding is defined. """
+        # Arrange
+        value = "foo"
+
+        # Act & Assert
+        with pytest.raises(NotImplementedError):
+            JsonSerializer.encode_unit(value)
+
+    @staticmethod
+    @pytest.mark.parametrize("value, expected", UNIT_ENCODING_TEST_CASES)
+    def test_encode_unit(value, expected):
+        """ Test that the JsonSerializer.encode_unit encodes values as expected. """
+        # Arrange
+
+        # Act
+        result = JsonSerializer.encode_unit(value)
+
+        # Assert
+        assert result == expected
+
+    @staticmethod
+    @pytest.mark.parametrize("expected, value", UNIT_DECODING_TEST_CASES)
+    def test_decode_unit(value, expected):
+        """ Test that the JsonDeserializer.decode_unit decodes Units as expected. """
+        # Arrange
+
+        # Act
+        result = JsonDeserializer.decode_unit(value)
+
+        # Assert
+        assert result == expected
+
+    @staticmethod
+    def test_decode_unit_error():
+        """ Test that the JsonDeserializer.decode_unit raises an error if no decoding is defined. """
+        # Arrange
+        value = {"foo": "bar"}
+
+        # Act & Assert
+        with pytest.raises(NotImplementedError):
+            JsonDeserializer.decode_unit(value)
 
 
 def test_round_trip(tmp_path: pathlib.Path):
@@ -330,6 +386,7 @@ def test_round_trip(tmp_path: pathlib.Path):
         "pure_windows_path": pathlib.PureWindowsPath(),
         "pure_posix_Path": pathlib.PurePosixPath(),
         "bytes": b"bytes",
+        "unit": Unit("meter"),
     }
     test_file = tmp_path / "test.json"
 

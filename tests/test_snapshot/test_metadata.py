@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Dict, Type
 
 import pytest
+from pint.unit import Unit
 from snappiershot.inspection import CallerInfo
 from snappiershot.snapshot.metadata import SnapshotMetadata
 
@@ -59,3 +60,45 @@ class TestSnapshotMetadata:
 
         # Assert
         assert result == matches
+
+    def test_complicated_matches(self):
+        """ Checks that the SnapshotMetadata.matches method functions as expected for something complex. """
+        # Define a complicated class
+        class ComplicatedClass:
+            def __init__(self):
+                tmp_dict = {"unit": Unit("m"), "value": -1000}
+                tmp_list = [tmp_dict, tmp_dict]
+
+                self.test1 = tmp_dict
+                self.test2 = tmp_list
+
+            def to_dict(self):
+                return getattr(self, "__dict__", dict())
+
+            def from_dict(self, *args):
+                return self
+
+        klass = ComplicatedClass()
+
+        # Arrange
+        caller_info = CallerInfo(
+            file=Path("fake/file/path"),
+            function="fake_fully_qualified_function_name",
+            args={"foo": klass, "bar": [klass, klass], "foobar": [1, 2]},
+        )
+
+        metadata_kwargs = dict(
+            caller_info=caller_info,
+            update_on_next_run=False,
+            test_runner_provided_name="",
+            user_provided_name="",
+        )
+
+        metadata = SnapshotMetadata(**metadata_kwargs)
+        metadata_dict = {"arguments": {"foo": 1, "bar": [1, 2], "foobar": [1, 2]}}
+
+        # Act
+        result = metadata.matches(metadata_dict)
+
+        # Assert
+        assert result
