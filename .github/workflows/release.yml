@@ -29,6 +29,5 @@ jobs:
         env:
           POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI }}
         run: |
-          source $HOME/.poetry/env
           poetry build -vvv
           poetry publish
