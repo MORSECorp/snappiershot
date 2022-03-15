@@ -239,7 +239,7 @@ class JsonSerializer(json.JSONEncoder):
         )
 
     @staticmethod
-    def encode_path(value: Unit) -> JsonType:
+    def encode_path(value: PurePath) -> JsonType:
         """ Encoding for Path types
 
         This will perform custom encoding for all Path types, as all Path types are subclasses of the PurePath type.
