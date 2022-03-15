@@ -24,7 +24,6 @@ jobs:
         run: |
           pip install pre-commit
           pre-commit run --all-files
-
   Test-Build:
     needs: Linting
     runs-on: ubuntu-latest
@@ -44,8 +43,8 @@ jobs:
         echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")
     - name: Install and set up Poetry
       run: |
-          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
-          poetry --version
+        curl -fsS -o get-poetry.py https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py --version 1.1.8
+        python get-poetry.py --preview -y
         source $HOME/.poetry/env
     - name: Set up cache
       uses: actions/cache@v1
