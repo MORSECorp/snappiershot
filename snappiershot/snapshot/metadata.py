@@ -88,10 +88,8 @@ class SnapshotMetadata:
 
             # If the object is a list, must loop through it and compare each index
             if isinstance(metadata_obj, list) and isinstance(dict_from_file, list):
-                for kk in range(len(metadata_obj)):
-                    if not self.compare_instantiated_objects(
-                        metadata_obj[kk], dict_from_file[kk]
-                    ):
+                for ii, jj in zip(metadata_obj, dict_from_file):
+                    if not self.compare_instantiated_objects(ii, jj):
                         # Early exit if objects arent equal
                         return False
             else:
