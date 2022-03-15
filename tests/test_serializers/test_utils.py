@@ -7,6 +7,7 @@ import pytest
 from snappiershot.serializers.utils import (
     default_encode_value,
     encode_exception,
+    fullvars,
     get_snapshot_file,
 )
 
@@ -197,6 +198,26 @@ class TestDefaultEncodeValue:
         # Assert
         assert result == expected
 
+    @staticmethod
+    def test_slots_class():
+        """ Test default encoding of recursive slots-optimized classes. """
+        # Arrange
+        class SlotsClass:
+            __slots__ = ("a", "b", "c", "d")
+
+            def __init__(self):
+                self.a = 1
+                self.b = 2
+                self.c = self
+
+        value = SlotsClass()
+
+        # Act
+        result = default_encode_value(value)
+
+        # Assert
+        assert result == dict(a=1, b=2)
+
 
 class TestGetSnapshotFile:
     """ Tests for the get_snapshot_file utility function. """
@@ -266,3 +287,100 @@ class TestEncodingExceptions:
 
         # Assert
         assert result == expected
+
+
+class TestFullVars:
+    """ Tests for the fullvars. """
+
+    @staticmethod
+    def test_regular_class():
+        """ Test that fullvars works for a regular class. """
+        # Arrange
+        class NormalClass:
+            def __init__(self):
+                self.a = 1
+                self.b = 2
+                self.c = 3
+
+        klass = NormalClass()
+
+        # Act
+        result = fullvars(klass)
+
+        # Assert
+        assert result == dict(a=1, b=2, c=3)
+
+    @staticmethod
+    def test_slots_class():
+        """ Test that fullvars works for a slots-optimized class. """
+        # Arrange
+        class SlotsClass:
+            __slots__ = ("a", "b", "c")
+
+            def __init__(self):
+                self.a = 1
+                self.b = 2
+                self.c = 3
+
+        klass = SlotsClass()
+
+        # Act
+        result = fullvars(klass)
+
+        # Assert
+        assert result == dict(a=1, b=2, c=3)
+
+    @staticmethod
+    def test_slots_class_partial_instantiated():
+        """ Test that fullvars works for a slots-optimized class
+        with partially instantiated slots. """
+        # Arrange
+        class SlotsClassPartiallyInstantiated:
+            __slots__ = ("a", "b", "c")
+
+            def __init__(self):
+                self.a = 1
+                self.b = 2
+
+        klass = SlotsClassPartiallyInstantiated()
+
+        # Act
+        result = fullvars(klass)
+
+        # Assert
+        assert result == dict(a=1, b=2)
+
+    @staticmethod
+    def test_mixed_class():
+        """ Test that fullvars works for classes with __slots__ and __dict__. """
+        # Arrange
+        class MixedClass:
+            __slots__ = ("__dict__", "a", "b")
+
+            def __init__(self):
+                self.a = 1
+                self.b = 2
+                self.c = 3
+
+        klass = MixedClass()
+
+        # Act
+        result = fullvars(klass)
+
+        # Assert
+        assert result == dict(a=1, b=2, c=3)
+
+    @staticmethod
+    def test_empty_class():
+        """ Test that fullvars works for an empty class. """
+        # Arrange
+        class EmptyClass:
+            pass
+
+        klass = EmptyClass()
+
+        # Act
+        result = fullvars(klass)
+
+        # Assert
+        assert result == dict()
