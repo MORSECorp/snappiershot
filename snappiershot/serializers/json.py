@@ -8,6 +8,7 @@ from typing import Any, Collection, Dict, Iterator, List
 
 from pint import Unit
 
+from ..constants import SPECIAL_ENCODING_FUNCTION_NAME
 from .constants import (
     COLLECTION_TYPES,
     DATETIME_TYPES,
@@ -20,6 +21,7 @@ from .constants import (
     CustomEncodedUnitTypes,
     JsonType,
 )
+from .utils import is_uninstantiated_object
 
 
 class JsonSerializer(json.JSONEncoder):
@@ -100,6 +102,14 @@ class JsonSerializer(json.JSONEncoder):
 
         if isinstance(value, UNIT_TYPES):
             return self.encode_unit(value)
+
+        # If the value is a class that hasn't been instantiated but want to still encode it somehow
+        if is_uninstantiated_object(value):
+            # Look for the special encoding function
+            if hasattr(value, SPECIAL_ENCODING_FUNCTION_NAME):
+                return getattr(value, SPECIAL_ENCODING_FUNCTION_NAME)()
+            if isinstance(value, dict):
+                return "dict - builtins"
 
         raise NotImplementedError(  # pragma: no cover
             f"Encoding for this object is not yet implemented: {value} ({type(value)})"
