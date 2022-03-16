@@ -27,6 +27,16 @@ class TestSnapshotMetadata:
         def from_dict(cls, *args):
             return cls
 
+    # Define a complicated class
+    class SkippableClass:
+        def __init__(self):
+            self.test1 = 1
+            self.test2 = 2
+
+        @classmethod
+        def __snapshotskip__(cls):
+            return "Skip Me"
+
     FAKE_CALLER_INFO = CallerInfo(
         file=Path("fake/file/path"),
         function="fake_fully_qualified_function_name",
@@ -40,6 +50,7 @@ class TestSnapshotMetadata:
             "foo": ComplicatedClass,
             "bar": [ComplicatedClass, ComplicatedClass],
             "foobar": [1, 2],
+            "barfoo": SkippableClass,
         },
     )
 
@@ -83,12 +94,26 @@ class TestSnapshotMetadata:
             (DEFAULT_METADATA_KWARGS, {"arguments": {"foo": 1, "bar": 2}}, False),
             (
                 COMPLICATED_METADATA_KWARGS,
-                {"arguments": {"foo": 1, "bar": [1, 2], "foobar": [1, 2]}},
+                {
+                    "arguments": {
+                        "foo": 1,
+                        "bar": [1, 2],
+                        "foobar": [1, 2],
+                        "barfoo": "Skip Me",
+                    }
+                },
                 True,
             ),
             (
                 COMPLICATED_METADATA_KWARGS,
-                {"arguments": {"foo": 1, "bar": [1, None], "foobar": [1, 2]}},
+                {
+                    "arguments": {
+                        "foo": 1,
+                        "bar": [1, None],
+                        "foobar": [1, 2],
+                        "barfoo": "Skip Me",
+                    }
+                },
                 False,
             ),
         ],

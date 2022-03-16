@@ -117,11 +117,9 @@ class TestDefaultEncodeValue:
         """ Test that a class with un-serializable attributes does not error. """
         # Arrange
         value = SimpleNamespace(
-            class_=SimpleNamespace(good="class", bad=type),
-            dict_=dict(good="dict", bad=dict),
-            list_=["list", list],
+            class_=SimpleNamespace(good="class", bad=type), list_=["list", list],
         )
-        expected = dict(class_=dict(good="class"), dict_=dict(good="dict"), list_=["list"])
+        expected = dict(class_=dict(good="class"), list_=["list"])
 
         # Act
         result = default_encode_value(value)

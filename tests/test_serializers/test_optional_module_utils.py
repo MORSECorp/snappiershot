@@ -221,6 +221,7 @@ class TestNumpy:
             (np.complex64(4), 4 + 0j),
             (np.complex128(4), 4 + 0j),
             (np.complex_(4), 4 + 0j),
+            (np.random.default_rng(), "numpy.random._generator.Generator - encoding skipped")
             # fmt: on
         ],
     )
