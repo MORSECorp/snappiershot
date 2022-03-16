@@ -305,6 +305,11 @@ class JsonSerializer(json.JSONEncoder):
             encoded_value = value.__str__()
             return CustomEncodedUnitTypes.unit.json_encoding(encoded_value)
 
+        # Custom Unit types not supported in base pint
+        if value == "fraction" or value == "percent":
+            encoded_value = value
+            return CustomEncodedUnitTypes.unit.json_encoding(encoded_value)
+
         raise NotImplementedError(
             f"No encoding implemented for the following Path type: {value} ({type(value)})"
         )
@@ -528,6 +533,8 @@ class JsonDeserializer(json.JSONDecoder):
         type_name = dct.get(CustomEncodedUnitTypes.type_key)
         value = dct.get(CustomEncodedUnitTypes.value_key)
 
+        if value == "fraction" or value == "percent":
+            return value
         if type_name == CustomEncodedUnitTypes.unit.name:
             return Unit(value)
 

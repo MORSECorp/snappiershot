@@ -305,6 +305,8 @@ class TestUnitEncoding:
 
     UNIT_DECODING_TEST_CASES = [
         (Unit("meter"), CustomEncodedUnitTypes.unit.json_encoding("meter"),),
+        ("fraction", CustomEncodedUnitTypes.unit.json_encoding("fraction")),
+        ("percent", CustomEncodedUnitTypes.unit.json_encoding("percent")),
     ]
 
     UNIT_ENCODING_TEST_CASES = UNIT_DECODING_TEST_CASES
