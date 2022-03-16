@@ -1,6 +1,8 @@
 """ Metadata object used to identity and track snapshots. """
 from typing import Any, Dict
 
+from snappiershot.constants import SPECIAL_ENCODING_FUNCTION_NAME
+
 from ..inspection import CallerInfo
 
 
@@ -53,6 +55,11 @@ class SnapshotMetadata:
         metadata_obj_is_not_none = obj_from_metadata is not None
         obj_from_file_is_not_none = obj_from_snapshot_file is not None
 
+        # If object has special coding defined to skip checking, set a flag
+        metadata_obj_can_be_skipped = hasattr(
+            obj_from_metadata, SPECIAL_ENCODING_FUNCTION_NAME
+        )
+
         result = False  # initialize result to false
 
         if type(obj_from_metadata) == type(obj_from_snapshot_file):
@@ -60,13 +67,19 @@ class SnapshotMetadata:
             result = obj_from_metadata == obj_from_snapshot_file
         elif (
             # Otherwise, if neither object is none and an object can be instantiated from a dictionary, do so
-            metadata_obj_has_method
+            (metadata_obj_has_method or metadata_obj_can_be_skipped)
             and metadata_obj_is_not_none
             and obj_from_file_is_not_none
         ):
-            result = obj_from_metadata == obj_from_metadata.from_dict(
-                obj_from_snapshot_file
-            )
+            if metadata_obj_can_be_skipped:
+                result = (
+                    getattr(obj_from_metadata, SPECIAL_ENCODING_FUNCTION_NAME)()
+                    == obj_from_snapshot_file
+                )
+            else:
+                result = obj_from_metadata == obj_from_metadata.from_dict(
+                    obj_from_snapshot_file
+                )
 
         return result
 
