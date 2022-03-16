@@ -94,6 +94,9 @@ def test_fallible_function(snapshot):
   * Dictionaries
   * Classes (with an underlying `__dict__`)
   * Classes with custom encoding (by defining a `__snapshot__` method).
+  * Uninstantiated classes with custom encoding (by defining a `__snapshotskip__` classmethod).
+  * Units (from the `pint` package)
+    * Currently no support for custom user-defined units
 
 ## Contributing
 See [CONTRIBUTING.md](CONTRIBUTING.md)
