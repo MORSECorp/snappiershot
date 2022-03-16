@@ -178,7 +178,7 @@ class Numpy:
         if isinstance(value, cls._get_numpy_primatives(np)):
             return value.item()  # type: ignore
 
-        if isinstance(value, np.random._generator.Generator):  # type: ignore
+        if isinstance(value, np.random.Generator):  # type: ignore
             return "numpy.random._generator.Generator - encoding skipped"
 
         raise NotImplementedError(
