@@ -49,8 +49,10 @@ class ObjectComparison:
         if isinstance(expected, Unit):
             return self._compare_units(value, expected, operations=operations)
 
-        # Check the types of both objects.
-        if type(value) != type(expected):
+        # Check the types of both objects (take care of float and float64 differently.
+        if type(value) != type(expected) and not (
+            isinstance(value, float) and isinstance(expected, float)
+        ):
             message = f"Types not equal: {type(value)} != {type(expected)}"
             return self.differences.add(operations, message)
 
