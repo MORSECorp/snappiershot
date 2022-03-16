@@ -108,7 +108,7 @@ class JsonSerializer(json.JSONEncoder):
             # Look for the special encoding function
             if hasattr(value, SPECIAL_ENCODING_FUNCTION_NAME):
                 return getattr(value, SPECIAL_ENCODING_FUNCTION_NAME)()
-            if isinstance(value, dict):
+            if value == dict:
                 return "dict - builtins"
 
         raise NotImplementedError(  # pragma: no cover

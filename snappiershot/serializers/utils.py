@@ -103,6 +103,8 @@ def default_encode_value(value: Any, context: Set[int]) -> JsonType:
         # Look for the special encoding function
         if hasattr(value, SPECIAL_ENCODING_FUNCTION_NAME):
             return getattr(value, SPECIAL_ENCODING_FUNCTION_NAME)()
+        if value == dict:
+            return "dict - builtins"
 
     raise ValueError(
         f"Cannot serialize this value: {value} \n"
