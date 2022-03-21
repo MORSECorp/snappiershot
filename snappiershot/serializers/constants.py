@@ -5,6 +5,8 @@ from decimal import Decimal
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any, Dict, Iterator, List, NamedTuple, Set, Union
 
+from pint import Unit
+
 _Primitive = Union[bool, float, int, None, str]
 JsonType = Union[_Primitive, Dict[str, Any], List[Any]]
 
@@ -178,12 +180,31 @@ class CustomEncodedPathTypes(_CustomEncodedTypeCollection):
     )
 
 
+class CustomEncodedUnitTypes(_CustomEncodedTypeCollection):
+    """ Collection of custom-encoded Unit types from the pint package. """
+
+    # Corresponds to the _CustomEncodedType.type_key attribute.
+    type_key = "__snappiershot_unit__"
+    # Corresponds to the _CustomEncodedType.value_key attribute.
+    value_key = "value"
+
+    unit = _CustomEncodedType(
+        type_=Unit, name="Unit", type_key=type_key, value_key=value_key
+    )
+
+
 # Tuples of types intended to be used for isinstance checking.
 PRIMITIVE_TYPES = bool, float, int, type(None), str
 COLLECTION_TYPES = tuple(value.type for value in CustomEncodedCollectionTypes.list())
 DATETIME_TYPES = tuple(value.type for value in CustomEncodedDatetimeTypes.list())
 NUMERIC_TYPES = tuple(value.type for value in CustomEncodedNumericTypes.list())
 PATH_TYPES = PurePosixPath, PureWindowsPath, Path
+UNIT_TYPES = tuple(value.type for value in CustomEncodedUnitTypes.list())
 SERIALIZABLE_TYPES = (
-    PRIMITIVE_TYPES + COLLECTION_TYPES + DATETIME_TYPES + NUMERIC_TYPES + PATH_TYPES
+    PRIMITIVE_TYPES
+    + COLLECTION_TYPES
+    + DATETIME_TYPES
+    + NUMERIC_TYPES
+    + PATH_TYPES
+    + UNIT_TYPES
 )
