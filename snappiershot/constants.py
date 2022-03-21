@@ -2,6 +2,7 @@
 from types import SimpleNamespace
 
 ENCODING_FUNCTION_NAME = "__snapshot__"
+SPECIAL_ENCODING_FUNCTION_NAME = "__snapshotskip__"
 SNAPSHOT_DIRECTORY = ".snapshots"
 
 
