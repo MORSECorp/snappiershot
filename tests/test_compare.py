@@ -2,6 +2,7 @@
 from math import nan
 
 import pytest
+from pint.unit import Unit
 from snappiershot.compare import ObjectComparison
 from snappiershot.config import Config
 
@@ -18,6 +19,21 @@ def _config() -> Config:
 
 
 # ===== Unit Tests =========================================
+
+
+@pytest.mark.parametrize(
+    "value, expected, is_equal",
+    [(Unit("meter"), Unit("meter"), True), (Unit("meter"), Unit("feet"), False)],
+)
+def test_compare_units(value, expected, config, is_equal):
+    """ Test that units are compared as expected. """
+    # Arrange
+
+    # Act
+    comparison = ObjectComparison(value, expected, config)
+
+    # Assert
+    assert comparison.equal == is_equal
 
 
 @pytest.mark.parametrize(
