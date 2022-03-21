@@ -3,6 +3,8 @@ from math import isclose, isnan
 from operator import itemgetter
 from typing import Any, Callable, Dict, Iterable, List, Sequence, Set, Tuple
 
+from pint.unit import Unit
+
 from .config import Config
 
 
@@ -43,8 +45,14 @@ class ObjectComparison:
               Tracks the operations that need to be applied to self.value and self.expected
                 to obtain value and expected, respectively. Used for logging differences.
         """
-        # Check the types of both objects.
-        if type(value) != type(expected):
+        # Special check for units since it's possible the types won't match even if they are equal objects
+        if isinstance(expected, Unit):
+            return self._compare_units(value, expected, operations=operations)
+
+        # Check the types of both objects (take care of float and float64 differently.
+        if type(value) != type(expected) and not (
+            isinstance(value, float) and isinstance(expected, float)
+        ):
             message = f"Types not equal: {type(value)} != {type(expected)}"
             return self.differences.add(operations, message)
 
@@ -65,6 +73,25 @@ class ObjectComparison:
         # Default to exact comparison for all other types.
         if value != expected:
             return self.differences.add(operations, f"{value} != {expected}")
+
+    def _compare_units(
+        self, value: Unit, expected: Unit, *, operations: List[Callable] = None
+    ) -> None:
+        """ Perform a recursive, almost-equals comparison between value and expected.
+
+        This is a helper function for when the expected is a unit, it compares objects without checking type.
+
+        Args:
+            value: The object to be checked.
+            expected: The object to be compared against.
+            operations: **Internally used for recursion**
+              Tracks the operations that need to be applied to self.value and self.expected
+                to obtain value and expected, respectively. Used for logging differences.
+        """
+        # Specifically check if both are equal
+        if value != expected:
+            message = f"Units not equal ({value} != {expected}). "
+            return self.differences.add(operations, message)
 
     def _compare_dicts(
         self, value: Dict, expected: Dict, *, operations: List[Callable] = None
