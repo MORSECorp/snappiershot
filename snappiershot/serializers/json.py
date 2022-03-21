@@ -6,16 +6,22 @@ from numbers import Number
 from pathlib import Path, PurePath, PurePosixPath, PureWindowsPath
 from typing import Any, Collection, Dict, Iterator, List
 
+from pint import Unit
+
+from ..constants import SPECIAL_ENCODING_FUNCTION_NAME
 from .constants import (
     COLLECTION_TYPES,
     DATETIME_TYPES,
     PATH_TYPES,
+    UNIT_TYPES,
     CustomEncodedCollectionTypes,
     CustomEncodedDatetimeTypes,
     CustomEncodedNumericTypes,
     CustomEncodedPathTypes,
+    CustomEncodedUnitTypes,
     JsonType,
 )
+from .utils import is_uninstantiated_object
 
 
 class JsonSerializer(json.JSONEncoder):
@@ -93,6 +99,15 @@ class JsonSerializer(json.JSONEncoder):
 
         if isinstance(value, PATH_TYPES):
             return self.encode_path(value)
+
+        if isinstance(value, UNIT_TYPES):
+            return self.encode_unit(value)
+
+        # If the value is a class that hasn't been instantiated but want to still encode it somehow
+        if is_uninstantiated_object(value):
+            # Look for the special encoding function
+            if hasattr(value, SPECIAL_ENCODING_FUNCTION_NAME):
+                return getattr(value, SPECIAL_ENCODING_FUNCTION_NAME)()
 
         raise NotImplementedError(  # pragma: no cover
             f"Encoding for this object is not yet implemented: {value} ({type(value)})"
@@ -272,6 +287,41 @@ class JsonSerializer(json.JSONEncoder):
             f"No encoding implemented for the following Path type: {value} ({type(value)})"
         )
 
+    @staticmethod
+    def encode_unit(value: Unit) -> JsonType:
+        """ Encoding for Unit types coming from the pint package
+
+        The custom encoding follows the template:
+            {
+                UNIT_KEY: <type-as-a-string>,
+                UNIT_VALUE_KEY: [<value>]
+            }
+
+        The values for the UNIT_KEY and UNIT_VALUE_KEY constants are attributes
+          to the `snappiershot.serializers.constants.CustomEncodedUnitTypes` class.
+
+        Args:
+            value: Unit value to be encoded
+
+        Returns:
+            Dictionary with encoded Unit and value
+
+        Raises:
+            NotImplementedError - If encoding is not implemented for the given Unit type.
+        """
+        if isinstance(value, Unit):
+            encoded_value = value.__str__()
+            return CustomEncodedUnitTypes.unit.json_encoding(encoded_value)
+
+        # Custom Unit types not supported in base pint
+        if value == "fraction" or value == "percent":
+            encoded_value = value
+            return CustomEncodedUnitTypes.unit.json_encoding(encoded_value)
+
+        raise NotImplementedError(
+            f"No encoding implemented for the following Unit type: {value} ({type(value)})"
+        )
+
 
 class JsonDeserializer(json.JSONDecoder):
     """ Custom JSON deserializer.
@@ -307,6 +357,9 @@ class JsonDeserializer(json.JSONDecoder):
 
         if set(dct.keys()) == CustomEncodedPathTypes.keys():
             return self.decode_path(dct)
+
+        if set(dct.keys()) == CustomEncodedUnitTypes.keys():
+            return self.decode_unit(dct)
 
         return dct
 
@@ -462,4 +515,37 @@ class JsonDeserializer(json.JSONDecoder):
 
         raise NotImplementedError(
             f"Deserialization for the following Path type not implemented: {dct}"
+        )
+
+    @staticmethod
+    def decode_unit(dct: Dict[str, Any]) -> Unit:
+        """ Decode an encoded Unit type from pint.
+
+        This encoded Unit type object must be of the form:
+            {
+              UNIT_KEY: <type-as-a-string>,
+              UNIT_VALUE_KEY: [<value>]
+            }
+        The values for the UNIT_KEY and UNIT_VALUE_KEY constants are attributes
+          to the `snappiershot.serializers.constants.CustomEncodedUnitTypes` class.
+
+        Args:
+            dct: dictionary to decode
+
+        Returns:
+            Decoded Unit object.
+
+        Raises:
+            NotImplementedError - If decoding is not implemented for the given Unit type.
+        """
+        type_name = dct.get(CustomEncodedUnitTypes.type_key)
+        value = dct.get(CustomEncodedUnitTypes.value_key)
+
+        if value == "fraction" or value == "percent":
+            return value
+        if type_name == CustomEncodedUnitTypes.unit.name:
+            return Unit(value)
+
+        raise NotImplementedError(
+            f"Deserialization for the following Unit type not implemented: {dct}"
         )

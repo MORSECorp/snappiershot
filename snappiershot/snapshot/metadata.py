@@ -1,5 +1,8 @@
 """ Metadata object used to identity and track snapshots. """
-from typing import Dict
+from typing import Any, Dict
+
+from numpy import all, ndarray
+from snappiershot.constants import SPECIAL_ENCODING_FUNCTION_NAME
 
 from ..inspection import CallerInfo
 
@@ -34,6 +37,57 @@ class SnapshotMetadata:
         dct["arguments"] = dct.pop("caller_info").args
         return dct
 
+    def compare_instantiated_objects(
+        self, obj_from_metadata: Any, obj_from_snapshot_file: Any
+    ) -> bool:
+        """ Instantiate object from a dictionary read from file in order to compare to metadata.
+
+        While encoding complex objects, an object decomposed into its parts in the form of a dictionary is written
+        to the snapshot JSON. Thus, snappiershot must attempt to re-instantiate those objects to do a direct
+        comparison.
+
+        Args:
+            obj_from_metadata: An object coming from the metadata.
+            obj_from_snapshot_file: An object (or decomposed object in the form of a dictionary) read out of the
+            snapshot file.
+        """
+        # Determine if the metadata object can instantiate a class from a dictionary, or whether any object is None
+        metadata_obj_has_method = hasattr(obj_from_metadata, "from_dict")
+        metadata_obj_is_not_none = obj_from_metadata is not None
+        obj_from_file_is_not_none = obj_from_snapshot_file is not None
+
+        # If object has special coding defined to skip checking, set a flag
+        metadata_obj_can_be_skipped = hasattr(
+            obj_from_metadata, SPECIAL_ENCODING_FUNCTION_NAME
+        )
+
+        result = False  # initialize result to false
+
+        if isinstance(obj_from_metadata, ndarray) or isinstance(
+            obj_from_snapshot_file, ndarray
+        ):
+            result = all(obj_from_metadata == obj_from_snapshot_file)
+        elif type(obj_from_metadata) == type(obj_from_snapshot_file):
+            # If object types match, directly compare them
+            result = obj_from_metadata == obj_from_snapshot_file
+        elif (
+            # Otherwise, if neither object is none and an object can be instantiated from a dictionary, do so
+            (metadata_obj_has_method or metadata_obj_can_be_skipped)
+            and metadata_obj_is_not_none
+            and obj_from_file_is_not_none
+        ):
+            if metadata_obj_can_be_skipped:
+                result = (
+                    getattr(obj_from_metadata, SPECIAL_ENCODING_FUNCTION_NAME)()
+                    == obj_from_snapshot_file
+                )
+            else:
+                result = obj_from_metadata == obj_from_metadata.from_dict(
+                    obj_from_snapshot_file
+                )
+
+        return result
+
     def matches(self, metadata_dict: Dict) -> bool:
         """ Check if the "metadata" section of a snapshot file sufficiently matches
         this metadata object.
@@ -43,7 +97,26 @@ class SnapshotMetadata:
         Args:
             metadata_dict: The "metadata" section to compare against this object.
         """
-        return self.caller_info.args == metadata_dict["arguments"]
+        # Loop through every value in the metadata dictionary
+        metadata_args = self.caller_info.args
+        for key in metadata_args.keys():
+            # Initialize objects
+            metadata_obj = metadata_args.get(key)
+            dict_from_file = metadata_dict["arguments"].get(key)
+
+            # If the object is a list, must loop through it and compare each index
+            if isinstance(metadata_obj, list) and isinstance(dict_from_file, list):
+                for ii, jj in zip(metadata_obj, dict_from_file):
+                    if not self.compare_instantiated_objects(ii, jj):
+                        # Early exit if objects arent equal
+                        return False
+            else:
+                if not self.compare_instantiated_objects(metadata_obj, dict_from_file):
+                    # Early exit if objects arent equal
+                    return False
+
+        # If it made it through the checks, the objects are equal
+        return True
 
     def _validate(self) -> None:
         """ Validates the snapshot metadata.

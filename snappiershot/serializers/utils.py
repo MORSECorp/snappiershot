@@ -6,7 +6,11 @@ from functools import wraps
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Sequence, Set
 
-from ..constants import ENCODING_FUNCTION_NAME, SNAPSHOT_DIRECTORY
+from ..constants import (
+    ENCODING_FUNCTION_NAME,
+    SNAPSHOT_DIRECTORY,
+    SPECIAL_ENCODING_FUNCTION_NAME,
+)
 from ..errors import SnappierShotWarning
 from .constants import SERIALIZABLE_TYPES, JsonType
 from .optional_module_utils import Numpy, Pandas
@@ -62,8 +66,8 @@ def default_encode_value(value: Any, context: Set[int]) -> JsonType:
     if isinstance(value, BaseException):
         return encode_exception(value)
 
-    # If the value is a sequence, recurse.
-    if isinstance(value, Sequence):
+    # If the value is a sequence, recurse (unless it's an instanced object).
+    if isinstance(value, Sequence) and not is_instanced_object(value):
         encoded_sequence = list()
         for item in value:
             try:
@@ -93,6 +97,12 @@ def default_encode_value(value: Any, context: Set[int]) -> JsonType:
             return getattr(value, ENCODING_FUNCTION_NAME)()
         # Default to encoding the class dictionary.
         return default_encode_value(fullvars(value), context)
+
+    # If the value is a class that hasn't been instantiated but want to still encode it somehow
+    if is_uninstantiated_object(value):
+        # Look for the special encoding function
+        if hasattr(value, SPECIAL_ENCODING_FUNCTION_NAME):
+            return getattr(value, SPECIAL_ENCODING_FUNCTION_NAME)()
 
     raise ValueError(
         f"Cannot serialize this value: {value} \n"
@@ -157,6 +167,14 @@ def is_instanced_object(value: Any) -> bool:
     return is_object and not is_type and not is_function
 
 
+def is_uninstantiated_object(value: Any) -> bool:
+    """ Check if the input value is not an instanced object but is still a class """
+    is_type = inspect.isclass(value)
+    is_function = inspect.isroutine(value)
+    is_object = hasattr(value, "__dict__") or hasattr(value, "__slots__")
+    return is_object and is_type and not is_function
+
+
 def fullvars(value: Any) -> dict:
     """ Returns a mapping of all attributes to their associated values for a given object.
     Supports slots-optimized classes.
@@ -167,7 +185,10 @@ def fullvars(value: Any) -> dict:
         A full `vars` dictionary.
     """
     # Start with the contents of __dict__ (if it exists).
-    obj_dict = copy(getattr(value, "__dict__", dict()))
+    if hasattr(value, "to_dict"):
+        obj_dict = copy(value.to_dict())
+    else:
+        obj_dict = copy(getattr(value, "__dict__", dict()))
 
     # Iterate through the __slots__ (if they exist).
     for slot in getattr(value, "__slots__", tuple()):
