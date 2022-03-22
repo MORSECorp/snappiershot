@@ -29,7 +29,9 @@ class Snapshot:
         self._metadata: Optional[SnapshotMetadata] = None
         self._snapshot_file: Optional[_SnapshotFile] = None
 
-    def assert_match(self, value: Any, exact: bool = False, update: bool = False) -> bool:
+    def assert_match(
+        self, value: Any, exact: bool = False, update: bool = False, ignore: list = []
+    ) -> bool:
         """ Assert that the given value matches the snapshot on file
 
         Args:
@@ -38,6 +40,7 @@ class Snapshot:
               otherwise assert approximate equality
             update: if True, overwrite snapshot with given value
               (assertion will always pass in this case)
+            ignore: if set, will ignore variables names from the metadata
 
         Returns:
             True if value matches the snapshot
@@ -55,7 +58,9 @@ class Snapshot:
         if not self._within_context:
             raise RuntimeError("assert_match must be used within the Snapshot context. ")
 
-        self._metadata = self._get_metadata(update_on_next_run=update)
+        self._metadata = self._get_metadata(
+            update_on_next_run=update, args_to_ignore=ignore
+        )
         self._snapshot_file = self._load_snapshot_file(metadata=self._metadata)
 
         # Get the stored value from the snapshot file and increment the snapshot counter.
@@ -133,7 +138,7 @@ class Snapshot:
                 )
 
         # Preload the metadata and snapshot file.
-        self._metadata = self._get_metadata(update_on_next_run=update)
+        self._metadata = self._get_metadata(update_on_next_run=update, args_to_ignore=[])
         self._snapshot_file = self._load_snapshot_file(metadata=self._metadata)
         return _RaisesContext(self, expected_exceptions, update)
 
@@ -183,7 +188,9 @@ class Snapshot:
             + "\n"
         )
 
-    def _get_metadata(self, update_on_next_run: bool) -> SnapshotMetadata:
+    def _get_metadata(
+        self, update_on_next_run: bool, args_to_ignore: list
+    ) -> SnapshotMetadata:
         """ Gather metadata via inspection of current context of the test function.
 
         A SnapshotMetadata object is created only if self._metadata is not already set.
@@ -191,6 +198,7 @@ class Snapshot:
 
         Args:
             update_on_next_run: Setting for SnapshotMetadata.update_on_next_run
+            args_to_ignore: Will specifically ignore certain inputs in the metadata
         """
         if isinstance(self._metadata, SnapshotMetadata):
             self._metadata.update_on_next_run = update_on_next_run
@@ -203,6 +211,10 @@ class Snapshot:
         #                | - CallerInfo.from_call_stack    <- frame_index=0
         caller_info = CallerInfo.from_call_stack(frame_index=3)
         caller_info = self._remove_special_arguments(caller_info)
+
+        # Ignore certain arguments
+        [caller_info.args.pop(item) for item in args_to_ignore]
+
         return SnapshotMetadata(
             caller_info=caller_info, update_on_next_run=update_on_next_run
         )
