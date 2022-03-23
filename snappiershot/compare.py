@@ -88,8 +88,8 @@ class ObjectComparison:
               Tracks the operations that need to be applied to self.value and self.expected
                 to obtain value and expected, respectively. Used for logging differences.
         """
-        # Specifically check if both are equal
-        if value != expected:
+        # Check if the string format of both are equal due to possibility of different registries
+        if value.__str__() != expected.__str__():
             message = f"Units not equal ({value} != {expected}). "
             return self.differences.add(operations, message)
 
