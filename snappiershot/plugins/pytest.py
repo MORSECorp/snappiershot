@@ -58,6 +58,16 @@ def pytest_configure(config: PytestConfig) -> None:
         # Construct a SnapshotTracker object that tracks the state of each snapshot.
         root_dir = Path(config.rootdir).resolve()
         test_paths = (Path(path).resolve().relative_to(root_dir) for path in config.args)
+        # TODO: Fix bug where snappiershot scrapes for snapshots in folders pytest has defined as norecurse
+        # This bug results in files being marked as unchecked that weren't even tested
+        # First attempt at writing new tuple shown below, but it doesn't work... something like this needs to be
+        # implemented though
+        # test_paths_no_recurse = (
+        #    x
+        #    for x in test_paths
+        #    if not any([val in x.parts for val in config.getini("norecursedirs")])
+        # )
+        # setattr(config.option, PACKAGE_TRACKER_OPTION, SnapshotTracker(*test_paths_no_recurse))
         setattr(config.option, PACKAGE_TRACKER_OPTION, SnapshotTracker(*test_paths))
 
 
