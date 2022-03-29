@@ -2,7 +2,7 @@
 import warnings
 from difflib import Differ
 from shutil import get_terminal_size
-from typing import Any, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 import pprint_ordered_sets as pprint
 
@@ -30,7 +30,7 @@ class Snapshot:
         self._snapshot_file: Optional[_SnapshotFile] = None
 
     def assert_match(
-        self, value: Any, exact: bool = False, update: bool = False, ignore: list = []
+        self, value: Any, exact: bool = False, update: bool = False, ignore: List[str] = []
     ) -> bool:
         """ Assert that the given value matches the snapshot on file
 
@@ -189,7 +189,7 @@ class Snapshot:
         )
 
     def _get_metadata(
-        self, update_on_next_run: bool, args_to_ignore: list
+        self, update_on_next_run: bool, args_to_ignore: List[str]
     ) -> SnapshotMetadata:
         """ Gather metadata via inspection of current context of the test function.
 
