@@ -71,7 +71,7 @@ def test_tracker(testdir: Testdir):
             ],
         },
         snapshot_file_3: {
-            "test_complex_snapshot": [
+            "test_units_snapshot": [
                 dict(metadata=metadata, snapshots=[SnapshotStatus.PASSED])
             ]
         },

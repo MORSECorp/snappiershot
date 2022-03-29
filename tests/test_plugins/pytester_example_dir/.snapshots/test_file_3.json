@@ -1,7 +1,7 @@
 {
     "snappiershot_version": "0.1.0",
     "tests": {
-        "test_complex_snapshot": [
+        "test_units_snapshot": [
             {
                 "metadata": {
                     "arguments": {},
