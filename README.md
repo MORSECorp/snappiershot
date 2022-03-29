@@ -46,8 +46,9 @@ SnappierShot uses metadata to find tests stored in each snapshot file. Metadata 
 ### Best Practices
 * Do not run `assert_match` within a loop
 * Do not try to snapshot uninstantiated classes/objects or use them as inputs to a test method
-* If an unsupported object type cannot be snapshotted, see [CONTRIBUTING.md](CONTRIBUTING.md) for instructions on how to contribute to the project
-  * `__snapshot__` and `__metadata_override__` are temporary workarounds that can be added to a custom object class to define user specific encoding instructions, but this feature is hacky and not robust yet
+* If an unsupported object type cannot be recorded, see [CONTRIBUTING.md](CONTRIBUTING.md) for instructions on how
+  to contribute to the project
+  * `__snapshot__` and `__metadata_override__` are temporary workarounds described below
 
 
 ### Pytest Examples
@@ -98,12 +99,15 @@ def test_no_pytest_runner():
         snapshot.assert_match(result)
 ```
 
-### Custom Encoding Example
+### Custom Encoding and Override Examples
 Warning: Use these methods is hacky and should not be relied on.
 
 
-* `__snapshot__` overrides serializing behavior for instanced custom objects
-* `__metadata_override__` overrides serializing behavior for uninstanced custom objects
+* `__snapshot__` overrides serializing behavior for objects being recorded
+  * Useful for partially recording class objects with many unnecessary properties
+* `__metadata_override__` overrides serializing behavior for metadata being recorded
+  * Useful for recording type objects (uninstantiated classes) via bypassing the default
+    encoding process
 
 ```python
 from snappiershot import Snapshot as Snappy
@@ -148,7 +152,7 @@ def test_class(uninstanced_input: type(CustomClass), instanced_input: CustomClas
 
 
 ### Raises
-Snappiershot also allows you to "snapshot" errors that are raised during
+Snappiershot also allows you to record errors that are raised during
   the execution of a code block. This allows you to track how and when errors
   are reported more easily.
 
@@ -172,7 +176,7 @@ def test_fallible_function(snapshot):
   * Numerics (`complex`)
   * Collections (`lists`, `tuples`, `sets`)
   * Dictionaries
-  * Classes (with an underlying `__dict__`, `__slots__`, or `to_dict()`)
+  * Classes (with an underlying `__dict__`, `__slots__`, or `to_dict`)
   * Unit types from the `pint` package
   * Classes with custom encoding (by defining a `__snapshot__` or `__metadata_override__` method)
 
