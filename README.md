@@ -48,7 +48,7 @@ SnappierShot uses metadata to find tests stored in each snapshot file. Metadata 
 * Do not try to snapshot uninstantiated classes/objects or use them as inputs to a test method
 * If an unsupported object type cannot be recorded, see [CONTRIBUTING.md](CONTRIBUTING.md) for instructions on how
   to contribute to the project
-  * `__snapshot__` and `__metadata_override__` are temporary workarounds described below
+  * `__snapshot__` is a workaround described below
 
 
 ### Pytest Examples
@@ -100,17 +100,13 @@ def test_no_pytest_runner():
 ```
 
 ### Custom Encoding and Override Examples
-Warning: Use these methods is hacky and should not be relied on.
+Warning: Use of this method is currently still a little hacky
 
-
-* `__snapshot__` overrides serializing behavior for objects being recorded
+* `__snapshot__` overrides serializing behavior for class objects being recorded
   * Useful for partially recording class objects with many unnecessary properties
-* `__metadata_override__` overrides serializing behavior for metadata being recorded
-  * Useful for recording type objects (uninstantiated classes) via bypassing the default
-    encoding process
 
 ```python
-from snappiershot import Snapshot as Snappy
+from snappiershot import Snapshot
 from pytest import fixture
 
 class CustomClass:
@@ -125,26 +121,16 @@ class CustomClass:
     }
     return encoding
 
-  @classmethod
-  def __metadata_override__(cls):
-    return "test string"
-
-
 @fixture
-def instanced_input() -> CustomClass:
-  instanced_input = CustomClass()
-  return instanced_input
+def class_input() -> CustomClass:
+  class_input = CustomClass()
+  return class_input
 
-@fixture
-def uninstanced_input() -> type(CustomClass):
-  instanced_input = CustomClass
-  return instanced_input
-
-def test_class(uninstanced_input: type(CustomClass), instanced_input: CustomClass, snapshot: Snappy):
-    """ Test encoding snapshot and metadata for a custom class both instanced and un-instanced """
+def test_class(class_input: CustomClass, snapshot: Snapshot):
+    """ Test encoding snapshot and metadata for a custom class """
 
     # Act
-    result = (instanced_input, uninstanced_input)
+    result = class_input
 
     # Assert
     snapshot.assert_match(result)
@@ -178,7 +164,7 @@ def test_fallible_function(snapshot):
   * Dictionaries
   * Classes (with an underlying `__dict__`, `__slots__`, or `to_dict`)
   * Unit types from the `pint` package
-  * Classes with custom encoding (by defining a `__snapshot__` or `__metadata_override__` method)
+  * Classes with custom encoding (by defining a `__snapshot__` method)
 
 ## Contributing
 See [CONTRIBUTING.md](CONTRIBUTING.md)

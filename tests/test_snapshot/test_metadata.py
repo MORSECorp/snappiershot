@@ -4,7 +4,6 @@ from typing import Dict, Type
 
 import pytest
 from numpy import array
-from pint.unit import Unit
 from snappiershot.inspection import CallerInfo
 from snappiershot.snapshot.metadata import SnapshotMetadata
 
@@ -13,46 +12,27 @@ class TestSnapshotMetadata:
     """ Tests for the snappiershot.snapshot.SnapshotMetadata object. """
 
     # Define a complicated class
-    class ComplicatedClass:
+    class ToDictClass:
         def __init__(self):
-            tmp_dict = {"unit": Unit("m"), "value": -1000}
-            tmp_list = [tmp_dict, tmp_dict]
-
-            self.test1 = tmp_dict
-            self.test2 = tmp_list
+            self.foo = 1
+            self.bar = 2
 
         def to_dict(self):
             return getattr(self, "__dict__", dict())
 
-        @classmethod
-        def from_dict(cls, *args):
-            return cls
-
-    # Define a complicated class
-    class SkippableClass:
-        def __init__(self):
-            self.test1 = 1
-            self.test2 = 2
-
-        @classmethod
-        def __metadata_override__(cls):
-            return "Skip Me"
+        def from_dict(self, *args):
+            return self
 
     FAKE_CALLER_INFO = CallerInfo(
         file=Path("fake/file/path"),
         function="fake_fully_qualified_function_name",
-        args={"foo": 1, "bar": "two"},
+        args={"foo": 1, "bar": "two", "foobar": [1, 2], "barfoo": array([1, 2])},
     )
 
-    COMPLICATED_CALLER_INFO = CallerInfo(
+    FAKE_CALLER_INFO_CLASS = CallerInfo(
         file=Path("fake/file/path"),
         function="fake_fully_qualified_function_name",
-        args={
-            "foo": ComplicatedClass,
-            "bar": [ComplicatedClass, ComplicatedClass],
-            "foobar": [array([1, 2]), array([1, 2])],
-            "barfoo": SkippableClass,
-        },
+        args={"foobar": ToDictClass()},
     )
 
     DEFAULT_METADATA_KWARGS = dict(
@@ -62,8 +42,8 @@ class TestSnapshotMetadata:
         user_provided_name="",
     )
 
-    COMPLICATED_METADATA_KWARGS = dict(
-        caller_info=COMPLICATED_CALLER_INFO,
+    DEFAULT_METADATA_KWARGS_CLASS = dict(
+        caller_info=FAKE_CALLER_INFO_CLASS,
         update_on_next_run=False,
         test_runner_provided_name="",
         user_provided_name="",
@@ -92,30 +72,44 @@ class TestSnapshotMetadata:
         "metadata_kwargs, metadata_dict, matches",
         [
             (DEFAULT_METADATA_KWARGS, {"arguments": FAKE_CALLER_INFO.args}, True),
-            (DEFAULT_METADATA_KWARGS, {"arguments": {"foo": 1, "bar": 2}}, False),
             (
-                COMPLICATED_METADATA_KWARGS,
+                DEFAULT_METADATA_KWARGS,
+                {"arguments": {"foo": 1, "bar": 2, "foobar": [1, 2], "barfoo": [1, 2]}},
+                False,
+            ),
+            (
+                DEFAULT_METADATA_KWARGS,
+                {"arguments": {"foo": 1, "bar": "two", "foobar": [1, 2], "barfoo": [1, 2]}},
+                True,
+            ),
+            (
+                DEFAULT_METADATA_KWARGS,
                 {
                     "arguments": {
                         "foo": 1,
-                        "bar": [1, 2],
-                        "foobar": [[1, 2], [1, 2]],
-                        "barfoo": "Skip Me",
+                        "bar": "two",
+                        "foobar": array([1, 2]),
+                        "barfoo": array([1, 2]),
                     }
                 },
                 True,
             ),
             (
-                COMPLICATED_METADATA_KWARGS,
+                DEFAULT_METADATA_KWARGS,
                 {
                     "arguments": {
                         "foo": 1,
-                        "bar": [1, None],
-                        "foobar": [1, 2],
-                        "barfoo": "Skip Me",
+                        "bar": "two",
+                        "foobar": [1, "two"],
+                        "barfoo": [1, 2],
                     }
                 },
                 False,
+            ),
+            (
+                DEFAULT_METADATA_KWARGS_CLASS,
+                {"arguments": {"foobar": {"foo": 1, "bar": 2}}},
+                True,
             ),
         ],
     )

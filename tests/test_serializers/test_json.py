@@ -15,7 +15,6 @@ from snappiershot.serializers.constants import (
     CustomEncodedUnitTypes,
 )
 from snappiershot.serializers.json import JsonDeserializer, JsonSerializer
-from snappiershot.serializers.utils import default_encode_value
 
 
 class TestNumericEncoding:
@@ -306,8 +305,6 @@ class TestUnitEncoding:
 
     UNIT_DECODING_TEST_CASES = [
         (Unit("meter"), CustomEncodedUnitTypes.unit.json_encoding("meter"),),
-        ("fraction", CustomEncodedUnitTypes.unit.json_encoding("fraction")),
-        ("percent", CustomEncodedUnitTypes.unit.json_encoding("percent")),
     ]
 
     UNIT_ENCODING_TEST_CASES = UNIT_DECODING_TEST_CASES
@@ -362,8 +359,6 @@ class TestUninstantiatedClassEncoding:
 
     DECODING_TEST_CASES = [
         (Unit("meter"), CustomEncodedUnitTypes.unit.json_encoding("meter"),),
-        ("fraction", CustomEncodedUnitTypes.unit.json_encoding("fraction")),
-        ("percent", CustomEncodedUnitTypes.unit.json_encoding("percent")),
     ]
 
     @staticmethod
@@ -388,10 +383,6 @@ def test_round_trip(tmp_path: pathlib.Path):
             self.b = 2
 
         def __snapshot__(self):
-            return "Skip Me"
-
-        @classmethod
-        def __metadata_override__(cls):
             return "Skip Me"
 
     # Arrange
@@ -425,7 +416,6 @@ def test_round_trip(tmp_path: pathlib.Path):
         "pure_posix_Path": pathlib.PurePosixPath(),
         "bytes": b"bytes",
         "unit": Unit("meter"),
-        "skip": ClassWithSkip,
     }
     test_file = tmp_path / "test.json"
 
@@ -435,9 +425,6 @@ def test_round_trip(tmp_path: pathlib.Path):
 
     json.dump(data, test_file.open("w"), cls=JsonSerializer)
     deserialized_from_file = json.load(test_file.open(), cls=JsonDeserializer)
-
-    # Encode "skip" and "empty_dict"
-    data["skip"] = default_encode_value(data.get("skip"))  # type: ignore
 
     # Assert
     for key, value in deserialized.items():

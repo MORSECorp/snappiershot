@@ -46,7 +46,7 @@ class ObjectComparison:
                 to obtain value and expected, respectively. Used for logging differences.
         """
         # Special check for units since it's possible the types won't match even if they are equal objects
-        if isinstance(expected, Unit):
+        if isinstance(expected, Unit) or isinstance(value, Unit):
             return self._compare_units(value, expected, operations=operations)
 
         # Check the types of both objects

@@ -1,8 +1,7 @@
 """ Constants used throughout the snappiershot package. """
 from types import SimpleNamespace
 
-ENCODING_FUNCTION_NAME = "__snapshot__"
-METADATA_ENCODING_OVERRIDE = "__metadata_override__"
+ENCODING_CLASS_OVERRIDE = "__snapshot__"
 SNAPSHOT_DIRECTORY = ".snapshots"
 
 

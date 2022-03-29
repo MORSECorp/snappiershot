@@ -218,28 +218,6 @@ class TestDefaultEncodeValue:
         # Assert
         assert result == dict(a=1, b=2)
 
-    @staticmethod
-    def test_uninstantiated_class():
-        """ Test encoding for uninstantiated classes with a special skip function defined """
-
-        # Arrange
-        class UninstantiatedClass:
-            def __init__(self):
-                self.a = 1
-                self.b = 2
-                self.c = 3
-
-            @classmethod
-            def __metadata_override__(cls):
-                encoding = "Dont Encode Me!"
-                return encoding
-
-        # Act
-        result = default_encode_value(UninstantiatedClass)
-
-        # Assert
-        assert result == "Dont Encode Me!"
-
 
 class TestGetSnapshotFile:
     """ Tests for the get_snapshot_file utility function. """

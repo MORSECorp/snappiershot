@@ -8,7 +8,6 @@ from typing import Any, Collection, Dict, Iterator, List
 
 from pint import Unit
 
-from ..constants import METADATA_ENCODING_OVERRIDE
 from .constants import (
     COLLECTION_TYPES,
     DATETIME_TYPES,
@@ -21,7 +20,6 @@ from .constants import (
     CustomEncodedUnitTypes,
     JsonType,
 )
-from .utils import is_uninstantiated_object
 
 
 class JsonSerializer(json.JSONEncoder):
@@ -102,12 +100,6 @@ class JsonSerializer(json.JSONEncoder):
 
         if isinstance(value, UNIT_TYPES):
             return self.encode_unit(value)
-
-        # If the value is a class that hasn't been instantiated but want to still encode it somehow
-        if is_uninstantiated_object(value):
-            # Look for the special encoding function
-            if hasattr(value, METADATA_ENCODING_OVERRIDE):
-                return getattr(value, METADATA_ENCODING_OVERRIDE)()
 
         raise NotImplementedError(  # pragma: no cover
             f"Encoding for this object is not yet implemented: {value} ({type(value)})"
@@ -310,12 +302,7 @@ class JsonSerializer(json.JSONEncoder):
             NotImplementedError - If encoding is not implemented for the given Unit type.
         """
         if isinstance(value, Unit):
-            encoded_value = value.__str__()
-            return CustomEncodedUnitTypes.unit.json_encoding(encoded_value)
-
-        # Custom Unit types not supported in base pint
-        if value == "fraction" or value == "percent":
-            encoded_value = value
+            encoded_value = str(value)
             return CustomEncodedUnitTypes.unit.json_encoding(encoded_value)
 
         raise NotImplementedError(
@@ -541,10 +528,8 @@ class JsonDeserializer(json.JSONDecoder):
         type_name = dct.get(CustomEncodedUnitTypes.type_key)
         value = dct.get(CustomEncodedUnitTypes.value_key)
 
-        if value == "fraction" or value == "percent":
-            return value
         if type_name == CustomEncodedUnitTypes.unit.name:
-            return Unit(value)
+            return value
 
         raise NotImplementedError(
             f"Deserialization for the following Unit type not implemented: {dct}"

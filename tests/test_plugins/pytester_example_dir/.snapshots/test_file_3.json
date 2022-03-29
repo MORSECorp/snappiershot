@@ -12,25 +12,16 @@
                 "snapshots": [
                     {
                         "test1": {
-                            "unit": {
-                                "__snappiershot_unit__": "Unit",
-                                "value": "meter"
-                            },
+                            "unit": "meter",
                             "value": -1000
                         },
                         "test2": [
                             {
-                                "unit": {
-                                    "__snappiershot_unit__": "Unit",
-                                    "value": "meter"
-                                },
+                                "unit": "meter",
                                 "value": -1000
                             },
                             {
-                                "unit": {
-                                    "__snappiershot_unit__": "Unit",
-                                    "value": "meter"
-                                },
+                                "unit": "meter",
                                 "value": -1000
                             }
                         ]

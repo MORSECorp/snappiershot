@@ -2,7 +2,6 @@
 from typing import Any, Dict
 
 from numpy import all, ndarray
-from snappiershot.constants import METADATA_ENCODING_OVERRIDE
 
 from ..inspection import CallerInfo
 
@@ -18,17 +17,12 @@ def compare_metadata(from_test_function: Any, from_snapshot: Any) -> bool:
         from_test_function: Inputs to the test function calling SnappierShot
         from_snapshot: Inputs to the test function after being serialized to JSON
     """
+    result = False
+
     # Determine if the metadata can instantiate a class from a dictionary, or whether any object is None
     metadata_function_has_method = hasattr(from_test_function, "from_dict")
     metadata_function_is_not_none = from_test_function is not None
     metadata_file_is_not_none = from_snapshot is not None
-
-    # If object has special coding defined to skip checking, set a flag
-    metadata_function_can_be_skipped = hasattr(
-        from_test_function, METADATA_ENCODING_OVERRIDE
-    )
-
-    result = False
 
     if isinstance(from_test_function, ndarray) or isinstance(from_snapshot, ndarray):
         result = all(from_test_function == from_snapshot)
@@ -37,16 +31,11 @@ def compare_metadata(from_test_function: Any, from_snapshot: Any) -> bool:
         result = from_test_function == from_snapshot
     elif (
         # Otherwise, if neither object is none and an object can be instantiated from a dictionary, do so
-        (metadata_function_has_method or metadata_function_can_be_skipped)
+        metadata_function_has_method
         and metadata_function_is_not_none
         and metadata_file_is_not_none
     ):
-        if metadata_function_can_be_skipped:
-            result = (
-                getattr(from_test_function, METADATA_ENCODING_OVERRIDE)() == from_snapshot
-            )
-        else:
-            result = from_test_function == from_test_function.from_dict(from_snapshot)
+        result = from_test_function == from_test_function.from_dict(from_snapshot)
 
     return result
 
