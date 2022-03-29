@@ -86,18 +86,9 @@ class SnapshotMetadata:
             inputs_from_test_method = metadata_args.get(key)
             inputs_from_file = metadata_dict["arguments"].get(key)
 
-            # If the object is a list, must loop through it and compare each index
-            if isinstance(inputs_from_test_method, list) and isinstance(
-                inputs_from_file, list
-            ):
-                for ii, jj in zip(inputs_from_test_method, inputs_from_file):
-                    if not compare_metadata(ii, jj):
-                        # Early exit if objects arent equal
-                        return False
-            else:
-                if not compare_metadata(inputs_from_test_method, inputs_from_file):
-                    # Early exit if objects arent equal
-                    return False
+            if not compare_metadata(inputs_from_test_method, inputs_from_file):
+                # Early exit if objects arent equal
+                return False
 
         # If it made it through the checks, the objects are equal
         return True
