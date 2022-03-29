@@ -35,7 +35,7 @@ class TestSnapshotMetadata:
             self.test2 = 2
 
         @classmethod
-        def __snapshotskip__(cls):
+        def __metadata_override__(cls):
             return "Skip Me"
 
     FAKE_CALLER_INFO = CallerInfo(

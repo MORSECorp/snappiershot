@@ -8,8 +8,8 @@ from typing import Any, Callable, Dict, Optional, Sequence, Set
 
 from ..constants import (
     ENCODING_FUNCTION_NAME,
+    METADATA_ENCODING_OVERRIDE,
     SNAPSHOT_DIRECTORY,
-    SPECIAL_ENCODING_FUNCTION_NAME,
 )
 from ..errors import SnappierShotWarning
 from .constants import SERIALIZABLE_TYPES, JsonType
@@ -101,8 +101,8 @@ def default_encode_value(value: Any, context: Set[int]) -> JsonType:
     # If the value is a class that hasn't been instantiated but want to still encode it somehow
     if is_uninstantiated_object(value):
         # Look for the special encoding function
-        if hasattr(value, SPECIAL_ENCODING_FUNCTION_NAME):
-            return getattr(value, SPECIAL_ENCODING_FUNCTION_NAME)()
+        if hasattr(value, METADATA_ENCODING_OVERRIDE):
+            return getattr(value, METADATA_ENCODING_OVERRIDE)()
 
     raise ValueError(
         f"Cannot serialize this value: {value} \n"

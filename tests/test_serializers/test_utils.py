@@ -230,7 +230,7 @@ class TestDefaultEncodeValue:
                 self.c = 3
 
             @classmethod
-            def __snapshotskip__(cls):
+            def __metadata_override__(cls):
                 encoding = "Dont Encode Me!"
                 return encoding
 

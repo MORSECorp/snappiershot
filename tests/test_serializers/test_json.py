@@ -391,7 +391,7 @@ def test_round_trip(tmp_path: pathlib.Path):
             return "Skip Me"
 
         @classmethod
-        def __snapshotskip__(cls):
+        def __metadata_override__(cls):
             return "Skip Me"
 
     # Arrange

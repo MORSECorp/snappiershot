@@ -8,7 +8,7 @@ from typing import Any, Collection, Dict, Iterator, List
 
 from pint import Unit
 
-from ..constants import SPECIAL_ENCODING_FUNCTION_NAME
+from ..constants import METADATA_ENCODING_OVERRIDE
 from .constants import (
     COLLECTION_TYPES,
     DATETIME_TYPES,
@@ -106,8 +106,8 @@ class JsonSerializer(json.JSONEncoder):
         # If the value is a class that hasn't been instantiated but want to still encode it somehow
         if is_uninstantiated_object(value):
             # Look for the special encoding function
-            if hasattr(value, SPECIAL_ENCODING_FUNCTION_NAME):
-                return getattr(value, SPECIAL_ENCODING_FUNCTION_NAME)()
+            if hasattr(value, METADATA_ENCODING_OVERRIDE):
+                return getattr(value, METADATA_ENCODING_OVERRIDE)()
 
         raise NotImplementedError(  # pragma: no cover
             f"Encoding for this object is not yet implemented: {value} ({type(value)})"

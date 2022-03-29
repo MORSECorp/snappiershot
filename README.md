@@ -47,7 +47,7 @@ SnappierShot uses metadata to find tests stored in each snapshot file. Metadata 
 * Do not run `assert_match` within a loop
 * Do not try to snapshot uninstantiated classes/objects or use them as inputs to a test method
 * If an unsupported object type cannot be snapshotted, see [CONTRIBUTING.md](CONTRIBUTING.md) for instructions on how to contribute to the project
-  * `__snapshot__` and `__snapshotskip__` are temporary workarounds that can be added to a custom object class to define user specific encoding instructions, but this feature is hacky and not robust yet
+  * `__snapshot__` and `__metadata_override__` are temporary workarounds that can be added to a custom object class to define user specific encoding instructions, but this feature is hacky and not robust yet
 
 
 ### Pytest Examples
@@ -103,7 +103,7 @@ Warning: Use these methods is hacky and should not be relied on.
 
 
 * `__snapshot__` overrides serializing behavior for instanced custom objects
-* `__snapshotskip__` overrides serializing behavior for uninstanced custom objects
+* `__metadata_override__` overrides serializing behavior for uninstanced custom objects
 
 ```python
 from snappiershot import Snapshot as Snappy
@@ -122,7 +122,7 @@ class CustomClass:
     return encoding
 
   @classmethod
-  def __snapshotskip__(cls):
+  def __metadata_override__(cls):
     return "test string"
 
 
@@ -174,7 +174,7 @@ def test_fallible_function(snapshot):
   * Dictionaries
   * Classes (with an underlying `__dict__`, `__slots__`, or `to_dict()`)
   * Unit types from the `pint` package
-  * Classes with custom encoding (by defining a `__snapshot__` or `__snapshotskip__` method)
+  * Classes with custom encoding (by defining a `__snapshot__` or `__metadata_override__` method)
 
 ## Contributing
 See [CONTRIBUTING.md](CONTRIBUTING.md)
