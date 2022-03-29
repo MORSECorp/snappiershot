@@ -91,7 +91,7 @@ class ObjectComparison:
                 to obtain value and expected, respectively. Used for logging differences.
         """
         # Check if the string format of both are equal due to possibility of different registries
-        if value.__str__() != expected.__str__():
+        if str(value) != str(expected):
             message = f"Units not equal ({value} != {expected}). "
             return self.differences.add(operations, message)
 
