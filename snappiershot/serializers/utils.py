@@ -62,8 +62,8 @@ def default_encode_value(value: Any, context: Set[int]) -> JsonType:
     if isinstance(value, BaseException):
         return encode_exception(value)
 
-    # If the value is a sequence, recurse (unless it's an instanced object).
-    if isinstance(value, Sequence) and not is_class_object(value):
+    # If the value is a sequence, recurse.
+    if isinstance(value, Sequence):
         encoded_sequence = list()
         for item in value:
             try:
