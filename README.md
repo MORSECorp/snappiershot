@@ -51,12 +51,11 @@ SnappierShot uses metadata to find tests stored in each snapshot file. Metadata 
 
 
 ### Pytest Examples
-Implementing this way will not properly source the snappiershot reference
 ```python
-from snappiershot import Snapshot as Snappy
+from snappiershot import Snapshot
 
-def test_no_documentation(snapshot):
-    """ Will not attach proper SnappierShot documentation to assert_match """
+def test_basic(snapshot: Snapshot):
+    """ Will do a basic snapshotting of one value with no metadata """
     # Arrange
     x = 1
     y = 2
@@ -67,29 +66,18 @@ def test_no_documentation(snapshot):
     # Assert
     snapshot.assert_match(result)
 
-def test_documentation(snapshot: Snappy):
-    """ Will attach proper SnappierShot documentation to assert_match """
-    # Arrange
-    x = 1
-    y = 2
-
-    # Act
-    result = x + y
-
-    # Assert
-    snapshot.assert_match(result)
-
-def test_ignore_metadata(snapshot: Snappy, ignored_input: str = "ignore me"):
+def test_ignore_metadata(snapshot: Snapshot, input_to_ignore: str = "ignore me"):
     """ Test that metadata gets ignored """
     # Arrange
     x = 1
     y = 2
+    ignored_input = ["input_to_ignore"]
 
     # Act
     result = x + y
 
     # Assert
-    snapshot.assert_match(result, ignore=["ignored_input"])
+    snapshot.assert_match(result, ignore=ignored_input)
 ```
 
 ### No Test Runner Example
