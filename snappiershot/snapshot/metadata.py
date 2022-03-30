@@ -25,6 +25,7 @@ def compare_metadata(from_test_function: Any, from_snapshot: Any) -> bool:
     metadata_file_is_not_none = from_snapshot is not None
 
     if isinstance(from_test_function, ndarray) or isinstance(from_snapshot, ndarray):
+        # If at least one is a numpy array, elementwise comparison can be done like this:
         result = all(from_test_function == from_snapshot)
     elif type(from_test_function) == type(from_snapshot):
         # If object types match, directly compare them
