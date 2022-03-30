@@ -18,7 +18,7 @@ PACKAGE_FULL_DIFF_OPTION = "snappiershot_full_diff"
 
 
 def construct_snappiershot_config(pytest_config: PytestConfig) -> snappiershot.Config:
-    """ Attempt to construct a snappiershot.Config object from the pytest Config object.
+    """Attempt to construct a snappiershot.Config object from the pytest Config object.
 
     Uses various path locations stored in the pytest Config object to locate the
       any pyproject.toml files with snappiershot configurations.
@@ -37,7 +37,7 @@ def construct_snappiershot_config(pytest_config: PytestConfig) -> snappiershot.C
 
 
 def pytest_addoption(parser: PytestParser) -> None:
-    """ Add options to the pytest runner configurations. """
+    """Add options to the pytest runner configurations."""
     group = parser.getgroup("snappiershot")
     group.addoption(
         "--snappiershot-full-diff",
@@ -49,7 +49,7 @@ def pytest_addoption(parser: PytestParser) -> None:
 
 
 def pytest_configure(config: PytestConfig) -> None:
-    """ Snappiershot-specific configuration for the pytest runner. """
+    """Snappiershot-specific configuration for the pytest runner."""
     # Construct a default snappiershot.Config object during pytest initialization.
     setattr(config.option, PACKAGE_CONFIG_OPTION, construct_snappiershot_config(config))
 
@@ -74,7 +74,7 @@ def pytest_configure(config: PytestConfig) -> None:
 def pytest_terminal_summary(
     terminalreporter: TerminalReporter, config: PytestConfig
 ) -> None:
-    """ Add a summary to the end of the of the pytest output about snapshot statuses. """
+    """Add a summary to the end of the of the pytest output about snapshot statuses."""
     tracker: SnapshotTracker = config.getoption(PACKAGE_TRACKER_OPTION)
     status_report = tracker.get_status_report()
 
@@ -90,7 +90,7 @@ def pytest_terminal_summary(
 # noinspection PyShadowingNames
 @pytest.fixture(name="snapshot", scope="function")
 def _snapshot(request: FixtureRequest) -> Iterator[snappiershot.Snapshot]:
-    """ Pytest fixture with function-level scope that returns a
+    """Pytest fixture with function-level scope that returns a
     snappiershot.Snapshot object.
 
     Examples:

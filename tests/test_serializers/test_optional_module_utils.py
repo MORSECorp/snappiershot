@@ -88,7 +88,7 @@ class TestPandas:
 
     @staticmethod
     def test_encode_pandas_error():
-        """ Test that the encode_pandas raises an error if no encoding is defined. """
+        """Test that the encode_pandas raises an error if no encoding is defined."""
         # Arrange
         value = "not a pandas"
 
@@ -173,7 +173,7 @@ class TestNumpy:
 
     @staticmethod
     def test_encode_numpy_error():
-        """ Test that the encode_numpy raises an error if no encoding is defined. """
+        """Test that the encode_numpy raises an error if no encoding is defined."""
         # Arrange
         value = "not a numpy"
 

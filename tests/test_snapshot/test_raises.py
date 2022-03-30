@@ -6,7 +6,7 @@ from snappiershot.snapshot._raises import _RaisesContext
 
 
 def test_no_exception_raised(snapshot: Snapshot):
-    """ Test that the expected error is raised when no exception is caught. """
+    """Test that the expected error is raised when no exception is caught."""
     # Arrange
     raises = _RaisesContext(snapshot, BaseException, False)
 
@@ -17,7 +17,7 @@ def test_no_exception_raised(snapshot: Snapshot):
 
 
 def test_wrong_exception_raised(snapshot: Snapshot):
-    """ Test that the expected error is raised when no exception is caught. """
+    """Test that the expected error is raised when no exception is caught."""
     # Arrange
     raises = _RaisesContext(snapshot, ValueError, False)
 

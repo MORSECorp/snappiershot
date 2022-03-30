@@ -13,7 +13,7 @@ PYTESTER_EXAMPLE_DIR = Path(__file__).parent / "pytester_example_dir"
 
 @pytest.mark.filterwarnings("ignore:.*experimental api")
 def test_tracker(testdir: Testdir):
-    """ Test that the SnapshotTracker is able to track snapshot statuses
+    """Test that the SnapshotTracker is able to track snapshot statuses
     throughout a pytest run.
     """
     # Arrange

@@ -9,7 +9,7 @@ from .config import Config
 
 
 class ObjectComparison:
-    """ Class for comparing two objects and logging differences between them. """
+    """Class for comparing two objects and logging differences between them."""
 
     def __init__(self, value: Any, expected: Any, config: Config, exact: bool = False):
         """
@@ -27,16 +27,16 @@ class ObjectComparison:
         self._compare(self.value, self.expected, operations=[])
 
     def __bool__(self) -> bool:
-        """ Returns True if no differences were detected. """
+        """Returns True if no differences were detected."""
         return not bool(self.differences.items)
 
     @property
     def equal(self) -> bool:
-        """ Returns True if no differences were detected. """
+        """Returns True if no differences were detected."""
         return bool(self)
 
     def _compare(self, value: Any, expected: Any, *, operations: List[Callable]) -> None:
-        """ Perform a recursive, almost-equals comparison between value and expected.
+        """Perform a recursive, almost-equals comparison between value and expected.
 
         Args:
             value: The object to be checked.
@@ -79,7 +79,7 @@ class ObjectComparison:
     def _compare_units(
         self, value: Unit, expected: Unit, *, operations: List[Callable] = None
     ) -> None:
-        """ Perform a recursive, almost-equals comparison between value and expected.
+        """Perform a recursive, almost-equals comparison between value and expected.
 
         This is a helper function for when the expected is a unit, it compares objects without checking type.
 
@@ -98,7 +98,7 @@ class ObjectComparison:
     def _compare_dicts(
         self, value: Dict, expected: Dict, *, operations: List[Callable] = None
     ) -> None:
-        """ Perform a recursive, almost-equals comparison between value and expected.
+        """Perform a recursive, almost-equals comparison between value and expected.
 
         This is a helper function for when both value and expected are dictionaries.
 
@@ -125,7 +125,7 @@ class ObjectComparison:
     def _compare_floats(
         self, value: float, expected: float, *, operations: List[Callable] = None
     ) -> None:
-        """ Perform an almost-equals comparison between value and expected.
+        """Perform an almost-equals comparison between value and expected.
 
         This is a helper function for when both value and expected are floats.
 
@@ -155,7 +155,7 @@ class ObjectComparison:
     def _compare_sequences(
         self, value: Sequence, expected: Sequence, *, operations: List[Callable] = None
     ) -> None:
-        """ Perform a recursive, almost-equals comparison between value and expected.
+        """Perform a recursive, almost-equals comparison between value and expected.
 
         This is a helper function for when both value and expected are sequences
           (ordered, indexable iterables).
@@ -183,7 +183,7 @@ class ObjectComparison:
     def _compare_sets(
         self, value: Set, expected: Set, *, operations: List[Callable] = None
     ) -> None:
-        """ Perform an exact-equals comparison between value and expected.
+        """Perform an exact-equals comparison between value and expected.
 
         This is a helper function for when both value and expected are sets.
 
@@ -205,7 +205,7 @@ class ObjectComparison:
 
 
 class _Differences:
-    """ Helper object for logging comparisons for the ObjectComparison class.
+    """Helper object for logging comparisons for the ObjectComparison class.
 
     Example:
         >>> value = dict(name="test", list=[(1, 2, 4)])
@@ -230,7 +230,7 @@ class _Differences:
         self.items: Dict[Tuple[Callable, ...], str] = dict()
 
     def add(self, operations: Iterable[Callable], message: str) -> None:
-        """ Add a difference to the log of differences.
+        """Add a difference to the log of differences.
 
         Args:
             operations: The operations that need to be applied to complex object to obtain

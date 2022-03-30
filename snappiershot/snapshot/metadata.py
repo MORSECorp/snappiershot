@@ -7,7 +7,7 @@ from ..inspection import CallerInfo
 
 
 def compare_metadata(from_test_function: Any, from_snapshot: Any) -> bool:
-    """ Instantiate object from a dictionary read from file in order to compare to SnappierShot input.
+    """Instantiate object from a dictionary read from file in order to compare to SnappierShot input.
 
     SnappierShot serializes class objects by decomposing them into their parts in the form of a dictionary, then
     writes to the snapshot JSON. Thus, SnappierShot must attempt to re-instantiate the dictionary form of the
@@ -41,7 +41,7 @@ def compare_metadata(from_test_function: Any, from_snapshot: Any) -> bool:
 
 
 class SnapshotMetadata:
-    """ Metadata associated with a single snapshot. """
+    """Metadata associated with a single snapshot."""
 
     def __init__(
         self,
@@ -65,13 +65,13 @@ class SnapshotMetadata:
         self._validate()
 
     def as_dict(self) -> Dict:
-        """ Returns a JSON-serializable dictionary of metadata. """
+        """Returns a JSON-serializable dictionary of metadata."""
         dct = vars(self).copy()
         dct["arguments"] = dct.pop("caller_info").args
         return dct
 
     def matches(self, metadata_dict: Dict) -> bool:
-        """ Check if the "metadata" section of a snapshot file sufficiently matches
+        """Check if the "metadata" section of a snapshot file sufficiently matches
         the metadata object coming from the test method inputs.
 
         This matching is used to identify snapshots of tests within a snapshot file.
@@ -94,7 +94,7 @@ class SnapshotMetadata:
         return True
 
     def _validate(self) -> None:
-        """ Validates the snapshot metadata.
+        """Validates the snapshot metadata.
 
         Raises:
             TypeError: If a metadata field has an invalid type.

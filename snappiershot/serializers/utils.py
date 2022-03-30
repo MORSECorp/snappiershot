@@ -15,11 +15,11 @@ from .optional_module_utils import Numpy, Pandas
 def filter_recursive_objects(
     func: Callable[[Any, Set[int]], JsonType]
 ) -> Callable[[Any, Optional[Set[int]]], JsonType]:
-    """ Decorator object for catching and tracking recursive objects. """
+    """Decorator object for catching and tracking recursive objects."""
 
     @wraps(func)
     def wrapper(value: Any, context: Optional[Set[int]] = None) -> JsonType:
-        """ Wrapper function to catch and track recursive objects. """
+        """Wrapper function to catch and track recursive objects."""
         if context is None:
             context = set()
 
@@ -36,7 +36,7 @@ def filter_recursive_objects(
 
 @filter_recursive_objects
 def default_encode_value(value: Any, context: Set[int]) -> JsonType:
-    """ Perform a default encoding of the specified value into a serializable data. """
+    """Perform a default encoding of the specified value into a serializable data."""
     # If the value is already serializable, return.
     if isinstance(value, SERIALIZABLE_TYPES):
         return value
@@ -103,7 +103,7 @@ def default_encode_value(value: Any, context: Set[int]) -> JsonType:
 
 
 def encode_exception(value: BaseException) -> JsonType:
-    """ Encode an exception object.
+    """Encode an exception object.
 
     These objects need to be specially handled because each exception has a unique
       hash and therefore cannot be automatically compared.
@@ -124,7 +124,7 @@ def encode_exception(value: BaseException) -> JsonType:
 
 
 def get_snapshot_file(test_file: Path, suffix: str) -> Path:
-    """ Returns the path to the snapshot file.
+    """Returns the path to the snapshot file.
 
     The SNAPSHOT_DIRECTORY will be created automatically if it does not exist.
 
@@ -150,7 +150,7 @@ def get_snapshot_file(test_file: Path, suffix: str) -> Path:
 
 
 def is_class_object(value: Any) -> bool:
-    """ Check if the input value is an instanced object, i.e. an instantiated class. """
+    """Check if the input value is an instanced object, i.e. an instantiated class."""
     is_type = inspect.isclass(value)
     is_function = inspect.isroutine(value)
     is_object = hasattr(value, "__dict__") or hasattr(value, "__slots__")
@@ -158,7 +158,7 @@ def is_class_object(value: Any) -> bool:
 
 
 def fullvars(value: Any) -> dict:
-    """ Returns a mapping of all attributes to their associated values for a given object.
+    """Returns a mapping of all attributes to their associated values for a given object.
     Supports slots-optimized classes.
 
     Args:

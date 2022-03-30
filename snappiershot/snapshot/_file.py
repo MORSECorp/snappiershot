@@ -13,7 +13,7 @@ _NO_SNAPSHOT = object()
 
 
 class _SnapshotFile:
-    """ Reads and Writes a snapshot file.
+    """Reads and Writes a snapshot file.
 
     This class performs the following actions at initialization:
         1. Locates the snapshot file associated with the test function
@@ -87,7 +87,7 @@ class _SnapshotFile:
         self._snapshot_statuses = [SnapshotStatus.UNCHECKED for _ in self._snapshots]
 
     def get_snapshot(self, index: int) -> Union[Dict, object]:
-        """ Return a snapshot from the snapshot file.
+        """Return a snapshot from the snapshot file.
 
         This snapshot will correspond to the test function, with the index
           corresponding to the nth assertion made by the test function.
@@ -103,15 +103,15 @@ class _SnapshotFile:
             return _NO_SNAPSHOT
 
     def mark_failed(self, index: int) -> None:
-        """ Set the status for the snapshot at the specified index as "FAILED". """
+        """Set the status for the snapshot at the specified index as "FAILED"."""
         self._mark_snapshot_status(index, SnapshotStatus.FAILED)
 
     def mark_passed(self, index: int) -> None:
-        """ Set the status for the snapshot at the specified index as "PASSED". """
+        """Set the status for the snapshot at the specified index as "PASSED"."""
         self._mark_snapshot_status(index, SnapshotStatus.PASSED)
 
     def record_snapshot(self, value: Any, index: int = -1) -> None:
-        """ Record a snapshot for the test function.
+        """Record a snapshot for the test function.
 
         Marks the snapshot at the given index as "RECORDED".
 
@@ -128,7 +128,7 @@ class _SnapshotFile:
         self._mark_snapshot_status(index, SnapshotStatus.RECORDED)
 
     def write(self) -> None:
-        """ Write out the snapshots.
+        """Write out the snapshots.
 
         Raises:
             ValueError: If the file format of the snapshot_file is not recognized.
@@ -153,7 +153,7 @@ class _SnapshotFile:
 
     @property
     def _empty_file_contents(self) -> Dict:
-        """ Returns the contents of an empty snapshot file.
+        """Returns the contents of an empty snapshot file.
 
         This value is used if a snapshot file does not exist.
         This needs to be within a property to avoid circular import limitations.
@@ -164,7 +164,7 @@ class _SnapshotFile:
 
     @staticmethod
     def _find_snapshots(file_contents: Dict, metadata: SnapshotMetadata) -> List[Dict]:
-        """ Finds the snapshots that correspond to the test function.
+        """Finds the snapshots that correspond to the test function.
 
         Will return an empty list of no snapshots are found.
 
@@ -195,7 +195,7 @@ class _SnapshotFile:
 
     @staticmethod
     def _get_snapshot_file(test_file: Path, file_format: str) -> Path:
-        """ Locates the snapshot file for the correct file format.
+        """Locates the snapshot file for the correct file format.
 
         Args:
             test_file: The path to the test file associated with the snapshot file.
@@ -209,7 +209,7 @@ class _SnapshotFile:
         raise ValueError(f"Unsupported snapshot file format: {file_format}")
 
     def _mark_snapshot_status(self, index: int, status: SnapshotStatus) -> None:
-        """ Set the status for the snapshot at the specified index as the specified status.
+        """Set the status for the snapshot at the specified index as the specified status.
 
         This will handle out-of-bounds indices.
         """
@@ -219,7 +219,7 @@ class _SnapshotFile:
             self._snapshot_statuses[index] = status
 
     def _parse_snapshot_file(self, snapshot_file: Path) -> Dict:
-        """ Parses the snapshot file.
+        """Parses the snapshot file.
 
         Args:
             snapshot_file: The path to the file containing snapshots.

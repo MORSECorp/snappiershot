@@ -14,7 +14,7 @@ REL_TOL = 0.001
 
 @pytest.fixture(name="config", scope="module")
 def _config() -> Config:
-    """ Fixture that returns a static Config object. """
+    """Fixture that returns a static Config object."""
     return Config(float_absolute_tolerance=ABS_TOL, float_relative_tolerance=REL_TOL)
 
 
@@ -26,7 +26,7 @@ def _config() -> Config:
     [(Unit("meter"), Unit("meter"), True), (Unit("meter"), Unit("feet"), False)],
 )
 def test_compare_units(value, expected, config, is_equal):
-    """ Test that units are compared as expected. """
+    """Test that units are compared as expected."""
     # Arrange
 
     # Act
@@ -45,7 +45,7 @@ def test_compare_units(value, expected, config, is_equal):
     ],
 )
 def test_compare_dictionaries(value, expected, config, is_equal):
-    """ Test that dictionaries are compared as expected. """
+    """Test that dictionaries are compared as expected."""
     # Arrange
 
     # Act
@@ -64,7 +64,7 @@ def test_compare_dictionaries(value, expected, config, is_equal):
     ],
 )
 def test_compare_sequences(value, expected, config, is_equal):
-    """ Test that sequences are compared as expected. """
+    """Test that sequences are compared as expected."""
     # Arrange
 
     # Act
@@ -84,7 +84,7 @@ def test_compare_sequences(value, expected, config, is_equal):
     ],
 )
 def test_compare_sets(value, expected, config, is_equal):
-    """ Test that sets are compared as expected. """
+    """Test that sets are compared as expected."""
     # Arrange
 
     # Act
@@ -107,7 +107,7 @@ def test_compare_sets(value, expected, config, is_equal):
     ],
 )
 def test_compare_floats(value, expected, config, exact, is_equal):
-    """ Test that floats are compared as expected. """
+    """Test that floats are compared as expected."""
     # Arrange
 
     # Act
@@ -118,7 +118,7 @@ def test_compare_floats(value, expected, config, exact, is_equal):
 
 
 def test_compare_types(config):
-    """ Test that objects of different types are caught. """
+    """Test that objects of different types are caught."""
     # Arrange
     value = None
     expected = 3.14
@@ -134,7 +134,7 @@ def test_compare_types(config):
 
 
 def test_compare(config):
-    """ Test comparison of complex object with itself (Integration test). """
+    """Test comparison of complex object with itself (Integration test)."""
     # Arrange
     value = {
         "string": "TEST",

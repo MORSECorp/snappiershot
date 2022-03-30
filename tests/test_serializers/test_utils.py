@@ -13,11 +13,11 @@ from snappiershot.serializers.utils import (
 
 
 class TestDefaultEncodeValue:
-    """ Tests for the default_encode_value utility function. """
+    """Tests for the default_encode_value utility function."""
 
     @staticmethod
     def test_encode_class():
-        """ Test that a class is encoded as expected. """
+        """Test that a class is encoded as expected."""
         # Arrange
         value = SimpleNamespace(a=1, b="banana", c=None)
         expected = dict(a=1, b="banana", c=None)
@@ -30,7 +30,7 @@ class TestDefaultEncodeValue:
 
     @staticmethod
     def test_encode_class_recursive():
-        """ Test that a class is recursively encoded as expected. """
+        """Test that a class is recursively encoded as expected."""
         # Arrange
         value = SimpleNamespace(
             class_=SimpleNamespace(a=1, b="banana", c=None),
@@ -51,18 +51,18 @@ class TestDefaultEncodeValue:
 
     @staticmethod
     def test_encode_custom_encoder():
-        """ Test that a class that specifies a custom encoder
+        """Test that a class that specifies a custom encoder
         gets encoded using that method.
         """
         # Arrange
         encoding = "CUSTOM ENCODING"
 
         class ClassWithCustomEncoder:
-            """ Example class with custom encoder. """
+            """Example class with custom encoder."""
 
             # noinspection PyMethodMayBeStatic
             def __snapshot__(self):
-                """ Custom encoder for snappiershot. """
+                """Custom encoder for snappiershot."""
                 return encoding
 
         value = ClassWithCustomEncoder()
@@ -75,7 +75,7 @@ class TestDefaultEncodeValue:
 
     @staticmethod
     def test_encode_serializable_types():
-        """ Test that a class with custom-encoded types does not encode these types. """
+        """Test that a class with custom-encoded types does not encode these types."""
         # Arrange
         from datetime import datetime
 
@@ -93,7 +93,7 @@ class TestDefaultEncodeValue:
     @staticmethod
     @pytest.mark.parametrize("value", (set("abcdefg"), (1, 2, 3)))
     def test_encode_collection_types(value):
-        """ Test that a class with custom-encoded types does not encode collection. """
+        """Test that a class with custom-encoded types does not encode collection."""
         # Arrange
 
         # Act
@@ -105,7 +105,7 @@ class TestDefaultEncodeValue:
     @staticmethod
     @pytest.mark.parametrize("value", [isinstance, type, iter([1, 2])])
     def test_encode_unserializable(value):
-        """ Test that an unserializable object raises an error. """
+        """Test that an unserializable object raises an error."""
         # Arrange
 
         # Act & Assert
@@ -114,7 +114,7 @@ class TestDefaultEncodeValue:
 
     @staticmethod
     def test_encode_unserializable_recurse():
-        """ Test that a class with un-serializable attributes does not error. """
+        """Test that a class with un-serializable attributes does not error."""
         # Arrange
         value = SimpleNamespace(
             class_=SimpleNamespace(good="class", bad=type),
@@ -131,7 +131,7 @@ class TestDefaultEncodeValue:
 
     @staticmethod
     def test_encode_recursive_object():
-        """ Test that recursive objects are handled gracefully. """
+        """Test that recursive objects are handled gracefully."""
         # Arrange
         value = SimpleNamespace(class_=None, dict_=None, list_=None)
         value.class_ = value
@@ -200,7 +200,7 @@ class TestDefaultEncodeValue:
 
     @staticmethod
     def test_slots_class():
-        """ Test default encoding of recursive slots-optimized classes. """
+        """Test default encoding of recursive slots-optimized classes."""
         # Arrange
         class SlotsClass:
             __slots__ = ("a", "b", "c", "d")
@@ -220,11 +220,11 @@ class TestDefaultEncodeValue:
 
 
 class TestGetSnapshotFile:
-    """ Tests for the get_snapshot_file utility function. """
+    """Tests for the get_snapshot_file utility function."""
 
     @staticmethod
     def test_get_snapshot_file(tmp_path):
-        """ Test that get_snapshot_file returns the expected path. """
+        """Test that get_snapshot_file returns the expected path."""
         # Arrange
         test_file = tmp_path / "example_test.py"
         suffix = ".json"
@@ -239,7 +239,7 @@ class TestGetSnapshotFile:
 
     @staticmethod
     def test_get_snapshot_file_directory_error(tmp_path):
-        """ Test that get_snapshot_file raises an error if the directory
+        """Test that get_snapshot_file raises an error if the directory
         containing the test does not exist.
         """
         # Arrange
@@ -252,7 +252,7 @@ class TestGetSnapshotFile:
 
     @staticmethod
     def test_get_snapshot_file_type_error(tmp_path):
-        """ Test that get_snapshot_file raises an error for an invalid suffix. """
+        """Test that get_snapshot_file raises an error for an invalid suffix."""
         # Arrange
         test_file = tmp_path / "example_test.py"
         suffix = "json"
@@ -263,7 +263,7 @@ class TestGetSnapshotFile:
 
 
 class TestEncodingExceptions:
-    """ Tests for exception encoding. """
+    """Tests for exception encoding."""
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -279,7 +279,7 @@ class TestEncodingExceptions:
         # fmt: on
     )
     def test_write_json_error(value, expected):
-        """ Test if an error occurs during snapshot writing, no file is written. """
+        """Test if an error occurs during snapshot writing, no file is written."""
         # Arrange
 
         # Act
@@ -290,11 +290,11 @@ class TestEncodingExceptions:
 
 
 class TestFullVars:
-    """ Tests for the fullvars. """
+    """Tests for the fullvars."""
 
     @staticmethod
     def test_regular_class():
-        """ Test that fullvars works for a regular class. """
+        """Test that fullvars works for a regular class."""
         # Arrange
         class NormalClass:
             def __init__(self):
@@ -312,7 +312,7 @@ class TestFullVars:
 
     @staticmethod
     def test_slots_class():
-        """ Test that fullvars works for a slots-optimized class. """
+        """Test that fullvars works for a slots-optimized class."""
         # Arrange
         class SlotsClass:
             __slots__ = ("a", "b", "c")
@@ -332,8 +332,8 @@ class TestFullVars:
 
     @staticmethod
     def test_slots_class_partial_instantiated():
-        """ Test that fullvars works for a slots-optimized class
-        with partially instantiated slots. """
+        """Test that fullvars works for a slots-optimized class
+        with partially instantiated slots."""
         # Arrange
         class SlotsClassPartiallyInstantiated:
             __slots__ = ("a", "b", "c")
@@ -352,7 +352,7 @@ class TestFullVars:
 
     @staticmethod
     def test_mixed_class():
-        """ Test that fullvars works for classes with __slots__ and __dict__. """
+        """Test that fullvars works for classes with __slots__ and __dict__."""
         # Arrange
         class MixedClass:
             __slots__ = ("__dict__", "a", "b")
@@ -372,7 +372,7 @@ class TestFullVars:
 
     @staticmethod
     def test_empty_class():
-        """ Test that fullvars works for an empty class. """
+        """Test that fullvars works for an empty class."""
         # Arrange
         class EmptyClass:
             pass
@@ -387,7 +387,7 @@ class TestFullVars:
 
     @staticmethod
     def test_to_dict_class():
-        """ Test that fullvars works for classes with to_dict. """
+        """Test that fullvars works for classes with to_dict."""
         # Arrange
         class ToDictClass:
             def __init__(self):

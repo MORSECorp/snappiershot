@@ -6,7 +6,7 @@ SNAPSHOT_DIRECTORY = ".snapshots"
 
 
 class SnapshotKeys(SimpleNamespace):
-    """ Centralized location for the names of the keys of the parsed snapshot file. """
+    """Centralized location for the names of the keys of the parsed snapshot file."""
 
     metadata = "metadata"
     tests = "tests"

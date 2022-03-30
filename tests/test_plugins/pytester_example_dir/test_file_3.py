@@ -3,7 +3,7 @@ from pint.unit import Unit
 
 
 def test_units_snapshot(snapshot):
-    """ The snapshot for this function is expected to pass. """
+    """The snapshot for this function is expected to pass."""
 
     class HasUnits:
         def __init__(self):

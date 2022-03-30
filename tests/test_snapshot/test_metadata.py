@@ -9,7 +9,7 @@ from snappiershot.snapshot.metadata import SnapshotMetadata
 
 
 class TestSnapshotMetadata:
-    """ Tests for the snappiershot.snapshot.SnapshotMetadata object. """
+    """Tests for the snappiershot.snapshot.SnapshotMetadata object."""
 
     # Define a complicated class
     class ToDictClass:
@@ -60,7 +60,7 @@ class TestSnapshotMetadata:
         ],
     )
     def test_metadata_validate(metadata_kwargs: Dict, expected_error: Type[Exception]):
-        """ Checks that validation of the metadata values occurs as expected. """
+        """Checks that validation of the metadata values occurs as expected."""
         # Arrange
 
         # Act & Assert
@@ -114,7 +114,7 @@ class TestSnapshotMetadata:
         ],
     )
     def test_metadata_matches(metadata_kwargs: Dict, metadata_dict: Dict, matches: bool):
-        """ Checks that the SnapshotMetadata.matches method functions as expected. """
+        """Checks that the SnapshotMetadata.matches method functions as expected."""
         # Arrange
         metadata = SnapshotMetadata(**metadata_kwargs)
 

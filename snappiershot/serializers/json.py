@@ -23,7 +23,7 @@ from .constants import (
 
 
 class JsonSerializer(json.JSONEncoder):
-    """ Custom JSON serializer.
+    """Custom JSON serializer.
 
     Examples:
         >>> import json
@@ -34,7 +34,7 @@ class JsonSerializer(json.JSONEncoder):
 
     @classmethod
     def _hint_tuples(cls, obj: Any) -> Any:
-        """ Convert tuples in a pre-processing step.
+        """Convert tuples in a pre-processing step.
 
         Extrapolated from: https://stackoverflow.com/a/15721641
         """
@@ -72,7 +72,7 @@ class JsonSerializer(json.JSONEncoder):
         return super().iterencode(self._hint_tuples(obj), _one_shot)
 
     def default(self, value: Any) -> Any:
-        """ Encode a value into a serializable object.
+        """Encode a value into a serializable object.
 
         This method only gets called when the value is not naturally-serializable.
           (Naturally serializable objects are booleans, floats, strings, etc.)
@@ -107,7 +107,7 @@ class JsonSerializer(json.JSONEncoder):
 
     @staticmethod
     def encode_numeric(value: Number) -> JsonType:
-        """ Encoding for numeric types.
+        """Encoding for numeric types.
 
         This will do nothing to naturally serializable types (bool, int, float)
           but will perform custom encoding for non-supported types (complex).
@@ -139,7 +139,7 @@ class JsonSerializer(json.JSONEncoder):
 
     @staticmethod
     def encode_datetime(value: Any) -> JsonType:
-        """ Encoding for datetime types
+        """Encoding for datetime types
 
         This will perform custom encoding for datetime types
 
@@ -212,7 +212,7 @@ class JsonSerializer(json.JSONEncoder):
 
     @staticmethod
     def encode_collection(value: Collection) -> JsonType:
-        """ Encoding for collection types.
+        """Encoding for collection types.
 
         The custom encoding follows the template:
             {
@@ -240,7 +240,7 @@ class JsonSerializer(json.JSONEncoder):
 
     @staticmethod
     def encode_path(value: PurePath) -> JsonType:
-        """ Encoding for Path types
+        """Encoding for Path types
 
         This will perform custom encoding for all Path types, as all Path types are subclasses of the PurePath type.
         Instances of the PurePath type are handled separately from instances of the Path type.
@@ -281,7 +281,7 @@ class JsonSerializer(json.JSONEncoder):
 
     @staticmethod
     def encode_unit(value: Unit) -> JsonType:
-        """ Encoding for Unit types coming from the pint package
+        """Encoding for Unit types coming from the pint package
 
         The custom encoding follows the template:
             {
@@ -311,7 +311,7 @@ class JsonSerializer(json.JSONEncoder):
 
 
 class JsonDeserializer(json.JSONDecoder):
-    """ Custom JSON deserializer.
+    """Custom JSON deserializer.
 
     Examples:
         >>> import json
@@ -321,14 +321,14 @@ class JsonDeserializer(json.JSONDecoder):
     """
 
     def __init__(self, **kwargs: Any):
-        """ Hooks into the __init__ method of json.JSONDecoder.
+        """Hooks into the __init__ method of json.JSONDecoder.
 
         This is only expected to be called by the `json.loads` method.
         """
         super().__init__(object_hook=self.object_hook, **kwargs)
 
     def object_hook(self, dct: Dict[str, Any]) -> Any:
-        """ Decodes the dictionary into an object.
+        """Decodes the dictionary into an object.
 
         Custom decoding is done here, for the custom encodings that occurred within
           the `snappiershot.serializers.json.JsonSerializer.default` method.
@@ -352,7 +352,7 @@ class JsonDeserializer(json.JSONDecoder):
 
     @staticmethod
     def decode_numeric(dct: Dict[str, Any]) -> Any:
-        """ Decode an encoded numeric type.
+        """Decode an encoded numeric type.
 
         This encoded numeric type object must be of the form:
             {
@@ -381,7 +381,7 @@ class JsonDeserializer(json.JSONDecoder):
 
     @staticmethod
     def decode_datetime(dct: Dict[str, Any]) -> Any:
-        """ Decode an encoded datetime type
+        """Decode an encoded datetime type
 
         This encoded numeric type object must be of the form:
             {
@@ -433,7 +433,7 @@ class JsonDeserializer(json.JSONDecoder):
 
     @staticmethod
     def decode_collection(dct: Dict[str, Any]) -> Collection:
-        """ Decode an encoded collection type.
+        """Decode an encoded collection type.
 
         This encoded numeric type object must be of the form:
             {
@@ -470,7 +470,7 @@ class JsonDeserializer(json.JSONDecoder):
 
     @staticmethod
     def decode_path(dct: Dict[str, Any]) -> PurePath:
-        """ Decode an encoded Path type.
+        """Decode an encoded Path type.
 
         This encoded Path type object must be of the form:
             {
@@ -506,7 +506,7 @@ class JsonDeserializer(json.JSONDecoder):
 
     @staticmethod
     def decode_unit(dct: Dict[str, Any]) -> Unit:
-        """ Decode an encoded Unit type from pint.
+        """Decode an encoded Unit type from pint.
 
         This encoded Unit type object must be of the form:
             {

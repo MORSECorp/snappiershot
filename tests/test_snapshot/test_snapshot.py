@@ -10,11 +10,11 @@ from snappiershot.snapshot.snapshot import Snapshot
 
 
 class TestSnapshot:
-    """ Tests for the snappiershot.snapshot.Snapshot object. """
+    """Tests for the snappiershot.snapshot.Snapshot object."""
 
     @staticmethod
     def test_snapshot_assert(snapshot: Snapshot, mocker: MockerFixture) -> None:
-        """ Checks that snapshot assert works as expected """
+        """Checks that snapshot assert works as expected"""
         # Arrange
         # Mock stored snapshot value
         value = {"balloons": "are awesome"}
@@ -28,7 +28,7 @@ class TestSnapshot:
 
     @staticmethod
     def test_snapshot_assert_failure(snapshot: Snapshot, mocker: MockerFixture) -> None:
-        """ Checks that snapshot assert works as expected with mis-matched values"""
+        """Checks that snapshot assert works as expected with mis-matched values"""
         # Arrange
         # Mock stored snapshot value
         value = {"balloons": "are awesome"}
@@ -44,7 +44,7 @@ class TestSnapshot:
     def test_snapshot_update(
         snapshot: Snapshot, mocker: MockerFixture, warning_catcher: List[WarningMessage]
     ) -> None:
-        """ Checks that snapshot assert with update flag ON works as expected.
+        """Checks that snapshot assert with update flag ON works as expected.
 
         If "update" is flagged, then no AssertionError should be raised.
         """
@@ -65,7 +65,7 @@ class TestSnapshot:
 
     @staticmethod
     def test_construct_diff(mocker: MockerFixture):
-        """ Test that the human-readable diff is constructed as expected. """
+        """Test that the human-readable diff is constructed as expected."""
         # Arrange
         value = False
         expected = 3 + 4j
@@ -91,8 +91,8 @@ Summary:
 
     @staticmethod
     def test_not_within_context(mocker: MockerFixture):
-        """ Test that an error is raised when trying to call the `Snapshot.assert_match`
-        method outside of context. """
+        """Test that an error is raised when trying to call the `Snapshot.assert_match`
+        method outside of context."""
         # Arrange
         snapshot = Snapshot()
         # Safety mock, should not get called.
@@ -104,7 +104,7 @@ Summary:
 
     @staticmethod
     def test_raises_match(snapshot: Snapshot, mocker: MockerFixture):
-        """ Test that `Snapshot.raises` catches and snapshot exceptions as expected. """
+        """Test that `Snapshot.raises` catches and snapshot exceptions as expected."""
         # Arrange
         exception = ZeroDivisionError("Whoops")
         value = encode_exception(exception)
@@ -128,7 +128,7 @@ Summary:
         ],
     )
     def test_raises_type_errors(expected_exception, update, snapshot: Snapshot):
-        """ Test that `Snapshot.raises` rejects invalid argument types. """
+        """Test that `Snapshot.raises` rejects invalid argument types."""
         # Arrange
 
         # Act & Assert

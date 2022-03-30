@@ -10,11 +10,11 @@ from snappiershot.serializers.io import (
 
 
 class TestParseSnapshotFile:
-    """ Tests for the parse_snapshot_file utility function. """
+    """Tests for the parse_snapshot_file utility function."""
 
     @staticmethod
     def test_parse_snapshot_file(tmp_path):
-        """ Test that parse_snapshot_file parses snapshot files as expected """
+        """Test that parse_snapshot_file parses snapshot files as expected"""
         # Arrange
         snapshot_file = tmp_path / "example_test.json"
         expected = {SnapshotKeys.version: "X.X.X", SnapshotKeys.tests: dict()}
@@ -28,7 +28,7 @@ class TestParseSnapshotFile:
 
     @staticmethod
     def test_parse_snapshot_file_format_error(tmp_path):
-        """ Test that parse_snapshot_file raises an error when attempting to parse
+        """Test that parse_snapshot_file raises an error when attempting to parse
         an unsupported file format for snapshot files.
         """
         # Arrange
@@ -43,7 +43,7 @@ class TestParseSnapshotFile:
         "contents", ["{}", '{"snappiershot_version": "X.X.X"}', '{"tests": {}}']
     )
     def test_parse_snapshot_file_error(contents: str, tmp_path):
-        """ Test that parse_snapshot_file raises an error when the contents of
+        """Test that parse_snapshot_file raises an error when the contents of
         the parsed snapshot file do not adhere to the snapshot file format.
 
         The snapshot format should be:
@@ -59,11 +59,11 @@ class TestParseSnapshotFile:
 
 
 class TestWritingToFile:
-    """ Tests for the file writing utility functions. """
+    """Tests for the file writing utility functions."""
 
     @staticmethod
     def test_write_json_error(tmp_path):
-        """ Test if an error occurs during snapshot writing, no file is written. """
+        """Test if an error occurs during snapshot writing, no file is written."""
         # Arrange
         obj = {("tuple as key",): None}
         snapshot_file = tmp_path / "snapshot_file.json"
