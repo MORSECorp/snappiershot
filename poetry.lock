@@ -509,7 +509,7 @@ pandas = ["pandas"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6.1"
-content-hash = "c6aecab25f4423580fde98ad882eda03e07e73ca94365dd11364a0558f401df0"
+content-hash = "21e25f0f93b51017115e539c589d5494f0fe7f3b034fbee1d6d0c6b3d58d7ec9"
 
 [metadata.files]
 appdirs = [
