@@ -23,7 +23,12 @@ def _config() -> Config:
 
 @pytest.mark.parametrize(
     "value, expected, is_equal",
-    [(Unit("meter"), Unit("meter"), True), (Unit("meter"), Unit("feet"), False)],
+    [
+        (Unit("meter"), Unit("meter"), True),
+        (Unit("meter"), Unit("feet"), False),
+        (Unit("meter"), "meter", True),
+        ("meter", Unit("meter"), True),
+    ],
 )
 def test_compare_units(value, expected, config, is_equal):
     """Test that units are compared as expected."""
