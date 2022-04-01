@@ -385,14 +385,6 @@ class TestUninstantiatedClassEncoding:
 
 def test_round_trip(tmp_path: pathlib.Path):
     """Test that a serialized and then deserialized dictionary is unchanged."""
-    # Define a random class with skip methods
-    class ClassWithSkip:
-        def __init__(self):
-            self.a = 1
-            self.b = 2
-
-        def __snapshot__(self):
-            return "Skip Me"
 
     # Arrange
     data = {
