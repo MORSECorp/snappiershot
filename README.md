@@ -100,37 +100,59 @@ def test_no_pytest_runner():
 ```
 
 ### Custom Encoding and Override Examples
-Warning: Use of this method is currently still a little hacky
-
-* `__snapshot__` overrides serializing behavior for class objects being recorded
-  * Useful for partially recording class objects with many unnecessary properties
+`__snapshot__` overrides serializing behavior for class objects being recorded. Some of its potential use cases:
+  * Partially recording class objects with many unnecessary properties
+  * Skipping over encoding an object by returning a string
 
 ```python
 from snappiershot import Snapshot
 from pytest import fixture
 
-class CustomClass:
+class TestClass1:
   def __init__(self):
     self.a = 1
     self.b = 2
 
-  def __snapshot__(self):
+  def __snapshot__(self) -> dict:
     encoding = {
       "a": self.a,
       "b": self.b,
     }
     return encoding
 
-@fixture
-def class_input() -> CustomClass:
-  class_input = CustomClass()
-  return class_input
+class TestClass2:
+  def __init__(self):
+    self.a = 1
+    self.b = 2
 
-def test_class(class_input: CustomClass, snapshot: Snapshot):
-    """ Test encoding snapshot and metadata for a custom class """
+  def __snapshot__(self) -> str:
+    encoding = "ENCODING SKIPPED"
+    return encoding
+
+@fixture
+def class_input1() -> TestClass1:
+  class_input1 = TestClass1()
+  return class_input1
+
+@fixture
+def class_input2() -> TestClass2:
+  class_input2 = TestClass2()
+  return class_input2
+
+def test_class1(class_input1: TestClass1, snapshot: Snapshot):
+    """ Test encoding snapshot and metadata for a custom class with a dictionary override"""
 
     # Act
-    result = class_input
+    result = class_input1
+
+    # Assert
+    snapshot.assert_match(result)
+
+def test_class2(class_input2: TestClass2, snapshot: Snapshot):
+    """ Test encoding snapshot and metadata for a custom class with a string override """
+
+    # Act
+    result = class_input2
 
     # Assert
     snapshot.assert_match(result)
