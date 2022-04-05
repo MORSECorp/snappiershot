@@ -505,7 +505,7 @@ class JsonDeserializer(json.JSONDecoder):
         )
 
     @staticmethod
-    def decode_unit(dct: Dict[str, Any]) -> Unit:
+    def decode_unit(dct: Dict[str, Any]) -> str:
         """Decode an encoded Unit type from pint.
 
         This encoded Unit type object must be of the form:
@@ -520,7 +520,7 @@ class JsonDeserializer(json.JSONDecoder):
             dct: dictionary to decode
 
         Returns:
-            Decoded Unit object.
+            Decoded Unit object as a string due to inability to compare units of different registries.
 
         Raises:
             NotImplementedError - If decoding is not implemented for the given Unit type.
