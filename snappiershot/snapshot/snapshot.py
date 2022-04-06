@@ -40,7 +40,7 @@ class Snapshot:
               otherwise assert approximate equality
             update: if True, overwrite snapshot with given value
               (assertion will always pass in this case)
-            ignore: if set, will ignore variables names from the metadata
+            ignore: optional argument ignores specified variables from the metadata
 
         Returns:
             True if value matches the snapshot
