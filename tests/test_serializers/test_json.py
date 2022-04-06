@@ -360,29 +360,6 @@ class TestUnitEncoding:
             JsonDeserializer.decode_unit(value)
 
 
-class TestUninstantiatedClassEncoding:
-    """Tests for custom encoding of special classes that haven't been instantiated."""
-
-    DECODING_TEST_CASES = [
-        (
-            Unit("meter"),
-            CustomEncodedUnitTypes.unit.json_encoding("meter"),
-        ),
-    ]
-
-    @staticmethod
-    @pytest.mark.parametrize("value, expected", DECODING_TEST_CASES)
-    def test_encode_uninstantiated_class(value, expected):
-        """Test that the JsonSerializer.default encodes special uninstantiated classes as expected."""
-        # Arrange
-
-        # Act
-        result = JsonSerializer.encode_unit(value)
-
-        # Assert
-        assert result == expected
-
-
 def test_round_trip(tmp_path: pathlib.Path):
     """Test that a serialized and then deserialized dictionary is unchanged."""
 
