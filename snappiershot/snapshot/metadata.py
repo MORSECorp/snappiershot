@@ -70,10 +70,11 @@ class SnapshotMetadata:
         return dct
 
     def matches(self, metadata_dict: Dict) -> bool:
-        """Check if the "metadata" section of a snapshot file sufficiently matches
-        the metadata object coming from the test method inputs.
+        """Check if the "metadata" section of a snapshot file sufficiently matches the metadata object coming from the
+         test method inputs. This matching is used to identify snapshots of tests within a snapshot file.
 
-        This matching is used to identify snapshots of tests within a snapshot file.
+        Note, only test metadata is checked for matching snapshot inputs. Snapshot file metadata section may have extra
+        data not in test method inputs and this check will return True.
 
         Args:
             metadata_dict: The "metadata" section to compare against this object.
