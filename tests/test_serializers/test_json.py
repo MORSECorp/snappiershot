@@ -306,15 +306,6 @@ class TestPathEncoding:
 class TestUnitEncoding:
     """Tests for custom encoding of Unit types from pint."""
 
-    UNIT_DECODING_TEST_CASES = [
-        (
-            Unit("meter"),
-            CustomEncodedUnitTypes.unit.json_encoding("meter"),
-        ),
-    ]
-
-    UNIT_ENCODING_TEST_CASES = UNIT_DECODING_TEST_CASES
-
     @staticmethod
     def test_encode_unit_error():
         """Test that the JsonSerializer.encode_unit raises an error if no encoding is defined."""
@@ -326,10 +317,11 @@ class TestUnitEncoding:
             JsonSerializer.encode_unit(value)
 
     @staticmethod
-    @pytest.mark.parametrize("value, expected", UNIT_ENCODING_TEST_CASES)
-    def test_encode_unit(value, expected):
+    def test_encode_unit():
         """Test that the JsonSerializer.encode_unit encodes values as expected."""
         # Arrange
+        value = Unit("meter")
+        expected = CustomEncodedUnitTypes.unit.json_encoding("meter")
 
         # Act
         result = JsonSerializer.encode_unit(value)
@@ -338,10 +330,11 @@ class TestUnitEncoding:
         assert result == expected
 
     @staticmethod
-    @pytest.mark.parametrize("expected, value", UNIT_DECODING_TEST_CASES)
-    def test_decode_unit(value, expected):
+    def test_decode_unit():
         """Test that the JsonDeserializer.decode_unit decodes Units as expected."""
         # Arrange
+        expected = Unit("meter")
+        value = CustomEncodedUnitTypes.unit.json_encoding("meter")
 
         # Act
         result = JsonDeserializer.decode_unit(value)
