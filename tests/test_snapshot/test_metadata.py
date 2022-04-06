@@ -26,7 +26,14 @@ class TestSnapshotMetadata:
     FAKE_CALLER_INFO = CallerInfo(
         file=Path("fake/file/path"),
         function="fake_fully_qualified_function_name",
-        args={"foo": 1, "bar": "two", "foobar": [1, 2], "barfoo": array([1, 2])},
+        args={
+            "foo": 1,
+            "bar": "two",
+            "foobar": [1, 2],
+            "barfoo": array([1, 2]),
+            "foofoo": {"foo": 1, "bar": 2},
+            "barbar": [{"foo": 1, "bar": 2}, {1, 2}, (1, 2)],
+        },
     )
 
     FAKE_CALLER_INFO_CLASS = CallerInfo(
@@ -74,12 +81,30 @@ class TestSnapshotMetadata:
             (DEFAULT_METADATA_KWARGS, {"arguments": FAKE_CALLER_INFO.args}, True),
             (
                 DEFAULT_METADATA_KWARGS,
-                {"arguments": {"foo": 1, "bar": 2, "foobar": [1, 2], "barfoo": [1, 2]}},
+                {
+                    "arguments": {
+                        "foo": 1,
+                        "bar": 2,
+                        "foobar": [1, 2],
+                        "barfoo": [1, 2],
+                        "foofoo": {"foo": 1, "bar": 2},
+                        "barbar": [{"foo": 1, "bar": 2}, {1, 2}, (1, 2)],
+                    }
+                },
                 False,
             ),
             (
                 DEFAULT_METADATA_KWARGS,
-                {"arguments": {"foo": 1, "bar": "two", "foobar": [1, 2], "barfoo": [1, 2]}},
+                {
+                    "arguments": {
+                        "foo": 1,
+                        "bar": "two",
+                        "foobar": [1, 2],
+                        "barfoo": [1, 2],
+                        "foofoo": {"foo": 1, "bar": 2},
+                        "barbar": [{"foo": 1, "bar": 2}, {1, 2}, (1, 2)],
+                    }
+                },
                 True,
             ),
             (
@@ -90,6 +115,8 @@ class TestSnapshotMetadata:
                         "bar": "two",
                         "foobar": array([1, 2]),
                         "barfoo": array([1, 2]),
+                        "foofoo": {"foo": 1, "bar": 2},
+                        "barbar": [{"foo": 1, "bar": 2}, {1, 2}, (1, 2)],
                     }
                 },
                 True,
@@ -102,6 +129,64 @@ class TestSnapshotMetadata:
                         "bar": "two",
                         "foobar": [1, "two"],
                         "barfoo": [1, 2],
+                        "foofoo": {"foo": 1, "bar": 2},
+                        "barbar": [{"foo": 1, "bar": 2}, {1, 2}, (1, 2)],
+                    }
+                },
+                False,
+            ),
+            (
+                DEFAULT_METADATA_KWARGS,
+                {
+                    "arguments": {
+                        "foo": 1,
+                        "bar": "two",
+                        "foobar": array([1, 2]),
+                        "barfoo": array([1, 2]),
+                        "foofoo": {"foo": 1, "foobar": 2},
+                        "barbar": [{"foo": 1, "bar": 2}, {1, 2}, (1, 2)],
+                    }
+                },
+                False,
+            ),
+            (
+                DEFAULT_METADATA_KWARGS,
+                {
+                    "arguments": {
+                        "foo": 1,
+                        "bar": "two",
+                        "foobar": array([1, 2]),
+                        "barfoo": array([1, 2]),
+                        "foofoo": {"foo": 1, "bar": 2},
+                        "barbar": [{"foo": 1, "foobar": 2}, {1, 2}, (1, 2)],
+                    }
+                },
+                False,
+            ),
+            (
+                DEFAULT_METADATA_KWARGS,
+                {
+                    "arguments": {
+                        "foo": 1,
+                        "bar": "two",
+                        "foobar": array([1, 2]),
+                        "barfoo": array([1, 2]),
+                        "foofoo": {"foo": 1, "bar": 2},
+                        "barbar": [{"foo": 1, "bar": 2}, {1, "2"}, (1, 2)],
+                    }
+                },
+                False,
+            ),
+            (
+                DEFAULT_METADATA_KWARGS,
+                {
+                    "arguments": {
+                        "foo": 1,
+                        "bar": "two",
+                        "foobar": array([1, 2]),
+                        "barfoo": array([1, 2]),
+                        "foofoo": {"foo": 1, "bar": 2},
+                        "barbar": [{"foo": 1, "bar": 2}, {1, 2}, (1, "2")],
                     }
                 },
                 False,
