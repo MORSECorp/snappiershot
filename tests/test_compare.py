@@ -32,9 +32,7 @@ def _config() -> Config:
 )
 def test_compare_units(value, expected, config, is_equal):
     """Test that units are compared as expected."""
-    # Arrange
-
-    # Act
+    # Arrange, Act
     comparison = ObjectComparison(value, expected, config)
 
     # Assert
@@ -51,9 +49,7 @@ def test_compare_units(value, expected, config, is_equal):
 )
 def test_compare_dictionaries(value, expected, config, is_equal):
     """Test that dictionaries are compared as expected."""
-    # Arrange
-
-    # Act
+    # Arrange, Act
     comparison = ObjectComparison(value, expected, config)
 
     # Assert
@@ -70,9 +66,7 @@ def test_compare_dictionaries(value, expected, config, is_equal):
 )
 def test_compare_sequences(value, expected, config, is_equal):
     """Test that sequences are compared as expected."""
-    # Arrange
-
-    # Act
+    # Arrange, Act
     comparison = ObjectComparison(value, expected, config)
 
     # Assert
@@ -90,9 +84,7 @@ def test_compare_sequences(value, expected, config, is_equal):
 )
 def test_compare_sets(value, expected, config, is_equal):
     """Test that sets are compared as expected."""
-    # Arrange
-
-    # Act
+    # Arrange, Act
     comparison = ObjectComparison(value, expected, config)
 
     # Assert
@@ -113,9 +105,7 @@ def test_compare_sets(value, expected, config, is_equal):
 )
 def test_compare_floats(value, expected, config, exact, is_equal):
     """Test that floats are compared as expected."""
-    # Arrange
-
-    # Act
+    # Arrange, Act
     comparison = ObjectComparison(value, expected, config, exact)
 
     # Assert
