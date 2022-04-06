@@ -19,10 +19,8 @@ def compare_metadata(from_test_function: Any, from_snapshot: Any) -> bool:
     """
     result = False
 
-    # Determine if the metadata can instantiate a class from a dictionary, or whether any object is None
+    # Determine if the metadata can instantiate a class from a dictionary
     metadata_function_has_method = hasattr(from_test_function, "from_dict")
-    metadata_function_is_not_none = from_test_function is not None
-    metadata_file_is_not_none = from_snapshot is not None
 
     if isinstance(from_test_function, ndarray) or isinstance(from_snapshot, ndarray):
         # If at least one is a numpy array, elementwise comparison can be done like this:
@@ -33,8 +31,8 @@ def compare_metadata(from_test_function: Any, from_snapshot: Any) -> bool:
     elif (
         # Otherwise, if neither object is none and an object can be instantiated from a dictionary, do so
         metadata_function_has_method
-        and metadata_function_is_not_none
-        and metadata_file_is_not_none
+        and from_test_function is not None
+        and from_snapshot is not None
     ):
         result = from_test_function == from_test_function.from_dict(from_snapshot)
 
