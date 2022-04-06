@@ -11,7 +11,7 @@ def compare_metadata(from_test_function: Any, from_snapshot: Any) -> bool:
 
     SnappierShot serializes class objects by decomposing them into their parts in the form of a dictionary, then
     writes to the snapshot JSON. Thus, SnappierShot must attempt to re-instantiate the dictionary form of the
-    objects when comparing inputs to a test function to those inputs serialized to JSON.
+    objects when comparing inputs to a test function to the stored metadata inputs already serialized to snapshot JSON.
 
     Args:
         from_test_function: Inputs to the test function calling SnappierShot
