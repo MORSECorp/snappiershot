@@ -45,19 +45,20 @@ class ObjectComparison:
               Tracks the operations that need to be applied to self.value and self.expected
                 to obtain value and expected, respectively. Used for logging differences.
         """
-        # Special check for units since it's possible the types won't match even if they are equal objects
+        # Special check for units and floats first since it's possible the types won't match even if they are equal
+        # objects
         if isinstance(expected, Unit) or isinstance(value, Unit):
             return self._compare_units(value, expected, operations=operations)
 
+        if isinstance(value, float) and not self.exact:
+            return self._compare_floats(value, expected, operations=operations)
+
         # Check the types of both objects
-        if type(value) != type(expected) and not (
-            # Special case for float and float64 due to mismatch of type, but both being float instances
-            isinstance(value, float)
-            and isinstance(expected, float)
-        ):
+        if type(value) != type(expected):
             message = f"Types not equal: {type(value)} != {type(expected)}"
             return self.differences.add(operations, message)
 
+        # Compare dictionaries
         if isinstance(value, dict):
             return self._compare_dicts(value, expected, operations=operations)
 
@@ -68,9 +69,6 @@ class ObjectComparison:
         # Recurse all other (ordered & sized) iterable types (but not strings).
         if isinstance(value, Sequence) and not isinstance(value, str):
             return self._compare_sequences(value, expected, operations=operations)
-
-        if isinstance(value, float) and not self.exact:
-            return self._compare_floats(value, expected, operations=operations)
 
         # Default to exact comparison for all other types.
         if value != expected:
