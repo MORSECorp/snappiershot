@@ -30,7 +30,11 @@ class Snapshot:
         self._snapshot_file: Optional[_SnapshotFile] = None
 
     def assert_match(
-        self, value: Any, exact: bool = False, update: bool = False, ignore: List[str] = []
+        self,
+        value: Any,
+        exact: bool = False,
+        update: bool = False,
+        ignore: List[str] = None,
     ) -> bool:
         """Assert that the given value matches the snapshot on file
 
@@ -55,6 +59,9 @@ class Snapshot:
             >>> with Snapshot() as snapshot:
             >>>     snapshot.assert_match(result)
         """
+        if ignore is None:
+            ignore = []
+
         if not self._within_context:
             raise RuntimeError("assert_match must be used within the Snapshot context. ")
 
