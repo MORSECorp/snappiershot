@@ -15,7 +15,7 @@ DEFAULT_JSON_INDENT = 4
 
 
 class Config:
-    """ The configuration object used throughout the package. """
+    """The configuration object used throughout the package."""
 
     def __init__(
         self,
@@ -46,7 +46,7 @@ class Config:
 
     @classmethod
     def from_pyproject(cls, file: Path) -> "Config":
-        """ Create a Config object by parsing a pyproject.toml file.
+        """Create a Config object by parsing a pyproject.toml file.
 
         Args:
             file: The path to the pyproject.toml file, as a `pathlib.Path` object.
@@ -59,7 +59,7 @@ class Config:
         return Config(**tool_config)
 
     def _validate(self) -> None:
-        """ Validates the configuration.
+        """Validates the configuration.
 
         Raises:
             ValueError: If a configuration has an invalid value.
@@ -124,11 +124,11 @@ class Config:
             )
 
     def __eq__(self, other: Any) -> bool:
-        """ Check equality. """
+        """Check equality."""
         return isinstance(other, type(self)) and (vars(self) == vars(other))
 
     def __repr__(self) -> str:
-        """ Human-readable representation. """
+        """Human-readable representation."""
         return (
             "Config("
             f"file_format={self.file_format}, "
@@ -140,7 +140,7 @@ class Config:
 
 
 def find_pyproject_toml(source: PathType) -> Optional[Path]:
-    """ Travel up the tree of the provided source, looking for a pyproject.toml file.
+    """Travel up the tree of the provided source, looking for a pyproject.toml file.
 
     Args:
         source: A path to the source from which to start the search.

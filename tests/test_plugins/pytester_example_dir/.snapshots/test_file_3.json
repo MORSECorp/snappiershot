@@ -1,0 +1,33 @@
+{
+    "snappiershot_version": "0.1.0",
+    "tests": {
+        "test_units_snapshot": [
+            {
+                "metadata": {
+                    "arguments": {},
+                    "test_runner_provided_name": "",
+                    "update_on_next_run": false,
+                    "user_provided_name": ""
+                },
+                "snapshots": [
+                    {
+                        "test1": {
+                            "unit": "meter",
+                            "value": -1000
+                        },
+                        "test2": [
+                            {
+                                "unit": "meter",
+                                "value": -1000
+                            },
+                            {
+                                "unit": "meter",
+                                "value": -1000
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

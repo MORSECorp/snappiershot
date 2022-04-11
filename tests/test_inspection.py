@@ -13,7 +13,7 @@ Result_Expected = Tuple[CallerInfo, CallerInfo]
 
 
 def get_caller_info(frame_index: int = 2) -> CallerInfo:
-    """ Calls the `snappiershot.inspection.CallerInfo.from_call_stack` method.
+    """Calls the `snappiershot.inspection.CallerInfo.from_call_stack` method.
 
     This simulates the expected call stack during normal snappiershot runtime.
 
@@ -24,7 +24,7 @@ def get_caller_info(frame_index: int = 2) -> CallerInfo:
 
 
 def single_function_no_args() -> Result_Expected:
-    """ Single function call, with no arguments. """
+    """Single function call, with no arguments."""
     expected = CallerInfo(FILE, "single_function_no_args", {})
     return get_caller_info(), expected
 
@@ -32,16 +32,16 @@ def single_function_no_args() -> Result_Expected:
 def single_function_with_args(
     foo: str = "FOO", bar: bool = True, pi: float = 3.14
 ) -> Result_Expected:
-    """ Single function call, with arguments. """
+    """Single function call, with arguments."""
     expected = CallerInfo(FILE, "single_function_with_args", dict(foo=foo, bar=bar, pi=pi))
     return get_caller_info(), expected
 
 
 def nested_function() -> Result_Expected:
-    """ Nested function call. """
+    """Nested function call."""
 
     def inner():
-        """ Inner (nested) function. """
+        """Inner (nested) function."""
         return get_caller_info(frame_index=3)
 
     expected = CallerInfo(FILE, "nested_function", {})
@@ -49,43 +49,43 @@ def nested_function() -> Result_Expected:
 
 
 class ClassTestObject:
-    """ Class used for housing more test objects. """
+    """Class used for housing more test objects."""
 
     # noinspection PyMethodMayBeStatic
     def method(self) -> Result_Expected:
-        """ Method call. """
+        """Method call."""
         expected = CallerInfo(FILE, "ClassTestObject.method", {})
         return get_caller_info(), expected
 
     @classmethod
     def classmethod_(cls) -> Result_Expected:
-        """ Class method call. """
+        """Class method call."""
         expected = CallerInfo(FILE, "ClassTestObject.classmethod_", {})
         return get_caller_info(), expected
 
     @staticmethod
     def staticmethod_() -> Result_Expected:
-        """ Static method call. """
+        """Static method call."""
         expected = CallerInfo(FILE, "ClassTestObject.staticmethod_", {})
         return get_caller_info(), expected
 
     # noinspection PyMethodMayBeStatic, PyMethodParameters
     def method_no_self_arg(notself) -> Result_Expected:
-        """ Method call, but the "self" argument is mis-named. """
+        """Method call, but the "self" argument is mis-named."""
         expected = CallerInfo(FILE, "ClassTestObject.method_no_self_arg", {})
         return get_caller_info(), expected
 
     # noinspection PyMethodParameters
     @classmethod
     def classmethod_no_self_arg(notcls) -> Result_Expected:
-        """ Class method call, but the "self" argument is mis-named. """
+        """Class method call, but the "self" argument is mis-named."""
         expected = CallerInfo(FILE, "ClassTestObject.classmethod_no_self_arg", {})
         return get_caller_info(), expected
 
     # noinspection PyUnusedLocal
     @staticmethod
     def staticmethod_self_arg(self=None) -> Result_Expected:
-        """ Static method call, but the first argument is "self". """
+        """Static method call, but the first argument is "self"."""
         expected = CallerInfo(
             FILE, "ClassTestObject.staticmethod_self_arg", dict(self=None)
         )
@@ -94,22 +94,22 @@ class ClassTestObject:
     # noinspection PyUnusedLocal
     @staticmethod
     def staticmethod_cls_arg(cls=None) -> Result_Expected:
-        """ Static method call, but the first argument is "cls". """
+        """Static method call, but the first argument is "cls"."""
         expected = CallerInfo(FILE, "ClassTestObject.staticmethod_cls_arg", dict(cls=None))
         return get_caller_info(), expected
 
     class NestedClass:
-        """ Nest class definition. """
+        """Nest class definition."""
 
         # noinspection PyMethodMayBeStatic
         def method(self) -> Result_Expected:
-            """ Method call within nested class definition. """
+            """Method call within nested class definition."""
             expected = CallerInfo(FILE, "ClassTestObject.NestedClass.method", {})
             return get_caller_info(), expected
 
         @staticmethod
         def staticmethod() -> Result_Expected:
-            """ Static method call. """
+            """Static method call."""
             expected = CallerInfo(FILE, "ClassTestObject.NestedClass.staticmethod", {})
             return get_caller_info(), expected
 
@@ -135,7 +135,7 @@ class ClassTestObject:
     ],
 )
 def test_caller_function_inspection(function: Callable[..., Result_Expected]):
-    """ Tests that the CallerInfo.from_call_stack method can correctly extract
+    """Tests that the CallerInfo.from_call_stack method can correctly extract
     information about the caller function.
 
     Args:
@@ -153,14 +153,14 @@ def test_caller_function_inspection(function: Callable[..., Result_Expected]):
 
 
 def test_caller_function_inspection_inner_function_error():
-    """ Tests that the CallerInfo.from_call_stack method raises an error if
+    """Tests that the CallerInfo.from_call_stack method raises an error if
     it cannot determine the caller function due to that function being defined
     within another functions scope.
     """
     # Arrange
 
     def inner():
-        """ Inner function definition. """
+        """Inner function definition."""
         CallerInfo.from_call_stack(1)
 
     # Act & Assert
@@ -182,7 +182,7 @@ def test_caller_function_inspection_inner_function_error():
     ],
 )
 def test_is_staticmethod(cls: object, method: str, expected: bool):
-    """ Tests that the is_staticmethod function correctly identifies staticmethod. """
+    """Tests that the is_staticmethod function correctly identifies staticmethod."""
     # Arrange
 
     # Act

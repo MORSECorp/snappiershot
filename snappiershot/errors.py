@@ -2,4 +2,4 @@
 
 
 class SnappierShotWarning(UserWarning):
-    """ Custom UserWarning for the SnappierShot library. """
+    """Custom UserWarning for the SnappierShot library."""

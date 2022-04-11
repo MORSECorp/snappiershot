@@ -13,7 +13,7 @@ PYTESTER_EXAMPLE_DIR = Path(__file__).parent / "pytester_example_dir"
 
 @pytest.mark.filterwarnings("ignore:.*experimental api")
 def test_tracker(testdir: Testdir):
-    """ Test that the SnapshotTracker is able to track snapshot statuses
+    """Test that the SnapshotTracker is able to track snapshot statuses
     throughout a pytest run.
     """
     # Arrange
@@ -21,8 +21,10 @@ def test_tracker(testdir: Testdir):
     copytree(PYTESTER_EXAMPLE_DIR / SNAPSHOT_DIRECTORY, testdir.tmpdir / SNAPSHOT_DIRECTORY)
     snapshot_file_1 = Path(testdir.tmpdir / ".snapshots" / "test_file_1.json")
     snapshot_file_2 = Path(testdir.tmpdir / ".snapshots" / "test_file_2.json")
+    snapshot_file_3 = Path(testdir.tmpdir / ".snapshots" / "test_file_3.json")
     testdir.copy_example("test_file_1.py")
     testdir.copy_example("test_file_2.py")
+    testdir.copy_example("test_file_3.py")
 
     # Act
     #   Run pytest on the testdir (as quietly as possible).
@@ -36,7 +38,7 @@ def test_tracker(testdir: Testdir):
     tracker = config.getoption(PACKAGE_TRACKER_OPTION)
 
     #   Assert that tracker collected the expected snapshot files.
-    assert tracker.snapshot_files == {snapshot_file_1, snapshot_file_2}
+    assert tracker.snapshot_files == {snapshot_file_1, snapshot_file_2, snapshot_file_3}
 
     #   Assert that the tracker has the expected statuses for all snapshots.
     metadata = dict(
@@ -67,5 +69,10 @@ def test_tracker(testdir: Testdir):
             "test_function_write": [
                 dict(metadata=metadata, snapshots=[SnapshotStatus.WRITTEN])
             ],
+        },
+        snapshot_file_3: {
+            "test_units_snapshot": [
+                dict(metadata=metadata, snapshots=[SnapshotStatus.PASSED])
+            ]
         },
     }

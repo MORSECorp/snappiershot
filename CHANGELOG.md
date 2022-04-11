@@ -1,5 +1,17 @@
 # Change Log
 
+## v1.1.0 -- 2022-04-11
+-----------------------
+#### Features
+* Support for Unit objects from `pint`.
+* Support for classes with underlying `__slots__` objects.
+* Support for classes that utilize `to_json()` and `from_json()`.
+* Metadata arguments can be marked to be ignored when snapshotting.
+#### Bug-Fixes
+* Objects with `from_json()` are properly instantiated when comparing snapshots
+* Objects of type `float` and `float64` are now properly compared
+* Iterable objects and `numpy` iterable objects are now properly compared
+
 ## v1.0.1 -- 2021-03-26
 -----------------------
 #### Features

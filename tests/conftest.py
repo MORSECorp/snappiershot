@@ -7,7 +7,7 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def warning_catcher() -> List[warnings.WarningMessage]:
-    """ Auto-used fixture for catching warning produced by the SnappierShot library.
+    """Auto-used fixture for catching warning produced by the SnappierShot library.
 
     Examples:
         ```python

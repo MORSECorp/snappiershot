@@ -8,7 +8,7 @@ from .json import JsonDeserializer, JsonSerializer, JsonType
 
 
 def parse_snapshot_file(snapshot_file: Path) -> Dict:
-    """ Parses the snapshot file.
+    """Parses the snapshot file.
 
     Args:
         snapshot_file: The path to the file containing snapshots.
@@ -33,7 +33,7 @@ def parse_snapshot_file(snapshot_file: Path) -> Dict:
 
 
 def write_json_file(obj: JsonType, file: Path, indent: Optional[int] = None) -> None:
-    """ Safely write a JSON file using the JsonSerializer.
+    """Safely write a JSON file using the JsonSerializer.
 
     The file will first be written to a temporary file to avoid partial writing and
       errors during writing. Then the temporary file is moved to the specified location.

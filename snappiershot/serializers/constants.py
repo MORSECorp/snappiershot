@@ -5,16 +5,18 @@ from decimal import Decimal
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any, Dict, Iterator, List, NamedTuple, Set, Union
 
+from pint import Unit
+
 _Primitive = Union[bool, float, int, None, str]
 JsonType = Union[_Primitive, Dict[str, Any], List[Any]]
 
 
 # noinspection PyUnresolvedReferences
 class _CustomEncodedType(NamedTuple):
-    """ Organizational object for holding information for serializing and de-serializing
+    """Organizational object for holding information for serializing and de-serializing
     custom-encoded types.
 
-    See the ``json_encoding` method for an example of how this information is used.
+    See the `json_encoding` method for an example of how this information is used.
 
     Args:
         type_: The type object (constructor) for the type.
@@ -33,11 +35,11 @@ class _CustomEncodedType(NamedTuple):
 
     @property
     def type(self) -> type:
-        """ Pass-through property to access the "type_" attribute. """
+        """Pass-through property to access the "type_" attribute."""
         return self.type_
 
     def json_encoding(self, encoded_value: JsonType) -> JsonType:
-        """ Use the specified encoded value to create the JSON encoding.
+        """Use the specified encoded value to create the JSON encoding.
 
         Args:
             encoded_value: An encoded value that is serializable into JSON.
@@ -46,7 +48,7 @@ class _CustomEncodedType(NamedTuple):
 
 
 class _CustomEncodedTypeCollection(ABC):
-    """ Abstract base class for CustomEncoded<group>Types classes.
+    """Abstract base class for CustomEncoded<group>Types classes.
 
     The _CustomEncodedTypes associated with the child classes are expected to
       be defined as class attributes. See:
@@ -65,7 +67,7 @@ class _CustomEncodedTypeCollection(ABC):
 
     @classmethod
     def list(cls) -> Iterator[_CustomEncodedType]:
-        """ Returns an iterator of all _CustomEncodedType objects defined
+        """Returns an iterator of all _CustomEncodedType objects defined
         as class attributes.
         """
         return (
@@ -74,12 +76,12 @@ class _CustomEncodedTypeCollection(ABC):
 
     @classmethod
     def keys(cls) -> Set[str]:
-        """ Returns a set of {type_key, value_key}. """
+        """Returns a set of {type_key, value_key}."""
         return {cls.type_key, cls.value_key}
 
 
 class CustomEncodedNumericTypes(_CustomEncodedTypeCollection):
-    """ Collection of custom-encoded numeric types. """
+    """Collection of custom-encoded numeric types."""
 
     # Corresponds to the _CustomEncodedType.type_key attribute.
     type_key = "__snappiershot_numeric__"
@@ -95,7 +97,7 @@ class CustomEncodedNumericTypes(_CustomEncodedTypeCollection):
 
 
 class CustomEncodedDatetimeTypes(_CustomEncodedTypeCollection):
-    """ Collection of custom-encoded datetime types. """
+    """Collection of custom-encoded datetime types."""
 
     # Corresponds to the _CustomEncodedType.type_key attribute.
     type_key = "__snappiershot_datetime__"
@@ -136,7 +138,7 @@ class CustomEncodedDatetimeTypes(_CustomEncodedTypeCollection):
 
 
 class CustomEncodedCollectionTypes(_CustomEncodedTypeCollection):
-    """ Collection of custom-encoded collection types. """
+    """Collection of custom-encoded collection types."""
 
     # Corresponds to the _CustomEncodedType.type_key attribute.
     type_key = "__snappiershot_collection__"
@@ -153,11 +155,11 @@ class CustomEncodedCollectionTypes(_CustomEncodedTypeCollection):
 
 
 class _UnavailableType:
-    """ Empty class for handling optional type dependencies that are unavailable """
+    """Empty class for handling optional type dependencies that are unavailable"""
 
 
 class CustomEncodedPathTypes(_CustomEncodedTypeCollection):
-    """ Collection of custom-encoded Path types. """
+    """Collection of custom-encoded Path types."""
 
     # Corresponds to the _CustomEncodedType.type_key attribute.
     type_key = "__snappiershot_path__"
@@ -178,12 +180,31 @@ class CustomEncodedPathTypes(_CustomEncodedTypeCollection):
     )
 
 
+class CustomEncodedUnitTypes(_CustomEncodedTypeCollection):
+    """Collection of custom-encoded Unit types from the pint package."""
+
+    # Corresponds to the _CustomEncodedType.type_key attribute.
+    type_key = "__snappiershot_unit__"
+    # Corresponds to the _CustomEncodedType.value_key attribute.
+    value_key = "value"
+
+    unit = _CustomEncodedType(
+        type_=Unit, name="Unit", type_key=type_key, value_key=value_key
+    )
+
+
 # Tuples of types intended to be used for isinstance checking.
 PRIMITIVE_TYPES = bool, float, int, type(None), str
 COLLECTION_TYPES = tuple(value.type for value in CustomEncodedCollectionTypes.list())
 DATETIME_TYPES = tuple(value.type for value in CustomEncodedDatetimeTypes.list())
 NUMERIC_TYPES = tuple(value.type for value in CustomEncodedNumericTypes.list())
 PATH_TYPES = PurePosixPath, PureWindowsPath, Path
+UNIT_TYPES = tuple(value.type for value in CustomEncodedUnitTypes.list())
 SERIALIZABLE_TYPES = (
-    PRIMITIVE_TYPES + COLLECTION_TYPES + DATETIME_TYPES + NUMERIC_TYPES + PATH_TYPES
+    PRIMITIVE_TYPES
+    + COLLECTION_TYPES
+    + DATETIME_TYPES
+    + NUMERIC_TYPES
+    + PATH_TYPES
+    + UNIT_TYPES
 )

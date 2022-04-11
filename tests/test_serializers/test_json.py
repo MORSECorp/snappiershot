@@ -6,17 +6,19 @@ from decimal import Decimal
 from math import inf, isnan, nan
 
 import pytest
+from pint import Unit
 from snappiershot.serializers.constants import (
     CustomEncodedCollectionTypes,
     CustomEncodedDatetimeTypes,
     CustomEncodedNumericTypes,
     CustomEncodedPathTypes,
+    CustomEncodedUnitTypes,
 )
 from snappiershot.serializers.json import JsonDeserializer, JsonSerializer
 
 
 class TestNumericEncoding:
-    """ Tests for custom encoding of numeric types. """
+    """Tests for custom encoding of numeric types."""
 
     NUMERIC_DECODING_TEST_CASES = [
         (3 + 4j, CustomEncodedNumericTypes.complex.json_encoding([3, 4])),
@@ -44,7 +46,7 @@ class TestNumericEncoding:
     @staticmethod
     @pytest.mark.parametrize("value, expected", NUMERIC_ENCODING_TEST_CASES)
     def test_encode_numeric(value, expected):
-        """ Test that the JsonSerializer.encode_numeric encodes values as expected. """
+        """Test that the JsonSerializer.encode_numeric encodes values as expected."""
         # Arrange
 
         # Act
@@ -55,7 +57,7 @@ class TestNumericEncoding:
 
     @staticmethod
     def test_encode_numeric_error():
-        """ Test that the JsonSerializer.encode_numeric raises an error if no encoding is defined. """
+        """Test that the JsonSerializer.encode_numeric raises an error if no encoding is defined."""
         # Arrange
         value = "3.121"
 
@@ -66,7 +68,7 @@ class TestNumericEncoding:
     @staticmethod
     @pytest.mark.parametrize("expected, value", NUMERIC_DECODING_TEST_CASES)
     def test_decode_numeric(expected, value):
-        """ Test that the JsonDeserializer.decode_numeric decodes values as expected. """
+        """Test that the JsonDeserializer.decode_numeric decodes values as expected."""
         # Arrange
 
         # Act
@@ -77,7 +79,7 @@ class TestNumericEncoding:
 
     @staticmethod
     def test_decode_numeric_error():
-        """ Test that the JsonDeserializer.decode_numeric raises an error if no decoding is defined. """
+        """Test that the JsonDeserializer.decode_numeric raises an error if no decoding is defined."""
         # Arrange
         value = {"numeric": "decimal", "value": "3.14"}
 
@@ -87,7 +89,7 @@ class TestNumericEncoding:
 
 
 class TestDatetimeEncoding:
-    """ Tests for custom encoding of datetime types. """
+    """Tests for custom encoding of datetime types."""
 
     DATETIME_DECODING_TEST_CASES = [
         # fmt: off
@@ -109,7 +111,7 @@ class TestDatetimeEncoding:
     @staticmethod
     @pytest.mark.parametrize("value, expected", DATETIME_ENCODING_TEST_CASES)
     def test_encode_datetime(value, expected):
-        """ Test that the JsonSerializer.encode_datetime encodes values as expected. """
+        """Test that the JsonSerializer.encode_datetime encodes values as expected."""
         # Arrange
 
         # Act
@@ -120,7 +122,7 @@ class TestDatetimeEncoding:
 
     @staticmethod
     def test_encode_datetime_error():
-        """ Test that the JsonSerializer.encode_datetime raises an error if no encoding is defined. """
+        """Test that the JsonSerializer.encode_datetime raises an error if no encoding is defined."""
         # Arrange
         value = "not a datetime"
 
@@ -131,7 +133,7 @@ class TestDatetimeEncoding:
     @staticmethod
     @pytest.mark.parametrize("expected, value", DATETIME_DECODING_TEST_CASES)
     def test_decode_datetime(value, expected):
-        """ Test that the JsonDeserializer.decode_datetime decodes values as expected. """
+        """Test that the JsonDeserializer.decode_datetime decodes values as expected."""
         # Arrange
 
         # Act
@@ -142,7 +144,7 @@ class TestDatetimeEncoding:
 
     @staticmethod
     def test_decode_datetime_error():
-        """ Test that the JsonDeserializer.decode_datetime raises an error if no decoding is defined. """
+        """Test that the JsonDeserializer.decode_datetime raises an error if no decoding is defined."""
         # Arrange
         value = {"foo": "bar"}
 
@@ -152,12 +154,15 @@ class TestDatetimeEncoding:
 
 
 class TestCollectionEncoding:
-    """ Tests for custom encoding of collection types. """
+    """Tests for custom encoding of collection types."""
 
     COLLECTION_DECODING_TEST_CASES = [
         ({1, 2, 3}, CustomEncodedCollectionTypes.set.json_encoding([1, 2, 3])),
         ((1, 2, 3), CustomEncodedCollectionTypes.tuple.json_encoding([1, 2, 3])),
-        (b"\x01\x02\x03", CustomEncodedCollectionTypes.bytes.json_encoding([1, 2, 3]),),
+        (
+            b"\x01\x02\x03",
+            CustomEncodedCollectionTypes.bytes.json_encoding([1, 2, 3]),
+        ),
     ]
 
     COLLECTION_ENCODING_TEST_CASES = [
@@ -167,7 +172,7 @@ class TestCollectionEncoding:
 
     @staticmethod
     def test_encode_collection_error():
-        """ Test that the JsonSerializer.encode_collection raises an error if no encoding is defined. """
+        """Test that the JsonSerializer.encode_collection raises an error if no encoding is defined."""
         # Arrange
         value = bytearray(10)
 
@@ -178,7 +183,7 @@ class TestCollectionEncoding:
     @staticmethod
     @pytest.mark.parametrize("value, expected", COLLECTION_ENCODING_TEST_CASES)
     def test_encode_collection(value, expected):
-        """ Test that the JsonSerializer.encode_collection encodes values as expected. """
+        """Test that the JsonSerializer.encode_collection encodes values as expected."""
         # Arrange
 
         # Act
@@ -190,7 +195,7 @@ class TestCollectionEncoding:
     @staticmethod
     @pytest.mark.parametrize("expected, value", COLLECTION_DECODING_TEST_CASES)
     def test_decode_collection(value, expected):
-        """ Test that the JsonDeserializer.decode_collection decodes collections as expected. """
+        """Test that the JsonDeserializer.decode_collection decodes collections as expected."""
         # Arrange
 
         # Act
@@ -201,7 +206,7 @@ class TestCollectionEncoding:
 
     @staticmethod
     def test_decode_collection_error():
-        """ Test that the JsonDeserializer.decode_collection raises an error if no decoding is defined. """
+        """Test that the JsonDeserializer.decode_collection raises an error if no decoding is defined."""
         # Arrange
         value = {"foo": "bar"}
 
@@ -211,7 +216,7 @@ class TestCollectionEncoding:
 
 
 class TestPathEncoding:
-    """ Tests for custom encoding of Path types. """
+    """Tests for custom encoding of Path types."""
 
     PATH_DECODING_TEST_CASES = [
         (
@@ -255,7 +260,7 @@ class TestPathEncoding:
     @staticmethod
     @pytest.mark.parametrize("value", PATH_ENCODING_UNSUPPORTED_CASES)
     def test_encode_path_error(value):
-        """ Test that the JsonSerializer.encode_path raises an error if no encoding is defined. """
+        """Test that the JsonSerializer.encode_path raises an error if no encoding is defined."""
         # Arrange
         value = b"foobar"
 
@@ -266,7 +271,7 @@ class TestPathEncoding:
     @staticmethod
     @pytest.mark.parametrize("value, expected", PATH_ENCODING_TEST_CASES)
     def test_encode_path(value, expected):
-        """ Test that the JsonSerializer.encode_collection encodes values as expected. """
+        """Test that the JsonSerializer.encode_path encodes values as expected."""
         # Arrange
 
         # Act
@@ -278,7 +283,7 @@ class TestPathEncoding:
     @staticmethod
     @pytest.mark.parametrize("expected, value", PATH_DECODING_TEST_CASES)
     def test_decode_path(value, expected):
-        """ Test that the JsonDeserializer.decode_collection decodes collections as expected. """
+        """Test that the JsonDeserializer.decode_path decodes collections as expected."""
         # Arrange
 
         # Act
@@ -289,7 +294,7 @@ class TestPathEncoding:
 
     @staticmethod
     def test_decode_path_error():
-        """ Test that the JsonDeserializer.decode_collection raises an error if no decoding is defined. """
+        """Test that the JsonDeserializer.decode_path raises an error if no decoding is defined."""
         # Arrange
         value = {"foo": "bar"}
 
@@ -298,8 +303,59 @@ class TestPathEncoding:
             JsonDeserializer.decode_path(value)
 
 
+class TestUnitEncoding:
+    """Tests for custom encoding of Unit types from pint."""
+
+    @staticmethod
+    def test_encode_unit_error():
+        """Test that the JsonSerializer.encode_unit raises an error if no encoding is defined."""
+        # Arrange
+        value = "foo"
+
+        # Act & Assert
+        with pytest.raises(NotImplementedError):
+            JsonSerializer.encode_unit(value)
+
+    @staticmethod
+    def test_encode_unit():
+        """Test that the JsonSerializer.encode_unit encodes values as expected."""
+        # Arrange
+        value = Unit("meter")
+        expected = CustomEncodedUnitTypes.unit.json_encoding("meter")
+
+        # Act
+        result = JsonSerializer.encode_unit(value)
+
+        # Assert
+        assert result == expected
+
+    @staticmethod
+    def test_decode_unit():
+        """Test that the JsonDeserializer.decode_unit decodes Units as expected."""
+        # Arrange
+        expected = Unit("meter")
+        value = CustomEncodedUnitTypes.unit.json_encoding("meter")
+
+        # Act
+        result = JsonDeserializer.decode_unit(value)
+
+        # Assert
+        assert result == expected
+
+    @staticmethod
+    def test_decode_unit_error():
+        """Test that the JsonDeserializer.decode_unit raises an error if no decoding is defined."""
+        # Arrange
+        value = {"foo": "bar"}
+
+        # Act & Assert
+        with pytest.raises(NotImplementedError):
+            JsonDeserializer.decode_unit(value)
+
+
 def test_round_trip(tmp_path: pathlib.Path):
-    """ Test that a serialized and then deserialized dictionary is unchanged. """
+    """Test that a serialized and then deserialized dictionary is unchanged."""
+
     # Arrange
     data = {
         "bool": True,
@@ -330,6 +386,7 @@ def test_round_trip(tmp_path: pathlib.Path):
         "pure_windows_path": pathlib.PureWindowsPath(),
         "pure_posix_Path": pathlib.PurePosixPath(),
         "bytes": b"bytes",
+        "unit": Unit("meter"),
     }
     test_file = tmp_path / "test.json"
 

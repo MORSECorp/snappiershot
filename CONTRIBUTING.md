@@ -47,7 +47,7 @@ We use [poetry](https://python-poetry.org/) to both manage dependencies
   and publish this package. You can find information about installing this
   software [here](https://python-poetry.org/docs/).
 
-This library supports Python versions `3.6.1` and above, so you must have
+This library supports Python versions `3.6.2` and above, so you must have
   a version of Python installed that meets those specifications in order to
   progress any further with setting up your environment. We use the
   excellent [pyenv](https://github.com/pyenv/pyenv) to manage our local
