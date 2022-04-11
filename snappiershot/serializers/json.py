@@ -97,7 +97,7 @@ class JsonSerializer(json.JSONEncoder):
 
         if isinstance(value, PATH_TYPES):
             return self.encode_path(value)
-
+          
         if isinstance(value, UNIT_TYPES):
             return self.encode_unit(value)
 
