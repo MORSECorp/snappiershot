@@ -1,12 +1,12 @@
 """ Constants used throughout the snappiershot package. """
 from types import SimpleNamespace
 
-ENCODING_FUNCTION_NAME = "__snapshot__"
+ENCODING_CLASS_OVERRIDE = "__snapshot__"
 SNAPSHOT_DIRECTORY = ".snapshots"
 
 
 class SnapshotKeys(SimpleNamespace):
-    """ Centralized location for the names of the keys of the parsed snapshot file. """
+    """Centralized location for the names of the keys of the parsed snapshot file."""
 
     metadata = "metadata"
     tests = "tests"

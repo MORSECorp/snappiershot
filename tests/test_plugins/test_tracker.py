@@ -7,7 +7,7 @@ from snappiershot.snapshot import SnapshotMetadata, SnapshotStatus
 
 
 def test_tracker_get_status_report():
-    """ Test that the SnapshotTracker.get_status_report method functions as expected. """
+    """Test that the SnapshotTracker.get_status_report method functions as expected."""
     # Arrange
     expected = StatusReport(1, 2, 3, 4, 5)
 
@@ -55,7 +55,7 @@ def test_tracker_get_status_report():
 
 
 def test_tracker_set_status():
-    """ Test that the SnapshotTracker.set_status method functions as expected. """
+    """Test that the SnapshotTracker.set_status method functions as expected."""
     # Arrange
     statuses = [
         SnapshotStatus.UNCHECKED,

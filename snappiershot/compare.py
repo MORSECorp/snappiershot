@@ -3,11 +3,13 @@ from math import isclose, isnan
 from operator import itemgetter
 from typing import Any, Callable, Dict, Iterable, List, Sequence, Set, Tuple
 
+from pint.unit import Unit
+
 from .config import Config
 
 
 class ObjectComparison:
-    """ Class for comparing two objects and logging differences between them. """
+    """Class for comparing two objects and logging differences between them."""
 
     def __init__(self, value: Any, expected: Any, config: Config, exact: bool = False):
         """
@@ -25,16 +27,16 @@ class ObjectComparison:
         self._compare(self.value, self.expected, operations=[])
 
     def __bool__(self) -> bool:
-        """ Returns True if no differences were detected. """
+        """Returns True if no differences were detected."""
         return not bool(self.differences.items)
 
     @property
     def equal(self) -> bool:
-        """ Returns True if no differences were detected. """
+        """Returns True if no differences were detected."""
         return bool(self)
 
     def _compare(self, value: Any, expected: Any, *, operations: List[Callable]) -> None:
-        """ Perform a recursive, almost-equals comparison between value and expected.
+        """Perform a recursive, almost-equals comparison between value and expected.
 
         Args:
             value: The object to be checked.
@@ -43,11 +45,20 @@ class ObjectComparison:
               Tracks the operations that need to be applied to self.value and self.expected
                 to obtain value and expected, respectively. Used for logging differences.
         """
-        # Check the types of both objects.
+        # Special check for units and floats first since it's possible the types won't match even if they are equal
+        # objects
+        if isinstance(expected, Unit) or isinstance(value, Unit):
+            return self._compare_units(value, expected, operations=operations)
+
+        if isinstance(value, float) and not self.exact:
+            return self._compare_floats(value, expected, operations=operations)
+
+        # Check the types of both objects
         if type(value) != type(expected):
             message = f"Types not equal: {type(value)} != {type(expected)}"
             return self.differences.add(operations, message)
 
+        # Compare dictionaries
         if isinstance(value, dict):
             return self._compare_dicts(value, expected, operations=operations)
 
@@ -59,17 +70,33 @@ class ObjectComparison:
         if isinstance(value, Sequence) and not isinstance(value, str):
             return self._compare_sequences(value, expected, operations=operations)
 
-        if isinstance(value, float) and not self.exact:
-            return self._compare_floats(value, expected, operations=operations)
-
         # Default to exact comparison for all other types.
         if value != expected:
             return self.differences.add(operations, f"{value} != {expected}")
 
+    def _compare_units(
+        self, value: Unit, expected: Unit, *, operations: List[Callable] = None
+    ) -> None:
+        """Perform a recursive, almost-equals comparison between value and expected.
+
+        This is a helper function for when the expected is a unit, it compares objects without checking type.
+
+        Args:
+            value: The object to be checked.
+            expected: The object to be compared against.
+            operations: **Internally used for recursion**
+              Tracks the operations that need to be applied to self.value and self.expected
+                to obtain value and expected, respectively. Used for logging differences.
+        """
+        # Check if the string format of both are equal due to possibility of different registries
+        if str(value) != str(expected):
+            message = f"Units not equal ({value} != {expected}). "
+            return self.differences.add(operations, message)
+
     def _compare_dicts(
         self, value: Dict, expected: Dict, *, operations: List[Callable] = None
     ) -> None:
-        """ Perform a recursive, almost-equals comparison between value and expected.
+        """Perform a recursive, almost-equals comparison between value and expected.
 
         This is a helper function for when both value and expected are dictionaries.
 
@@ -96,7 +123,7 @@ class ObjectComparison:
     def _compare_floats(
         self, value: float, expected: float, *, operations: List[Callable] = None
     ) -> None:
-        """ Perform an almost-equals comparison between value and expected.
+        """Perform an almost-equals comparison between value and expected.
 
         This is a helper function for when both value and expected are floats.
 
@@ -126,7 +153,7 @@ class ObjectComparison:
     def _compare_sequences(
         self, value: Sequence, expected: Sequence, *, operations: List[Callable] = None
     ) -> None:
-        """ Perform a recursive, almost-equals comparison between value and expected.
+        """Perform a recursive, almost-equals comparison between value and expected.
 
         This is a helper function for when both value and expected are sequences
           (ordered, indexable iterables).
@@ -154,7 +181,7 @@ class ObjectComparison:
     def _compare_sets(
         self, value: Set, expected: Set, *, operations: List[Callable] = None
     ) -> None:
-        """ Perform an exact-equals comparison between value and expected.
+        """Perform an exact-equals comparison between value and expected.
 
         This is a helper function for when both value and expected are sets.
 
@@ -176,7 +203,7 @@ class ObjectComparison:
 
 
 class _Differences:
-    """ Helper object for logging comparisons for the ObjectComparison class.
+    """Helper object for logging comparisons for the ObjectComparison class.
 
     Example:
         >>> value = dict(name="test", list=[(1, 2, 4)])
@@ -201,7 +228,7 @@ class _Differences:
         self.items: Dict[Tuple[Callable, ...], str] = dict()
 
     def add(self, operations: Iterable[Callable], message: str) -> None:
-        """ Add a difference to the log of differences.
+        """Add a difference to the log of differences.
 
         Args:
             operations: The operations that need to be applied to complex object to obtain

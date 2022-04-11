@@ -23,7 +23,7 @@ _ExceptionTypes = Union[Type[_E], Tuple[Type[_E], ...]]
 
 
 class _RaisesContext(Generic[_E]):
-    """ Context class used to track and snapshot raised exceptions. """
+    """Context class used to track and snapshot raised exceptions."""
 
     def __init__(
         self, snapshot: "Snapshot", expected_exceptions: _ExceptionTypes, update: bool
@@ -43,7 +43,7 @@ class _RaisesContext(Generic[_E]):
         self._assert_match = False
 
     def __enter__(self) -> "_RaisesContext":
-        """ Enter the context. """
+        """Enter the context."""
         return self
 
     def __exit__(
@@ -52,7 +52,7 @@ class _RaisesContext(Generic[_E]):
         exc_val: Optional[BaseException],
         exc_tb: Optional[TracebackType],
     ) -> bool:
-        """ Exit the context, checking exception types (if raised) and snapshotting.
+        """Exit the context, checking exception types (if raised) and snapshotting.
 
         Args:
             exc_type: The type of exception raised within the context (if exists).

@@ -21,7 +21,7 @@ class Pandas:
     def get_pandas(
         raise_error: bool = False, custom_error_message: str = ""
     ) -> Optional[ModuleType]:
-        """ Return pandas module, if it is already imported, otherwise return None
+        """Return pandas module, if it is already imported, otherwise return None
 
         Args:
             raise_error: if True, e.g. when pandas is required, raise an error
@@ -44,7 +44,7 @@ class Pandas:
 
     @classmethod
     def encode_pandas(cls, value: Any) -> EncodedPandasType:
-        """ Encoding given pandas object as a dictionary
+        """Encoding given pandas object as a dictionary
 
         Raises:
             NotImplementedError - If encoding is not implemented for the given pandas type.
@@ -121,7 +121,7 @@ class Numpy:
     def get_numpy(
         raise_error: bool = False, custom_error_message: str = ""
     ) -> Optional[ModuleType]:
-        """ Return numpy module, if it is already imported, otherwise return None
+        """Return numpy module, if it is already imported, otherwise return None
 
         Args:
             raise_error: if True, e.g. when numpy is required, raise an error
@@ -144,7 +144,7 @@ class Numpy:
 
     @classmethod
     def _get_numpy_primatives(cls, np: ModuleType) -> Tuple[type]:
-        """ Get numpy primative types
+        """Get numpy primative types
         Based on https://numpy.org/devdocs/user/basics.types.html
 
         Args:
@@ -164,7 +164,7 @@ class Numpy:
 
     @classmethod
     def encode_numpy(cls, value: Any) -> Any:
-        """ Encoding given numpy object
+        """Encoding given numpy object
 
         Raises:
             NotImplementedError - If encoding is not implemented for the given numpy type.

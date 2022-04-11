@@ -7,7 +7,7 @@ from typing import Any, Dict, Iterator, NamedTuple
 
 class CallerInfo(NamedTuple):
     # noinspection PyUnresolvedReferences
-    """ Information about the caller function.
+    """Information about the caller function.
 
     Args:
         file: The path to the file containing the caller function.
@@ -21,7 +21,7 @@ class CallerInfo(NamedTuple):
 
     @classmethod
     def from_call_stack(cls, frame_index: int = 2) -> "CallerInfo":
-        """ Collect the CallerInfo from the call stack.
+        """Collect the CallerInfo from the call stack.
 
         Args:
             frame_index: The index of the frame of the caller function.
@@ -101,7 +101,7 @@ class CallerInfo(NamedTuple):
 def recursive_yield_staticmethods(
     haystack: Dict[str, Any], function: str, file: str
 ) -> Iterator[FunctionType]:
-    """ Recursively attempt to sort through the haystack looking classes with
+    """Recursively attempt to sort through the haystack looking classes with
     staticmethods with the specified function name, and yields these functions.
 
     Args:
@@ -127,7 +127,7 @@ def recursive_yield_staticmethods(
 
 
 def has_caller_method(kls: object, function_name: str, function_code: CodeType) -> bool:
-    """ Determines the function with specified function name and code is a
+    """Determines the function with specified function name and code is a
     method of the specified class.
 
     Args:
@@ -143,7 +143,7 @@ def has_caller_method(kls: object, function_name: str, function_code: CodeType) 
 
 
 def is_staticmethod(kls: object, method: str) -> bool:
-    """ Determines if the method of the class is a staticmethod.
+    """Determines if the method of the class is a staticmethod.
 
     Args:
         kls: The class to test for the staticmethod.

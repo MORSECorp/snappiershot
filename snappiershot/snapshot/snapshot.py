@@ -2,7 +2,7 @@
 import warnings
 from difflib import Differ
 from shutil import get_terminal_size
-from typing import Any, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 import pprint_ordered_sets as pprint
 
@@ -20,7 +20,7 @@ class Snapshot:
     """Snapshot of a single assert value"""
 
     def __init__(self, configuration: Optional[Config] = None) -> None:
-        """ Initialize snapshot associated with a particular assert """
+        """Initialize snapshot associated with a particular assert"""
         self.configuration = configuration if configuration is not None else Config()
         self._snapshot_index = 0
         self._within_context = False
@@ -29,8 +29,14 @@ class Snapshot:
         self._metadata: Optional[SnapshotMetadata] = None
         self._snapshot_file: Optional[_SnapshotFile] = None
 
-    def assert_match(self, value: Any, exact: bool = False, update: bool = False) -> bool:
-        """ Assert that the given value matches the snapshot on file
+    def assert_match(
+        self,
+        value: Any,
+        exact: bool = False,
+        update: bool = False,
+        ignore: List[str] = None,
+    ) -> bool:
+        """Assert that the given value matches the snapshot on file
 
         Args:
             value: new value to compare to snapshot
@@ -38,6 +44,7 @@ class Snapshot:
               otherwise assert approximate equality
             update: if True, overwrite snapshot with given value
               (assertion will always pass in this case)
+            ignore: optional argument ignores specified variables from the metadata
 
         Returns:
             True if value matches the snapshot
@@ -52,10 +59,15 @@ class Snapshot:
             >>> with Snapshot() as snapshot:
             >>>     snapshot.assert_match(result)
         """
+        if ignore is None:
+            ignore = []
+
         if not self._within_context:
             raise RuntimeError("assert_match must be used within the Snapshot context. ")
 
-        self._metadata = self._get_metadata(update_on_next_run=update)
+        self._metadata = self._get_metadata(
+            update_on_next_run=update, args_to_ignore=ignore
+        )
         self._snapshot_file = self._load_snapshot_file(metadata=self._metadata)
 
         # Get the stored value from the snapshot file and increment the snapshot counter.
@@ -94,7 +106,7 @@ class Snapshot:
     def raises(
         self, expected_exception: _ExceptionTypes, *, update: bool = False
     ) -> "_RaisesContext":
-        """ Assert that a code block raises an expected exception
+        """Assert that a code block raises an expected exception
         and snapshot the value of the raised exception.
 
         This is directly inspired by the ``pytest.raises`` method.
@@ -133,24 +145,24 @@ class Snapshot:
                 )
 
         # Preload the metadata and snapshot file.
-        self._metadata = self._get_metadata(update_on_next_run=update)
+        self._metadata = self._get_metadata(update_on_next_run=update, args_to_ignore=[])
         self._snapshot_file = self._load_snapshot_file(metadata=self._metadata)
         return _RaisesContext(self, expected_exceptions, update)
 
     def __enter__(self) -> "Snapshot":
-        """ Enter the context of a Snapshot session. """
+        """Enter the context of a Snapshot session."""
         self._within_context = True
         return self
 
     def __exit__(self, *args: Any, **kwargs: Any) -> None:
-        """ Exits the context of the Snapshot session. """
+        """Exits the context of the Snapshot session."""
         if self._snapshot_file is not None:
             self._snapshot_file.write()
         self._within_context = False
 
     @staticmethod
     def _construct_diff(value: Any, expected: Any, comparison: ObjectComparison) -> str:
-        """ Construct the human-readable diff between two objects.
+        """Construct the human-readable diff between two objects.
 
         Args:
             value: The value to be diffed.
@@ -183,14 +195,17 @@ class Snapshot:
             + "\n"
         )
 
-    def _get_metadata(self, update_on_next_run: bool) -> SnapshotMetadata:
-        """ Gather metadata via inspection of current context of the test function.
+    def _get_metadata(
+        self, update_on_next_run: bool, args_to_ignore: List[str]
+    ) -> SnapshotMetadata:
+        """Gather metadata via inspection of current context of the test function.
 
         A SnapshotMetadata object is created only if self._metadata is not already set.
         However, the "update_on_next_run" attribute is set every time.
 
         Args:
             update_on_next_run: Setting for SnapshotMetadata.update_on_next_run
+            args_to_ignore: Will specifically ignore certain inputs in the metadata
         """
         if isinstance(self._metadata, SnapshotMetadata):
             self._metadata.update_on_next_run = update_on_next_run
@@ -203,12 +218,16 @@ class Snapshot:
         #                | - CallerInfo.from_call_stack    <- frame_index=0
         caller_info = CallerInfo.from_call_stack(frame_index=3)
         caller_info = self._remove_special_arguments(caller_info)
+
+        # Ignore certain arguments
+        [caller_info.args.pop(item) for item in args_to_ignore]
+
         return SnapshotMetadata(
             caller_info=caller_info, update_on_next_run=update_on_next_run
         )
 
     def _load_snapshot_file(self, metadata: SnapshotMetadata) -> "_SnapshotFile":
-        """ Load the snapshot file into memory.
+        """Load the snapshot file into memory.
 
         The snapshot file is only loaded if self._snapshot_file is not already set.
 
@@ -221,7 +240,7 @@ class Snapshot:
 
     @classmethod
     def _remove_special_arguments(cls, caller_info: CallerInfo) -> CallerInfo:
-        """ Filter out the any arguments that shouldn't be used for metadata,
+        """Filter out the any arguments that shouldn't be used for metadata,
         such as the pytest "snapshot" fixture.
 
         Args:

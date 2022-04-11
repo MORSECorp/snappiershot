@@ -25,7 +25,7 @@ from snappiershot.snapshot import SnapshotMetadata, SnapshotStatus
 
 
 class StatusReport(NamedTuple):
-    """ NamedTuple for returning a status report for the snapshot testing session. """
+    """NamedTuple for returning a status report for the snapshot testing session."""
 
     unchecked: int = 0
     failed: int = 0
@@ -34,14 +34,14 @@ class StatusReport(NamedTuple):
     written: int = 0
 
     def any(self) -> bool:
-        """ Return a boolean that is False if all status reports are zero, else True. """
+        """Return a boolean that is False if all status reports are zero, else True."""
         return bool(
             self.unchecked or self.failed or self.passed or self.recorded or self.written
         )
 
 
 class SnapshotTracker:
-    """ Class used to track snapshot status throughout an entire test-run session. """
+    """Class used to track snapshot status throughout an entire test-run session."""
 
     def __init__(self, *paths: Path):
         """
@@ -58,7 +58,7 @@ class SnapshotTracker:
         self.snapshots = self._construct()
 
     def get_status_report(self) -> StatusReport:
-        """ Return the status report. """
+        """Return the status report."""
         unchecked = failed = passed = recorded = written = 0
         for file, functions in self.snapshots.items():
             for function_name, function_calls in functions.items():
@@ -85,7 +85,7 @@ class SnapshotTracker:
         function_name: str,
         metadata: SnapshotMetadata,
     ) -> None:
-        """ Set the statuses an individual snapshot run.
+        """Set the statuses an individual snapshot run.
 
         Args:
             statuses: The statuses of the snapshot files for a particular test function.
@@ -114,7 +114,7 @@ class SnapshotTracker:
         function_snapshots.append(dict(metadata=metadata.as_dict(), snapshots=statuses))
 
     def _construct(self) -> Dict:
-        """ Construct the underlying data structure for tracking snapshots.
+        """Construct the underlying data structure for tracking snapshots.
 
         This format of tracker largely follows the structure of
           the snapshot (JSON) file format:

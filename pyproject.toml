@@ -23,17 +23,18 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.6.1"
+python = "^3.6.2"
 importlib-metadata = { version = ">1.5.1", python = "<3.8" }
 tomlkit = "^0.7.0"
 pandas = { version = ">=0.20.0", optional = true}
 pprint_ordered_sets = "^1.0.0"
+pint = "^0.14"
 
 [tool.poetry.extras]
 pandas = ["pandas"]
 
 [tool.poetry.dev-dependencies]
-black = "19.10b0"
+black = "^22.3.0"
 coverage = "^5.3"
 flake8 = "^3.8.3"
 mypy = "^0.782"

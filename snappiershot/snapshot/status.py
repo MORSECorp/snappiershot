@@ -3,7 +3,7 @@ from enum import IntEnum, auto
 
 
 class SnapshotStatus(IntEnum):
-    """ Enumeration of snapshot statuses.
+    """Enumeration of snapshot statuses.
 
     Unchecked -- The snapshot was discovered, but has not been asserted against.
     Failed    -- The snapshot assertion failed.

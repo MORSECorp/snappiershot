@@ -27,7 +27,7 @@ DEFAULT_CONFIG_KWARGS = dict(
 
 @pytest.fixture(name="pyproject_directory")
 def _pyproject_directory(tmp_path: Path) -> Path:
-    """ Fixture which creates the following directory structure in a temporary directory:
+    """Fixture which creates the following directory structure in a temporary directory:
 
     temp
       | - child
@@ -49,7 +49,7 @@ def _pyproject_directory(tmp_path: Path) -> Path:
 
 @pytest.mark.parametrize("parent_index, expected", [(0, True), (1, True), (2, False)])
 def test_find_pyproject_toml(parent_index: int, expected: bool, pyproject_directory: Path):
-    """ Test that the `snappiershot.config.find_pyproject_toml` function properly
+    """Test that the `snappiershot.config.find_pyproject_toml` function properly
     traverses the provided path searching for the pyproject.toml file.
     """
     # Arrange
@@ -76,8 +76,10 @@ def test_find_pyproject_toml(parent_index: int, expected: bool, pyproject_direct
     ]
 )
 # fmt: on
-def test_from_pyproject(contents: List[str], config_kwargs: Dict, pyproject_directory: Path):
-    """ Test that pyproject.toml files are parsed for configurations in a robust manner. """
+def test_from_pyproject(
+    contents: List[str], config_kwargs: Dict, pyproject_directory: Path
+):
+    """Test that pyproject.toml files are parsed for configurations in a robust manner."""
     # Arrange
     pyproject_toml = find_pyproject_toml(pyproject_directory)
     pyproject_toml.open("w").writelines((f"{line}\n" for line in contents))
@@ -102,10 +104,10 @@ def test_from_pyproject(contents: List[str], config_kwargs: Dict, pyproject_dire
         ({**DEFAULT_CONFIG_KWARGS, "full_diff": None}, TypeError),
         ({**DEFAULT_CONFIG_KWARGS, "json_indentation": -1}, ValueError),
         ({**DEFAULT_CONFIG_KWARGS, "json_indentation": 1.5}, TypeError),
-    ]
+    ],
 )
 def test_config_validate(config_kwargs: Dict, expected_error: Type[Exception]):
-    """ Checks that validation of the configuration values occurs as expected. """
+    """Checks that validation of the configuration values occurs as expected."""
     # Arrange
 
     # Act & Assert

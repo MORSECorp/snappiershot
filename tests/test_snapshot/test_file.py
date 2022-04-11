@@ -14,11 +14,11 @@ from snappiershot.snapshot.status import SnapshotStatus
 
 @pytest.mark.usefixtures("empty_caller_info", "snapshot_file")
 class TestSnapshotFile:
-    """ Tests for the snappiershot.snapshot._SnapshotFile object. """
+    """Tests for the snappiershot.snapshot._SnapshotFile object."""
 
     @staticmethod
     def test_get_snapshot_file_error(config: Config, metadata: SnapshotMetadata):
-        """ Test that _SnapshotFile._get_snapshot_file raises an error when given an
+        """Test that _SnapshotFile._get_snapshot_file raises an error when given an
         unsupported file format.
         """
         # Arrange
@@ -33,7 +33,7 @@ class TestSnapshotFile:
 
     @staticmethod
     def test_parse_snapshot_file_no_file(config: Config, metadata: SnapshotMetadata):
-        """ Test that if the snapshot file does not exist, the file contents are set to
+        """Test that if the snapshot file does not exist, the file contents are set to
         an empty, default value.
         """
         # Arrange
@@ -116,7 +116,7 @@ class TestSnapshotFile:
         metadata: SnapshotMetadata,
         snapshot_file: Path,
     ):
-        """ Test that the _SnapshotFile._find_snapshots method finds snapshots as expected
+        """Test that the _SnapshotFile._find_snapshots method finds snapshots as expected
         and updates the _file_contents attribute as expected.
         """
         # Arrange
@@ -137,7 +137,7 @@ class TestSnapshotFile:
     def test_get_snapshot(
         snapshots, index, expected, config: Config, metadata: SnapshotMetadata
     ):
-        """ Test that the _SnapshotFile.get_snapshot method functions as expected.
+        """Test that the _SnapshotFile.get_snapshot method functions as expected.
 
         Additionally assert that no changes are flagged from reading snapshots.
         """
@@ -153,7 +153,7 @@ class TestSnapshotFile:
         assert not snapshot_file._changed_flag
 
     def test_mark_failed(self, config: Config, metadata: SnapshotMetadata):
-        """ Test that the _SnapshotFile.mark_failed method functions as expected. """
+        """Test that the _SnapshotFile.mark_failed method functions as expected."""
         # Arrange
         snapshot_file = _SnapshotFile(config, metadata)
         expected = [SnapshotStatus.FAILED]
@@ -165,7 +165,7 @@ class TestSnapshotFile:
         assert snapshot_file._snapshot_statuses == expected
 
     def test_mark_passed(self, config: Config, metadata: SnapshotMetadata):
-        """ Test that the _SnapshotFile.mark_passed method functions as expected. """
+        """Test that the _SnapshotFile.mark_passed method functions as expected."""
         # Arrange
         snapshot_file = _SnapshotFile(config, metadata)
         expected = [SnapshotStatus.PASSED]
@@ -178,7 +178,7 @@ class TestSnapshotFile:
 
     @staticmethod
     def test_record_snapshot(config: Config, metadata: SnapshotMetadata):
-        """ Test that the _SnapshotFile.record_snapshot method functions as expected.
+        """Test that the _SnapshotFile.record_snapshot method functions as expected.
 
         Additionally assert that changes are flagged when recording snapshots.
         """
@@ -205,7 +205,7 @@ class TestSnapshotFile:
         metadata: SnapshotMetadata,
         snapshot_file: Path,
     ):
-        """ Test that the write method only writes when a changes are flagged. """
+        """Test that the write method only writes when a changes are flagged."""
         # Arrange
         snapshot_file_object = _SnapshotFile(config, metadata)
         snapshot_file_object._changed_flag = changed_flag
@@ -225,7 +225,7 @@ class TestSnapshotFile:
 
     @staticmethod
     def test_encoded_metadata(config: Config, snapshot_file: Path):
-        """ Test that SnapshotMetadata gets encoded to eliminate serialization errors. """
+        """Test that SnapshotMetadata gets encoded to eliminate serialization errors."""
         # Arrange
         args = dict(unhandled_type=SimpleNamespace(complex=3 + 4j))
         caller_info = CallerInfo(snapshot_file, "test_function", args)
