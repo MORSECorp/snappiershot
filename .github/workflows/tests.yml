@@ -55,6 +55,7 @@ jobs:
         poetry run python -m pip install pip -U
     - name: Install dependencies
       run: |
+        pip install numpy == 1.21.0
         poetry install -vvv --extras pandas
     - name: Test
       run: |
