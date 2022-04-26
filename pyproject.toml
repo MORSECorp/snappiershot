@@ -43,7 +43,7 @@ pre-commit = "^2.6.0"
 pytest = "^6.0.1"
 pytest_mock = "^3.3.1"
 numpy = [{version = "1.19.5", python = "<3.10"},
-         {version = "1.21.0", python = ">=3.10"}
+         {version = ">=1.21.0", python = ">=3.10"}
 ]
 
 [tool.poetry.plugins.pytest11]
